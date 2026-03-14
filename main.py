@@ -145,18 +145,24 @@ def show_persona_card(persona: dict):
 # ─────────────── MAIN MENU ────────────────────────────────────
 # ═══════════════════════════════════════════════════════════════
 
-def main_menu() -> str:
+def main_menu(has_personas: bool = True) -> str:
+    choices = [
+        {"name": "🚀 İçerik Paketi Üret  — 1 aylık tam plan (görsel + video + caption)", "value": "generate"},
+        Separator(),
+        {"name": "✨ Yeni Persona Oluştur — Sıfırdan sanatçı/influencer profili kur", "value": "wizard"},
+        {"name": "👁️  Persona Oluştur    — Fotoğraflardan görsel kimlik analizi", "value": "persona"},
+        {"name": "🔄 Persona Yenile      — Mevcut persona'yı sil ve tekrar oluştur", "value": "rebuild"},
+        {"name": "📋 Persona Bilgisi     — Seçili sanatçının detaylarını göster", "value": "info"},
+        Separator(),
+        {"name": "❌ Çıkış", "value": "exit"},
+    ]
+
+    default = "generate" if has_personas else "wizard"
+
     return inquirer.select(
         message="Ne yapmak istersin?",
-        choices=[
-            {"name": "🚀 İçerik Paketi Üret  — 1 aylık tam plan (görsel + video + caption)", "value": "generate"},
-            {"name": "👁️  Persona Oluştur    — Fotoğraflardan görsel kimlik analizi", "value": "persona"},
-            {"name": "🔄 Persona Yenile      — Mevcut persona'yı sil ve tekrar oluştur", "value": "rebuild"},
-            {"name": "📋 Persona Bilgisi     — Seçili sanatçının detaylarını göster", "value": "info"},
-            Separator(),
-            {"name": "❌ Çıkış", "value": "exit"},
-        ],
-        default="generate",
+        choices=choices,
+        default=default,
         pointer="❯",
         qmark="",
         amark="✦",
@@ -408,20 +414,38 @@ def main():
     personas = discover_personas()
 
     if not personas:
-        show_error("personas/ klasöründe sanatçı profili bulunamadı!")
-        console.print("  [dim]Bir klasör oluşturun: personas/sanatci_adi/seed.json + images/[/dim]")
-        return
+        show_warning("Henüz hiç sanatçı profili oluşturulmamış.")
+        console.print("  [dim]İlk persona'nı oluşturmak için sihirbazı başlatalım...[/dim]\n")
+
+        from cli_wizard import run_persona_wizard
+        new_persona = run_persona_wizard()
+        if new_persona:
+            personas = discover_personas()
+        else:
+            return
 
     # Ana döngü
     while True:
         try:
-            action = main_menu()
+            action = main_menu(has_personas=len(personas) > 0)
 
             if action == "exit":
                 console.print("\n  [dim bright_magenta]🎭 Sahne kapanıyor... Görüşürüz![/dim bright_magenta]\n")
                 break
 
-            # Sanatçı seç
+            # Sihirbaz — sanatçı seçimi gerektirmez
+            if action == "wizard":
+                from cli_wizard import run_persona_wizard
+                new_persona = run_persona_wizard()
+                if new_persona:
+                    personas = discover_personas()
+                continue
+
+            # Diğer tüm işlemler sanatçı seçimi gerektirir
+            if not personas:
+                show_warning("Önce bir sanatçı profili oluşturmalısın.")
+                continue
+
             selected = select_persona(personas) if len(personas) > 1 else personas[0]
             show_persona_card(selected)
 
@@ -430,6 +454,7 @@ def main():
 
             elif action == "persona":
                 run_persona_build(selected)
+                personas = discover_personas()
 
             elif action == "rebuild":
                 confirm = inquirer.confirm(
@@ -439,13 +464,13 @@ def main():
                 ).execute()
                 if confirm:
                     run_persona_build(selected, rebuild=True)
+                    personas = discover_personas()
 
             elif action == "generate":
                 # Persona kontrolü
                 if not selected["has_cache"]:
                     console.print("  [dim]Önce persona oluşturulacak (ilk seferlik)...[/dim]")
                     run_persona_build(selected)
-                    # Persona listesini yenile
                     personas = discover_personas()
                     selected = next((p for p in personas if p["dir"] == selected["dir"]), selected)
 
