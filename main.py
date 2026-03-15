@@ -152,6 +152,7 @@ def show_persona_card(persona: dict):
 def main_menu(has_personas: bool = True) -> str:
     choices = [
         {"name": "🚀 İçerik Paketi Üret  — 1 aylık tam plan (görsel + video + caption)", "value": "generate"},
+        {"name": "🎨 Tekil Görsel Üret   — Sadece tek bir prompt yazıp resim çizdir", "value": "image_gen"},
         Separator(),
         {"name": "✨ Yeni Persona Oluştur — Sıfırdan sanatçı/influencer profili kur", "value": "wizard"},
         {"name": "👁️  Persona Oluştur    — Fotoğraflardan görsel kimlik analizi", "value": "persona"},
@@ -526,6 +527,65 @@ def main():
                 if confirm:
                     run_persona_build(selected, rebuild=True)
                     personas = discover_personas()
+
+            elif action == "image_gen":
+                console.print(f"\n  [dim]{selected['name']} için tekil görsel üretim moduna geçildi.[/dim]")
+                raw_prompt = inquirer.text(
+                    message="Ne çizmek istiyorsun? Detaylı sahne/styling gir:",
+                    qmark="🎨",
+                    amark="✦"
+                ).execute().strip()
+
+                if not raw_prompt:
+                    show_warning("Görsel istemi boş geçilemez.")
+                    continue
+
+                aspect_ratio = inquirer.select(
+                    message="Görsel hangi formatta olsun?",
+                    choices=[
+                        {"name": "1:1 (Kare Post)", "value": "1:1"},
+                        {"name": "9:16 (Story / Reels / TikTok)", "value": "9:16"},
+                        {"name": "16:9 (YouTube Kapak)", "value": "16:9"},
+                    ],
+                    pointer="❯",
+                    qmark="📐",
+                ).execute()
+
+                from core.image_generator import generate_image
+                import random
+                
+                # Referans Görseli
+                images_dir = Path(selected["dir"]) / "images"
+                reference_img = None
+                if images_dir.exists():
+                    images = list(images_dir.glob("*.[jp][pn]*[g]")) # Hızlı regex'imsiz
+                    if images:
+                        reference_img = str(images[0])
+
+                output_folder = Path("output") / f"{selected['folder_name']}_single_images"
+                output_folder.mkdir(parents=True, exist_ok=True)
+                file_name = f"single_{random.randint(1000, 9999)}.jpg"
+                out_path = output_folder / file_name
+
+                with Progress(
+                    SpinnerColumn("dots", style="bright_cyan"),
+                    TextColumn("[bright_cyan]Nano Banana 2 çiziyor...[/bright_cyan]"),
+                    console=console,
+                ) as progress:
+                    task = progress.add_task("Üretim süreci", total=None)
+                    
+                    success = generate_image(
+                        prompt=raw_prompt,
+                        reference_image_path=reference_img,
+                        output_path=str(out_path),
+                        aspect_ratio=aspect_ratio
+                    )
+                    progress.update(task, completed=1)
+
+                if success:
+                    show_success(f"Görsel oluşturuldu ve şuraya eklendi: {out_path}")
+                else:
+                    show_error("Görsel üretilirken hata oluştu. Rate limit vb. olabilir.")
 
             elif action == "generate":
                 # Persona kontrolü
