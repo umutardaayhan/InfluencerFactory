@@ -389,6 +389,62 @@ def run_content_pipeline(persona: dict, month: str, prompt: str):
             border_style="green",
             padding=(1, 2),
         ))
+
+        # ── Görsel Üretim Aşaması (Nano Banana 2 API) ─────────────
+        if vp_count > 0:
+            console.print("\n[bold cyan]✨ Görsel Promotlarınız hazır![/bold cyan]")
+            generate_images_action = inquirer.select(
+                message="Nano Banana 2 API kullanarak bu prompları GERÇEK GÖRSELLERE dönüştürmek ister misiniz?",
+                choices=[
+                    {"name": "🪄 Evet, hemen oluştur ve indir", "value": True},
+                    {"name": "❌ Hayır, sadece metin olarak kalsın", "value": False}
+                ],
+                pointer="❯",
+            ).execute()
+            
+            if generate_images_action:
+                from core.image_generator import generate_image
+                import random
+                
+                # Referans Görseli Bul (İlk resmi al)
+                images_dir = Path(persona["dir"]) / "images"
+                reference_img = None
+                if images_dir.exists():
+                    images = list(images_dir.glob("*.[jp][pn]*[g]")) # jpg, png, jpeg
+                    if images:
+                        reference_img = str(images[0])
+                        
+                output_folder = Path("output") / f"{month}_{safe_name}_images"
+                output_folder.mkdir(parents=True, exist_ok=True)
+                
+                with Progress(
+                    SpinnerColumn("dots", style="bright_cyan"),
+                    TextColumn("[progress.description]{task.description}"),
+                    console=console,
+                ) as progress:
+                    task = progress.add_task(f"Görseller çiziliyor (0/{vp_count})...", total=vp_count)
+                    
+                    success_count = 0
+                    for vp in package.visual_prompts:
+                        file_name = f"{vp.slot_ref.lower().replace(' ', '_')}_{random.randint(1000, 9999)}.jpg"
+                        out_path = output_folder / file_name
+                        
+                        progress.update(task, description=f"Çiziliyor: {file_name}...")
+                        
+                        success = generate_image(
+                            prompt=vp.prompt_text,
+                            reference_image_path=reference_img,
+                            output_path=str(out_path),
+                            aspect_ratio=vp.aspect_ratio
+                        )
+                        if success:
+                            success_count += 1
+                        progress.advance(task)
+                        
+                if success_count > 0:
+                    console.print(f"  [bold green]✅ {success_count} adet görsel başarıyla '{output_folder}' klasörüne kaydedildi![/bold green]")
+                else:
+                    show_error("Görsel üretimi başarısız oldu. API sorunu veya rate limit olabilir.")
     else:
         show_error("Paket oluşturulamadı. --verbose ile tekrar deneyin.")
 
