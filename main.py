@@ -556,12 +556,21 @@ def main():
 
                 final_prompt_text = raw_prompt
 
+                # Referans Görseli (LLM'e context olarak yedirilecek)
+                images_dir = Path(selected["dir"]) / "images"
+                reference_img = None
+                if images_dir.exists():
+                    images = list(images_dir.glob("*.[jp][pn]*[g]")) 
+                    if images:
+                        reference_img = str(images[0])
+
                 # AI Prompt Design Phase
                 if creation_method in ["random", "ai_enhance"]:
                     with Progress(SpinnerColumn("dots", style="bright_cyan"), TextColumn("[bright_cyan]AI Prompt tasarlıyor...[/bright_cyan]"), console=console) as progress:
                         task = progress.add_task("AI Prompt", total=None)
                         
-                        from core.llm_bridge import get_llm
+                        from core.llm_bridge import get_llm, image_to_base64, get_image_mime
+                        from langchain_core.messages import HumanMessage
                         import json
                         
                         system_prompt = "You are an expert AI image prompt engineer. Translate the user's concept into a highly detailed, professional English image prompt (e.g. for Midjourney/Flux) with camera angles, lighting, and aesthetic keywords. Return ONLY the English prompt text without any explanations or markdown blocks."
@@ -580,7 +589,25 @@ def main():
                                 
                         try:
                             llm = get_llm("visual_prompter")
-                            resp = llm.invoke([("system", system_prompt), ("human", raw_prompt)])
+                            messages = [("system", system_prompt)]
+                            
+                            # EĞER REFERANS GÖRSEL VARSA THE VISION LLM KULLANILARAK CONTEXT GÜÇLENDİRİLİR:
+                            if reference_img and Path(reference_img).exists():
+                                try:
+                                    b64_img = image_to_base64(reference_img)
+                                    mime_type = get_image_mime(reference_img)
+                                    progress.update(task, description="AI, Persona'nın referans görünümünü inceliyor ve promptu geliştiriyor...")
+                                    
+                                    messages.append(HumanMessage(content=[
+                                        {"type": "text", "text": f"{raw_prompt}\n\n[CRITICAL]: Look closely at the attached reference image of the persona. Very deeply incorporate their EXACT facial structure, eye shape, distinctive features, hair style, coloration, and precise aesthetic vibe into the Midjourney prompt so the resulting image perfectly resembles them."},
+                                        {"type": "image_url", "image_url": f"data:{mime_type};base64,{b64_img}"}
+                                    ]))
+                                except Exception as e:
+                                    messages.append(("human", raw_prompt))
+                            else:
+                                messages.append(("human", raw_prompt))
+                                
+                            resp = llm.invoke(messages)
                             raw_val = resp.content.strip() if hasattr(resp, "content") else str(resp).strip()
                             final_prompt_text = raw_val.replace("```json", "").replace("```text", "").replace("```", "").strip()
                         except Exception as e:
@@ -614,14 +641,6 @@ def main():
 
                 from core.image_generator import generate_image
                 import random
-                
-                # Referans Görseli
-                images_dir = Path(selected["dir"]) / "images"
-                reference_img = None
-                if images_dir.exists():
-                    images = list(images_dir.glob("*.[jp][pn]*[g]")) 
-                    if images:
-                        reference_img = str(images[0])
 
                 output_folder = Path("output") / f"{selected['folder_name']}_single_images"
                 output_folder.mkdir(parents=True, exist_ok=True)
