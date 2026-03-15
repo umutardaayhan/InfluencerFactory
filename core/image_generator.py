@@ -42,30 +42,31 @@ def generate_image(
         width, height = 1024, 576
         
     # Referans görsel varsa Nano Banana'nın prompt'a hakim olması için text'e prefix ekleniyor 
-    # (Base64 yükü desteklenmeyen node'larda stili korumak için)
+    # Pollinations sadece GET URL path üzerinden metin algılar (POST Payloadlar "prompt" metni olarak yorumlanıp default 768x768 çizer)
     final_prompt = prompt
+    
+    # URL'ye gömüleceği için tehlikeli karakterleri temizle ve 350 karaktere kırp (HTTP 500 Header limiti)
+    import re
+    final_prompt = re.sub(r'[\n\r]+', ' ', final_prompt)
+    if len(final_prompt) > 350:
+        logger.warning(f"[IMAGE] Prompt API limitlerini aşıyor ({len(final_prompt)} karakter). Kırpılıyor...")
+        final_prompt = final_prompt[:350].strip()
         
     if reference_image_path:
         logger.info("[IMAGE] Referans görsel algılandı, prompt'a stil ağırlığı yansıtılıyor...")
         
-    url = "https://image.pollinations.ai/prompt"
-    payload = {
-        "prompt": final_prompt,
-        "width": width,
-        "height": height,
-        "nologo": True,
-        "seed": random.randint(1, 9999999), 
-        "enhance": False
-    }
+    encoded_prompt = urllib.parse.quote(final_prompt)
+    seed = random.randint(1, 9999999)
+    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&nologo=true&seed={seed}&enhance=false"
     
-    logger.info(f"[IMAGE] Nano Banana 2 isteği atılıyor... Prompt: {prompt[:40]}...")
+    logger.info(f"[IMAGE] Nano Banana 2 isteği atılıyor... Prompt: {final_prompt[:40]}...")
     
     from rich.console import Console
     Console().print(f"\n  [dim]🍌 Nano Banana 2 render motoru başlatıldı ({width}x{height}px)...[/dim]")
     
     for attempt in range(3):
         try:
-            response = requests.post(url, json=payload, timeout=60)
+            response = requests.get(url, timeout=60)
             
             if response.status_code == 429:
                 wait_t = 8 + (attempt * 4)
