@@ -17,9 +17,11 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich import box
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from InquirerPy import inquirer
 from InquirerPy.validator import PathValidator
+from pydantic import BaseModel, Field
 
 console = Console()
 logger = logging.getLogger(__name__)
@@ -363,6 +365,73 @@ def _ask_images() -> str | None:
 
 
 # ═══════════════════════════════════════════════════════════════
+# ─────────────── MASTER PROMPT PARSER ──────────────────────────
+# ═══════════════════════════════════════════════════════════════
+
+class _ParsedMusicObj(BaseModel):
+    genre: str = Field(description="Müzik türü. (Sadece müzisyenler için). Örn: Pop, Rap. Değilse 'Bilinmiyor' yap.", default="Bilinmiyor")
+    influences: list[str] = Field(description="Etkilendiği sanatçılar.", default_factory=list)
+    discography: list[dict] = Field(description="Yayında olan şarkılar: [{'title': '...', 'mood': '...', 'status': 'yayında'}]", default_factory=list)
+    upcoming_releases: list[dict] = Field(description="Yaklaşan şarkılar: [{'title': '...', 'planned_date': '...', 'mood': '...'}]", default_factory=list)
+
+class _ParsedContentObj(BaseModel):
+    niche: str = Field(description="İçerik nişi. Örn: Yaşam tarzı, Makyaj, Mimari.", default="Genel İçerik")
+    style: str = Field(description="İçerik anlatım tarzı.", default="Samimi")
+
+class _ParsedSocialMediaObj(BaseModel):
+    platforms: list[str] = Field(description="Sosyal medya platformları. Belirtilmemişse ['Instagram', 'TikTok'] yap.", default=["Instagram", "TikTok"])
+    audience: str = Field(description="Hedef kitle (yaş, ilgi alanları).", default="18-35 yaş")
+
+class MasterPersonaParsed(BaseModel):
+    name: str = Field(description="Kişinin gerçek adı. Belirtilmemişse sahne adını kullanın.")
+    stage_name: str = Field(description="Sahne adı, sanatçı adı veya marka adı. Bu her zaman dolu olmalı.")
+    age: int = Field(description="Yaş. Belirtilmemişse 25 yapın.", default=25)
+    gender: str = Field(description="Cinsiyet (kadın, erkek, vb.)", default="belirtilmemiş")
+    origin: str = Field(description="Nereli olduğu (şehir/ülke).", default="Bilinmiyor")
+    profession: str = Field(description="Ana meslek. Örn: müzisyen, influencer, vlogger, aktör vb.")
+    biography: str = Field(description="Kısa biyografi (1-3 cümle).")
+    personality_hints: str = Field(description="Kişilik özellikleri (nasıl konuşur, davranır vb.).")
+    extra_notes: str | None = Field(description="Ekstra notlar veya verilen ilgisiz ama önemli detaylar.", default=None)
+    music: _ParsedMusicObj = Field(description="Kişi müzisyense doldurulacak müzik detayları.")
+    content: _ParsedContentObj = Field(description="Kişi influencer veya içerik üreticisiyse doldurulacak içerik detayları.")
+    social_media: _ParsedSocialMediaObj
+
+def _parse_master_prompt(prompt_text: str) -> dict:
+    """LLM kullanarak uzun metni seed sözlüğü formatına dönüştürür."""
+    from core.llm_bridge import get_flash_model
+    
+    system_prompt = (
+        "Sen bir AI persona veri ayıklayıcısısın. Kullanıcı sana bir sanatçı veya "
+        "influencer hakkında detaylı bir 'Master Prompt' verecek. Senin görevin "
+        "bu metindeki tüm bilgileri analiz edip Pydantic modeline tam uygun şekilde çıkartmak. "
+        "Eksik olan alanlar (yaş, şehir vb.) için metnin tonuna ve içeriğine uygun "
+        "gerçekçi tahminler yap. Müzisyense 'music' objesini detaylı doldur, "
+        "içerik üreticisiyse 'content' objesini detaylı doldur."
+    )
+    
+    llm = get_flash_model().with_structured_output(MasterPersonaParsed)
+    
+    try:
+        messages = [
+            ("system", system_prompt),
+            ("human", prompt_text)
+        ]
+        parsed_data = llm.invoke(messages)
+        
+        # Pydantic'i dictionary'ye çevirip son temizlikleri yap
+        data_dict = parsed_data.model_dump()
+        
+        # None olanları temizle
+        if not data_dict.get("extra_notes"):
+            data_dict.pop("extra_notes", None)
+            
+        return data_dict
+    except Exception as e:
+        logger.error(f"Master Prompt parse edilirken hata oluştu: {e}")
+        return None
+
+
+# ═══════════════════════════════════════════════════════════════
 # ─────────────── ANA SIHIRBAZ FONKSİYONU ─────────────────────
 # ═══════════════════════════════════════════════════════════════
 
@@ -384,49 +453,99 @@ def run_persona_wizard() -> dict | None:
     ))
 
     try:
-        # ── Adım 1: Temel bilgiler ────────────────────────
-        basic = _ask_basic_info()
+        # Master Prompt Sorusunu Sor
+        master_prompt_choice = inquirer.select(
+            message="Profili nasıl oluşturmak istersin?",
+            choices=[
+                {"name": "🪄 Master Prompt gir (Tüm detayları uzun bir metinle anlatacağım, AI halletsin)", "value": "master"},
+                {"name": "📋 Soru-Cevap Sihirbazı (Adım adım her detayı ben gireceğim)", "value": "wizard"}
+            ],
+            pointer="❯",
+            qmark="🤖",
+            amark="✦",
+        ).execute()
 
-        # ── Adım 2: Meslek ────────────────────────────────
-        prof = _ask_profession()
-        profession = prof["profession"]
+        seed = {}
+        is_musician = False
+        profession = ""
 
-        # ── Adım 3: Mesleğe özel detaylar ─────────────────
-        is_musician = profession in ["müzisyen", "rapper", "dj_prodüktör"]
+        if master_prompt_choice == "master":
+            master_text = inquirer.text(
+                message="Sanatçıyı/Influencer'ı detaylıca anlat:",
+                qmark="💬",
+                amark="✦",
+                multiline=True,
+                long_instruction="(Metni girin. Bitirmek için Windows'ta Alt+Enter (veya Esc sonra Enter), Mac'te Option+Enter kullanın. Detay vermekten çekinmeyin.)"
+            ).execute()
+            
+            if not master_text.strip():
+                console.print("  [yellow]Boş metin girildi, sihirbaza dönülüyor...[/yellow]")
+                master_prompt_choice = "wizard"
+            else:
+                with Progress(
+                    SpinnerColumn("dots", style="bright_cyan"),
+                    TextColumn("[bright_cyan] Master Prompt yapay zeka tarafından analiz ediliyor...[/bright_cyan]"),
+                    console=console,
+                ) as progress:
+                    task = progress.add_task("Analiz", total=None)
+                    from core.llm_bridge import reset_token_counter
+                    reset_token_counter()
+                    parsed = _parse_master_prompt(master_text.strip())
+                    progress.update(task, completed=1)
+                
+                if parsed:
+                    seed = parsed
+                    profession = seed.get("profession", "")
+                    is_musician = profession.lower().strip() in ["müzisyen", "rapper", "dj_prodüktör", "şarkıcı"]
+                    console.print("  [green]✅ Bilgiler başarıyla ayrıştırıldı![/green]")
+                else:
+                    show_warning("Master prompt analiz edilemedi. Sisteme bilgileri sihirbaz ile giriniz.")
+                    master_prompt_choice = "wizard"
 
-        if is_musician:
-            domain_data = _ask_music_details()
-        else:
-            domain_data = _ask_content_details()
+        if master_prompt_choice == "wizard":
+            # ── Adım 1: Temel bilgiler ────────────────────────
+            basic = _ask_basic_info()
 
-        # ── Adım 4: Platformlar ───────────────────────────
-        platform_data = _ask_platforms()
+            # ── Adım 2: Meslek ────────────────────────────────
+            prof = _ask_profession()
+            profession = prof["profession"]
 
-        # ── Adım 5: Kişilik ───────────────────────────────
-        personality_data = _ask_personality()
+            # ── Adım 3: Mesleğe özel detaylar ─────────────────
+            is_musician = profession in ["müzisyen", "rapper", "dj_prodüktör"]
 
-        # ── Adım 6: Fotoğraflar ───────────────────────────
+            if is_musician:
+                domain_data = _ask_music_details()
+            else:
+                domain_data = _ask_content_details()
+
+            # ── Adım 4: Platformlar ───────────────────────────
+            platform_data = _ask_platforms()
+
+            # ── Adım 5: Kişilik ───────────────────────────────
+            personality_data = _ask_personality()
+
+            # ── seed.json birleştirme ──────────────────────────────
+            seed = {
+                **basic,
+                "profession": profession,
+                **personality_data,
+            }
+
+            if is_musician:
+                seed["music"] = domain_data["music"]
+            else:
+                seed["content"] = domain_data["content"]
+                # Müzik olmayan profiller için boş music objesi
+                seed["music"] = {"genre": profession, "influences": [], "discography": [], "upcoming_releases": []}
+
+            seed["social_media"] = platform_data["social_media"]
+
+        # Her iki yöntemin sonunda her zaman resimleri sor
         image_source = _ask_images()
 
     except KeyboardInterrupt:
         console.print("\n  [dim]Sihirbaz iptal edildi.[/dim]")
         return None
-
-    # ── seed.json birleştirme ──────────────────────────────
-    seed = {
-        **basic,
-        "profession": profession,
-        **personality_data,
-    }
-
-    if is_musician:
-        seed["music"] = domain_data["music"]
-    else:
-        seed["content"] = domain_data["content"]
-        # Müzik olmayan profiller için boş music objesi
-        seed["music"] = {"genre": profession, "influences": [], "discography": [], "upcoming_releases": []}
-
-    seed["social_media"] = platform_data["social_media"]
 
     # ── Özet göster ────────────────────────────────────────
     console.print()
@@ -434,22 +553,22 @@ def run_persona_wizard() -> dict | None:
     summary_table.add_column("Alan", style="dim", width=20)
     summary_table.add_column("Değer", style="white")
 
-    summary_table.add_row("👤 İsim", basic["name"])
-    summary_table.add_row("🎤 Sahne Adı", basic["stage_name"])
-    summary_table.add_row("🎂 Yaş", str(basic["age"]))
-    summary_table.add_row("⚧ Cinsiyet", basic["gender"])
-    summary_table.add_row("📍 Konum", basic["origin"])
+    summary_table.add_row("👤 İsim", seed.get("name", ""))
+    summary_table.add_row("🎤 Sahne Adı", seed.get("stage_name", ""))
+    summary_table.add_row("🎂 Yaş", str(seed.get("age", "")))
+    summary_table.add_row("⚧ Cinsiyet", seed.get("gender", ""))
+    summary_table.add_row("📍 Konum", seed.get("origin", ""))
     summary_table.add_row("💼 Meslek", profession)
 
     if is_musician:
-        summary_table.add_row("🎵 Tür", domain_data["music"]["genre"])
-        songs = len(domain_data["music"]["discography"])
-        upcoming = len(domain_data["music"]["upcoming_releases"])
+        summary_table.add_row("🎵 Tür", seed.get("music", {}).get("genre", ""))
+        songs = len(seed.get("music", {}).get("discography", []))
+        upcoming = len(seed.get("music", {}).get("upcoming_releases", []))
         summary_table.add_row("📀 Şarkılar", f"{songs} yayında, {upcoming} yaklaşan")
     else:
-        summary_table.add_row("🎯 Niş", domain_data["content"]["niche"])
+        summary_table.add_row("🎯 Niş", seed.get("content", {}).get("niche", ""))
 
-    summary_table.add_row("📱 Platformlar", ", ".join(platform_data["social_media"]["platforms"]))
+    summary_table.add_row("📱 Platformlar", ", ".join(seed.get("social_media", {}).get("platforms", [])))
     summary_table.add_row("🖼️ Fotoğraflar", image_source if image_source else "Henüz yok")
 
     console.print(Panel(
@@ -471,7 +590,7 @@ def run_persona_wizard() -> dict | None:
         return None
 
     # ── Klasör yapısı oluştur ──────────────────────────────
-    safe_folder = basic["stage_name"].lower().replace(" ", "_").replace("/", "_")
+    safe_folder = seed.get("stage_name", "Isimsiz").lower().replace(" ", "_").replace("/", "_")
     persona_dir = Path("personas") / safe_folder
     persona_dir.mkdir(parents=True, exist_ok=True)
     (persona_dir / "images").mkdir(exist_ok=True)
@@ -517,7 +636,7 @@ def run_persona_wizard() -> dict | None:
     return {
         "dir": str(persona_dir),
         "folder_name": safe_folder,
-        "name": basic["stage_name"],
+        "name": seed.get("stage_name", ""),
         "genre": seed.get("music", {}).get("genre", profession),
         "image_count": images_copied,
         "has_cache": (persona_dir / "persona.json").exists(),
