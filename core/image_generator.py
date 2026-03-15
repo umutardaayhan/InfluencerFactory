@@ -44,9 +44,9 @@ def generate_image(
     # Referans görsel varsa Nano Banana'nın prompt'a hakim olması için text'e prefix ekleniyor 
     # (Base64 yükü desteklenmeyen node'larda stili korumak için)
     final_prompt = prompt
-    if len(final_prompt) > 850:
-        logger.warning(f"[IMAGE] Prompt API limitlerini asiyor ({len(final_prompt)} karakter). Geriye uyumluluk icin 850 karaktere kirpiliyor...")
-        final_prompt = final_prompt[:850]
+    if len(final_prompt) > 400:
+        logger.warning(f"[IMAGE] Prompt API limitlerini asiyor ({len(final_prompt)} karakter). Geriye uyumluluk icin 400 karaktere kirpiliyor...")
+        final_prompt = final_prompt[:400].strip()
         
     if reference_image_path:
         logger.info("[IMAGE] Referans görsel algılandı, prompt'a stil ağırlığı yansıtılıyor...")
