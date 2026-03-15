@@ -551,6 +551,16 @@ def main():
                     qmark="📐",
                 ).execute()
 
+                expansion_mode = inquirer.select(
+                    message="Promptu nasıl oluşturmak istersin?",
+                    choices=[
+                        {"name": "🧠 AI Destekli (Sade fikrini Persona'nın tarzına uygun detaylı bir prompta çevirir)", "value": "ai"},
+                        {"name": "⚡ Hızlı Üretim (Sadece senin yazdıklarını aynen çizer)", "value": "raw"},
+                    ],
+                    pointer="❯",
+                    qmark="🤖",
+                ).execute()
+
                 from core.image_generator import generate_image
                 import random
                 
@@ -569,13 +579,54 @@ def main():
 
                 with Progress(
                     SpinnerColumn("dots", style="bright_cyan"),
-                    TextColumn("[bright_cyan]Nano Banana 2 çiziyor...[/bright_cyan]"),
+                    TextColumn("[bright_cyan]{task.description}[/bright_cyan]"),
                     console=console,
                 ) as progress:
-                    task = progress.add_task("Üretim süreci", total=None)
+                    task = progress.add_task("Görsel sistemi başlatılıyor...", total=None)
+                    
+                    final_prompt_text = raw_prompt
+                    
+                    if expansion_mode == "ai":
+                        progress.update(task, description="AI, fikrini profesyonel sanatçı promptuna dönüştürüyor...")
+                        from core.llm_bridge import get_llm
+                        import json
+                        
+                        system_prompt = "You are an expert AI image prompt engineer. Convert the user's simple concept into a highly detailed, professional English image prompt (e.g. for Midjourney/Flux) with camera angles, lighting, and aesthetic keywords. Return ONLY the English prompt text without any explanations or markdown blocks."
+                        
+                        # Persona verisini çek (Görsel tutarlılık için)
+                        persona_json_path = Path(selected["dir"]) / "persona.json"
+                        if persona_json_path.exists():
+                            try:
+                                with open(persona_json_path, "r", encoding="utf-8") as f:
+                                    p_data = json.load(f)
+                                vi = p_data.get("visual_identity", {})
+                                p_ref = vi.get("ai_reference_prompt", "")
+                                p_app = vi.get("appearance", "")
+                                if p_ref or p_app:
+                                    system_prompt += f"\n\nCRITICAL MUST FOLLOW RULE: The subject in the image MUST strictly be: {p_ref}. Appearance details: {p_app}. Keep the tone and style consistent with this persona."
+                            except Exception as e:
+                                pass
+                                
+                        try:
+                            llm = get_llm("visual_prompter")
+                            messages = [("system", system_prompt), ("human", raw_prompt)]
+                            response = llm.invoke(messages)
+                            
+                            # Chat nesnesinden veya metinden promptu al
+                            if hasattr(response, "content"):
+                                final_prompt_text = response.content.strip()
+                            else:
+                                final_prompt_text = str(response).strip()
+                                
+                            # Temizlik (Eğer markdown backticks varsa kaldır)
+                            final_prompt_text = final_prompt_text.replace("```json", "").replace("```text", "").replace("```", "").strip()
+                        except Exception as e:
+                            progress.update(task, description=f"AI Prompt genişletme başarısız oldu: {e}. Orijinal prompt kullanılıyor...")
+                        
+                    progress.update(task, description=f"Nano Banana 2 çiziyor... (Prompt: {final_prompt_text[:30]}...)")
                     
                     success = generate_image(
-                        prompt=raw_prompt,
+                        prompt=final_prompt_text,
                         reference_image_path=reference_img,
                         output_path=str(out_path),
                         aspect_ratio=aspect_ratio
@@ -583,6 +634,7 @@ def main():
                     progress.update(task, completed=1)
 
                 if success:
+                    console.print(f"\n  [dim]Kullanılan AI Prompt'u: {final_prompt_text}[/dim]")
                     show_success(f"Görsel oluşturuldu ve şuraya eklendi: {out_path}")
                 else:
                     show_error("Görsel üretilirken hata oluştu. Rate limit vb. olabilir.")
