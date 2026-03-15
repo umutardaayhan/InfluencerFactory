@@ -6,3 +6,12 @@
 🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** HAYIR
 🛠️ **Geri Dönüş Adımları:** .env dosyası git-ignored olduğu için manuel olarak eski değerlerin (.env.example vb.) girilmesi gerekir.
 =========================================
+
+=========================================
+🕒 **Tarih/Saat:** 16.03.2026 - 01:25
+⚠️ **Sorun:** Nano Banana 2 (Pollinations) uzun promptlarda "500 Server Error" veya timeout dönüyordu; ayrıca agresif API rate limits aşılamıyordu.
+🎯 **İşlem Özeti:** API'in kopmalarına karşı retry sayısını 5'e çıkardık, farklı "flux", "turbo", "sana" modelleri için failover (rotasyon) eklendi, WAF bloğunu kırmak için User-Agent geçirildi ve gerekirse prompt'u kırpan dinamik bir fallback mekanizması uyguladık.
+📁 **Etkilenen Kapsam:** core/image_generator.py
+🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
+🛠️ **Geri Dönüş Adımları:** git checkout core/image_generator.py komutuyla kod eski haline alınabilir.
+=========================================

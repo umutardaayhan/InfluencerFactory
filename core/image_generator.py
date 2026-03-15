@@ -55,22 +55,40 @@ def generate_image(
     if reference_image_path:
         logger.info("[IMAGE] Referans görsel algılandı, prompt'a stil ağırlığı yansıtılıyor...")
         
-    encoded_prompt = urllib.parse.quote(final_prompt)
-    seed = random.randint(1, 9999999)
-    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&nologo=true&seed={seed}&enhance=false"
-    
-    logger.info(f"[IMAGE] Nano Banana 2 isteği atılıyor... Prompt: {final_prompt[:40]}...")
-    
     from rich.console import Console
     Console().print(f"\n  [dim]🍌 Nano Banana 2 render motoru başlatıldı ({width}x{height}px)...[/dim]")
     
-    for attempt in range(3):
+    # Geliştirilmiş Retry & Fallback Mekanizması (API stabilite onarımları)
+    max_attempts = 5
+    models_to_try = ["flux", "turbo", "sana", ""] # Sonuncu empty string = default
+    
+    for attempt in range(max_attempts):
         try:
-            response = requests.get(url, timeout=60)
+            current_prompt = final_prompt
+            # Eğer 2 denemede de başarısız olunduysa, server parse sorunu olmaması adına promptu daha da kısalt
+            if attempt >= 2 and len(final_prompt) > 150:
+                current_prompt = final_prompt[:150] + "..."
+                if attempt == 2:
+                    logger.warning("[IMAGE] API stabil değil, failover için prompt kısaltılıyor...")
             
-            if response.status_code == 429:
-                wait_t = 8 + (attempt * 4)
-                logger.warning(f"[IMAGE] Rate limit hatası (429), Güvenlik için {wait_t}sn bekleniyor...")
+            encoded_prompt = urllib.parse.quote(current_prompt)
+            seed = random.randint(1, 9999999)
+            model_query = f"&model={models_to_try[attempt % len(models_to_try)]}" if models_to_try[attempt % len(models_to_try)] else ""
+            
+            url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&nologo=true&seed={seed}&enhance=false{model_query}"
+            
+            if attempt == 0:
+                logger.info(f"[IMAGE] Nano Banana 2 isteği atılıyor... Prompt: {final_prompt[:40]}...")
+            
+            # WAF Bot engellemelerini aşmak için User-Agent ekliyoruz
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+            
+            response = requests.get(url, headers=headers, timeout=60)
+            
+            # Aşırı yük veya Limit hatalarında bekleme
+            if response.status_code in [429, 500, 502, 503, 504]:
+                wait_t = 8 + (attempt * 5)
+                logger.warning(f"[IMAGE] Sunucu hatası veya Rate Limit ({response.status_code}), {wait_t}sn beklenip {models_to_try[(attempt+1) % len(models_to_try)] or 'default'} modeliyle tekrar deneniyor...")
                 time.sleep(wait_t)
                 continue
                 
@@ -88,18 +106,25 @@ def generate_image(
             
         except requests.exceptions.HTTPError as e:
             Console().print(f"\n[bold red]🚨 [DEBUG] NANO BANANA API HTTP HATASI ({e.response.status_code}):[/bold red]")
-            logger.error(f"[IMAGE] HTTP Hatası: {e}")
-            break
+            logger.error(f"[IMAGE] HTTP Hatası (Deneme {attempt+1}/{max_attempts}): {e}")
+            if attempt == max_attempts - 1:
+                break
+            time.sleep(4)
+            continue
             
         except requests.exceptions.Timeout as e:
-            Console().print(f"\n[bold red]🚨 [DEBUG] NANO BANANA REQUEST TIMEOUT:[/bold red] İstek 60 saniye içinde cevap vermedi.")
-            logger.error("[IMAGE] Timeout hatası")
+            Console().print(f"\n[bold yellow]⚠️ [DEBUG] NANO BANANA REQUEST TIMEOUT... Tekrar deneniyor...[/bold yellow]")
+            logger.error(f"[IMAGE] Timeout hatası (Deneme {attempt+1}/{max_attempts})")
+            if attempt == max_attempts - 1:
+                break
             continue
             
         except Exception as e:
-            Console().print(f"\n[bold red]🚨 [DEBUG] BEKLENMEYEN HATA:[/bold red] {e}")
             logger.error(f"[IMAGE] İstek başarısız oldu: {e}")
-            break
+            if attempt == max_attempts - 1:
+                Console().print(f"\n[bold red]🚨 [DEBUG] BEKLENMEYEN HATA:[/bold red] {e}")
+                break
+            time.sleep(3)
             
     return False
 
