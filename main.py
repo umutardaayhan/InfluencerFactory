@@ -16,12 +16,13 @@ from datetime import datetime
 # Proje kökünü path'e ekle
 sys.path.insert(0, str(Path(__file__).parent))
 
-from rich.console import Console
+from rich.console import Console, Group
 from rich.panel import Panel
 from rich.text import Text
 from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 from rich.markdown import Markdown
+from rich.align import Align
 from rich import box
 
 from InquirerPy import inquirer
@@ -34,27 +35,30 @@ console = Console()
 # ─────────────── BANNER & UI HELPERS ──────────────────────────
 # ═══════════════════════════════════════════════════════════════
 
-BANNER = """[bold bright_magenta]
-    ╔══════════════════════════════════════════════════════════════╗
-    ║                                                              ║
-    ║   ██╗███╗   ██╗███████╗██╗     ██╗   ██╗███████╗███╗   ██╗  ║
-    ║   ██║████╗  ██║██╔════╝██║     ██║   ██║██╔════╝████╗  ██║  ║
-    ║   ██║██╔██╗ ██║█████╗  ██║     ██║   ██║█████╗  ██╔██╗ ██║  ║
-    ║   ██║██║╚██╗██║██╔══╝  ██║     ██║   ██║██╔══╝  ██║╚██╗██║  ║
-    ║   ██║██║ ╚████║██║     ███████╗╚██████╔╝███████╗██║ ╚████║  ║
-    ║   ╚═╝╚═╝  ╚═══╝╚═╝     ╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝  ║
-    ║                                                              ║
-    ║          [bright_cyan]🏭 AI Influencer Otomasyon Fabrikası[/bright_cyan]            ║
-    ║      [dim]Tek istemle 1 aylık içerik üretim paketi[/dim]           ║
-    ║                                                              ║
-    ╚══════════════════════════════════════════════════════════════╝
-[/bold bright_magenta]"""
+BANNER_ART = """[bold bright_magenta]██╗███╗   ██╗███████╗██╗     ██╗   ██╗███████╗███╗   ██╗
+██║████╗  ██║██╔════╝██║     ██║   ██║██╔════╝████╗  ██║
+██║██╔██╗ ██║█████╗  ██║     ██║   ██║█████╗  ██╔██╗ ██║
+██║██║╚██╗██║██╔══╝  ██║     ██║   ██║██╔══╝  ██║╚██╗██║
+██║██║ ╚████║██║     ███████╗╚██████╔╝███████╗██║ ╚████║
+╚═╝╚═╝  ╚═══╝╚═╝     ╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝[/bold bright_magenta]"""
 
 
 def show_banner():
-    console.print(BANNER)
+    console.print("\n")
+    banner_content = Group(
+        Align.center(BANNER_ART),
+        Align.center("\n[bright_cyan]🏭 AI Influencer Otomasyon Fabrikası[/bright_cyan]"),
+        Align.center("[dim]Tek istemle 1 aylık içerik üretim paketi[/dim]")
+    )
+    console.print(Align.center(Panel(
+        banner_content,
+        border_style="bright_magenta",
+        box=box.DOUBLE_EDGE,
+        padding=(1, 6),
+        expand=False
+    )))
     console.print(
-        "[dim]  Sürüm 1.0 | LangGraph + Gemini | github.com/...[/dim]\n",
+        "[dim]Sürüm 1.0 | LangGraph + Gemini | github.com/...[/dim]\n",
         justify="center"
     )
 
@@ -138,7 +142,7 @@ def show_persona_card(persona: dict):
 
     console.print()
     console.print(Panel(table, title="[bold bright_magenta]🎭 Sanatçı Profili[/bold bright_magenta]",
-                        border_style="bright_magenta", padding=(1, 2)))
+                        border_style="bright_magenta", padding=(1, 2), expand=False))
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -383,12 +387,13 @@ def run_content_pipeline(persona: dict, month: str, prompt: str):
         result_table.add_row("📄 Rapor Dosyası", f"[underline]{output_path}[/underline]")
 
         console.print()
-        console.print(Panel(
+        console.print(Align.center(Panel(
             result_table,
             title="[bold green]🏁 ÜRETİM TAMAMLANDI[/bold green]",
             border_style="green",
-            padding=(1, 2),
-        ))
+            padding=(1, 4),
+            expand=False
+        )))
 
         # ── Görsel Üretim Aşaması (Nano Banana 2 API) ─────────────
         if vp_count > 0:

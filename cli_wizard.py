@@ -16,8 +16,9 @@ from pathlib import Path
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich import box
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.align import Align
+from rich import box
 
 from InquirerPy import inquirer
 from InquirerPy.validator import PathValidator
@@ -443,14 +444,15 @@ def run_persona_wizard() -> dict | None:
         Oluşturulan persona bilgileri (dir, name vb.) veya None (iptal)
     """
     console.print()
-    console.print(Panel(
+    console.print(Align.center(Panel(
         "[bright_cyan]Yeni bir sanatçı/influencer profili oluşturacağız.[/bright_cyan]\n"
         "[dim]Adım adım sorular sorulacak. Her adımda ok tuşlarıyla seçim yapabilirsin.[/dim]\n"
         "[dim]Fotoğrafları yüklersen AI görsel kimliği otomatik analiz edecek.[/dim]",
         title="[bold bright_magenta]✨ Yeni Persona Sihirbazı[/bold bright_magenta]",
         border_style="bright_magenta",
         padding=(1, 3),
-    ))
+        expand=False
+    )))
 
     try:
         # Master Prompt Sorusunu Sor
@@ -571,12 +573,13 @@ def run_persona_wizard() -> dict | None:
     summary_table.add_row("📱 Platformlar", ", ".join(seed.get("social_media", {}).get("platforms", [])))
     summary_table.add_row("🖼️ Fotoğraflar", image_source if image_source else "Henüz yok")
 
-    console.print(Panel(
+    console.print(Align.center(Panel(
         summary_table,
         title="[bold bright_cyan]📋 Persona Özeti[/bold bright_cyan]",
         border_style="bright_cyan",
-        padding=(1, 1),
-    ))
+        padding=(1, 4),
+        expand=False
+    )))
 
     # Onay
     confirm = inquirer.confirm(
@@ -697,9 +700,10 @@ def _run_context_builder(persona_dir: str):
         result_table.add_row("💬 İmza Söz", persona_obj.personality.catchphrases[0])
 
     console.print()
-    console.print(Panel(
+    console.print(Align.center(Panel(
         result_table,
         title="[bold green]✅ Persona Oluşturuldu[/bold green]",
         border_style="green",
-        padding=(1, 1),
-    ))
+        padding=(1, 4),
+        expand=False
+    )))
