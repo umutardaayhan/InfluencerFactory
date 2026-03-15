@@ -47,7 +47,7 @@ Kullanıcı herhangi bir teknoloji hakkında genel bir soru sorduğunda, AI isti
   `# CRITICAL TRICK [DO_NOT_TOUCH]: Burada [X] nedeninden dolayı [Y] yöntemi kullanıldı. Değiştirirseniz [Z Hatası] ortaya çıkar.`
 * **Chesterton'ın Çiti:** `CRITICAL TRICK` etiketli bloklar, sebebi %100 kavranmadan değiştirilemez.
 
-## 9. İşlem Günlüğü ve Geri Dönüşüm Protokolü (The Rollback Ledger)
+## 9. İşlem Günlüğü ve Dokümantasyon Protokolü (The Rollback Ledger)
 AI, her anlamlı görevin ardından `Yapilan_Islemler.txt` dosyasına şu formatta rapor eklemek zorundadır:
 
 =========================================
@@ -60,3 +60,5 @@ AI, her anlamlı görevin ardından `Yapilan_Islemler.txt` dosyasına şu format
 =========================================
 
 Bu txt dosyası asla silinmeyecek, üzerine yazılmayacak, sadece sonuna ekleme yapılacaktır.
+
+**Kritik Kural:** Yapılan değişiklik eğer bir state modifikasyonu, LLM bridge değişimi, agent iş akışı veya yeni özellik içeriyorsa, işlemi özetleyen maddeleri `docs/` klasöründeki ilgili Markdown belgelerine (örn: `multi_agent_pipeline_ve_is_akisi.md` vb.) de EKLEMEK ZORUNDASIN. Hangi dosyayı güncellediysen, onu Yapilan_Islemler.txt raporunda belirtmelisin.
