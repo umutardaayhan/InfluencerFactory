@@ -1,0 +1,8 @@
+=========================================
+🕒 **Tarih/Saat:** 15.03.2026 - 15:35
+⚠️ **Sorun:** .env dosyasında önceki projelerden (Replik AI) kalan kullanılmayan çevre değişkenleri (Telegram, SMTP, Redis vb.) bulunuyordu.
+🎯 **İşlem Özeti:** Sadece projenin ihtiyaç duyduğu GEMINI_API_KEYS ve OPENROUTER_API_KEY bırakılarak dosya temizlendi.
+📁 **Etkilenen Kapsam:** .env
+🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** HAYIR
+🛠️ **Geri Dönüş Adımları:** .env dosyası git-ignored olduğu için manuel olarak eski değerlerin (.env.example vb.) girilmesi gerekir.
+=========================================
