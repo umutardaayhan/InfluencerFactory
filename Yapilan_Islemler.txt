@@ -24,3 +24,12 @@
 🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
 🛠️ **Geri Dönüş Adımları:** git checkout agents/compiler.py main.py komutu uygulanabilir.
 =========================================
+
+=========================================
+🕒 **Tarih/Saat:** 16.03.2026 - 02:05
+⚠️ **Sorun:** Proje çalıştırıldığında `No module named 'agents.context_builder'` şeklinde ölümcül (fatal) bir hata fırlatıyordu.
+🎯 **İşlem Özeti:** Sorun araştırıldığında, geçmiş commitlerde (`7809a95`) `context_builder.py`, `quality_controller.py` ve `visual_prompter.py` modüllerinin hiçbir açıklama yapılmadan yanlışlıkla silindiği tespit edildi. Bu silinmiş ajanlar en son bulundukları stabil git noktasından (`5391b61`) bulunup tekrar restore edilerek projeye eklendi.
+📁 **Etkilenen Kapsam:** agents/context_builder.py, agents/quality_controller.py, agents/visual_prompter.py
+🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
+🛠️ **Geri Dönüş Adımları:** Yapılan düzeltme commit geri alınarak iptal edilebilir.
+=========================================
