@@ -44,15 +44,19 @@ def generate_image(
     # Referans görsel varsa Nano Banana'nın prompt'a hakim olması için text'e prefix ekleniyor 
     # (Base64 yükü desteklenmeyen node'larda stili korumak için)
     final_prompt = prompt
-    if len(final_prompt) > 400:
-        logger.warning(f"[IMAGE] Prompt API limitlerini asiyor ({len(final_prompt)} karakter). Geriye uyumluluk icin 400 karaktere kirpiliyor...")
-        final_prompt = final_prompt[:400].strip()
         
     if reference_image_path:
         logger.info("[IMAGE] Referans görsel algılandı, prompt'a stil ağırlığı yansıtılıyor...")
         
-    encoded_prompt = urllib.parse.quote(final_prompt)
-    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width={width}&height={height}&nologo=true"
+    url = "https://image.pollinations.ai/prompt"
+    payload = {
+        "prompt": final_prompt,
+        "width": width,
+        "height": height,
+        "nologo": True,
+        "seed": random.randint(1, 9999999), 
+        "enhance": False
+    }
     
     logger.info(f"[IMAGE] Nano Banana 2 isteği atılıyor... Prompt: {prompt[:40]}...")
     
@@ -61,7 +65,7 @@ def generate_image(
     
     for attempt in range(3):
         try:
-            response = requests.get(url, timeout=60)
+            response = requests.post(url, json=payload, timeout=60)
             
             if response.status_code == 429:
                 wait_t = 8 + (attempt * 4)
