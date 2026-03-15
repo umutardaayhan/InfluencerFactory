@@ -152,7 +152,7 @@ def show_persona_card(persona: dict):
 def main_menu(has_personas: bool = True) -> str:
     choices = [
         {"name": "🚀 İçerik Paketi Üret  — 1 aylık tam plan (görsel + video + caption)", "value": "generate"},
-        {"name": "🎨 Tekil Görsel Üret   — Sadece tek bir prompt yazıp resim çizdir", "value": "image_gen"},
+        {"name": "🎨 Tekil Görsel Üret   — Fikrini yaz, AI persona'ya uydursun ve çizsin", "value": "image_gen"},
         Separator(),
         {"name": "✨ Yeni Persona Oluştur — Sıfırdan sanatçı/influencer profili kur", "value": "wizard"},
         {"name": "👁️  Persona Oluştur    — Fotoğraflardan görsel kimlik analizi", "value": "persona"},
