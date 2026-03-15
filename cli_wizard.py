@@ -398,7 +398,7 @@ class MasterPersonaParsed(BaseModel):
 
 def _parse_master_prompt(prompt_text: str) -> dict:
     """LLM kullanarak uzun metni seed sözlüğü formatına dönüştürür."""
-    from core.llm_bridge import get_flash_model
+    from core.llm_bridge import get_structured_llm
     
     system_prompt = (
         "Sen bir AI persona veri ayıklayıcısısın. Kullanıcı sana bir sanatçı veya "
@@ -409,7 +409,7 @@ def _parse_master_prompt(prompt_text: str) -> dict:
         "içerik üreticisiyse 'content' objesini detaylı doldur."
     )
     
-    llm = get_flash_model().with_structured_output(MasterPersonaParsed)
+    llm = get_structured_llm("context_builder", MasterPersonaParsed)
     
     try:
         messages = [
