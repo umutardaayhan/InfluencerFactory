@@ -154,6 +154,26 @@ def compiler_node(state: InfluencerState) -> dict:
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(markdown)
 
+    # Promptları Profesyonel JSON olarak dışa aktar
+    if visual_prompts or video_prompts:
+        import json
+        prompts_json_data = {
+            "metadata": {
+                "artist": artist_name,
+                "month": month,
+                "generated_by": "Influencer Factory - Expert Prompt Engineer Phase",
+                "timestamp": package.generated_at
+            },
+            "visual_prompts": [vp.model_dump() for vp in visual_prompts],
+            "video_prompts": [vp.model_dump() for vp in video_prompts]
+        }
+        json_filename = f"{month}_{safe_name}_prompts.json"
+        json_output_path = output_dir / json_filename
+        
+        with open(json_output_path, "w", encoding="utf-8") as f:
+            json.dump(prompts_json_data, f, ensure_ascii=False, indent=4)
+        logger.info(f"[COMPILER] ✅ Prompt JSON arşivi kaydedildi: {json_output_path}")
+
     logger.info(f"[COMPILER] ✅ Rapor kaydedildi: {output_path}")
     logger.info(f"[COMPILER] 📊 Özet: {len(visual_prompts)} görsel + {len(video_prompts)} video + {len(captions)} caption")
 

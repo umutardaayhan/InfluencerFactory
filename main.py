@@ -399,6 +399,19 @@ def run_content_pipeline(persona: dict, month: str, prompt: str):
         # ── Görsel Üretim Aşaması (Nano Banana 2 API) ─────────────
         if vp_count > 0:
             console.print("\n[bold cyan]✨ Görsel Promotlarınız hazır![/bold cyan]")
+            
+            import json
+            from rich.syntax import Syntax
+            
+            prompts_data = {
+                "engineer_role": "Expert AI Prompt Engineer",
+                "status": "Ready for Rendering",
+                "prompts": [vp.model_dump() for vp in package.visual_prompts]
+            }
+            json_str = json.dumps(prompts_data, indent=4, ensure_ascii=False)
+            syntax = Syntax(json_str, "json", theme="monokai", padding=1)
+            console.print(Panel(syntax, title="[bold yellow]🤖 Prompt Engineering Data (JSON)[/bold yellow]", border_style="yellow"))
+            
             generate_images_action = inquirer.select(
                 message="Nano Banana 2 API kullanarak bu prompları GERÇEK GÖRSELLERE dönüştürmek ister misiniz?",
                 choices=[
@@ -615,8 +628,23 @@ def main():
                         
                         progress.update(task, completed=1)
 
-                    console.print("\n[bold bright_magenta]✨ Üretilen AI Promptu:[/bold bright_magenta]")
-                    console.print(Align.center(Panel(final_prompt_text, border_style="magenta", expand=False)))
+                    console.print("\n[bold bright_magenta]✨ Üretilen AI Promptu (JSON Struct):[/bold bright_magenta]")
+                    import json
+                    from rich.syntax import Syntax
+                    
+                    prompt_json = {
+                        "engineer_role": "Expert AI Prompt Engineer",
+                        "model": "Nano Banana 2 / Midjourney / Flux",
+                        "master_prompt": final_prompt_text,
+                        "parameters": {
+                            "nologo": True,
+                            "enhance": False,
+                            "aspect_ratio": "Wait for user selection"
+                        }
+                    }
+                    json_str2 = json.dumps(prompt_json, indent=4, ensure_ascii=False)
+                    syntax2 = Syntax(json_str2, "json", theme="monokai", padding=1)
+                    console.print(Align.center(Panel(syntax2, border_style="magenta", expand=False)))
 
                     proceed = inquirer.confirm(
                         message="Bu prompt harika görünüyor! Nano Banana 2 ile çizilmesini ister misin?",

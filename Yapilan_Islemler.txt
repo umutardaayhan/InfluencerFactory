@@ -15,3 +15,12 @@
 🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
 🛠️ **Geri Dönüş Adımları:** git checkout core/image_generator.py komutuyla kod eski haline alınabilir.
 =========================================
+
+=========================================
+🕒 **Tarih/Saat:** 16.03.2026 - 01:55
+⚠️ **Sorun:** Oluşturulan promptlar salt metin (Markdown) olarak ve konsolda düz metin şeklinde gösteriliyordu. Profesyonel bir Prompt Engineering hissi vermiyordu.
+🎯 **İşlem Özeti:** Compiler ajanına promptları JSON olarak kaydetme özelliği (output/_prompts.json) ve CLI (`main.py`) arayüzüne de zengin `rich.syntax` ile renkli JSON formatında terminal çıktısı verme yeteneği eklendi.
+📁 **Etkilenen Kapsam:** agents/compiler.py, main.py
+🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
+🛠️ **Geri Dönüş Adımları:** git checkout agents/compiler.py main.py komutu uygulanabilir.
+=========================================
