@@ -10,6 +10,7 @@ import json
 import base64
 import logging
 import random
+import time
 import requests
 from pathlib import Path
 from core.llm_bridge import _current_key, _rotate_key
@@ -83,9 +84,11 @@ def generate_image(
             
             # 429 gibi kota hataları alırsak API Key döndür
             if response.status_code == 429:
-                logger.warning("[IMAGE] Rate limit hatası (429), key döndürülüyor...")
+                wait_t = 8 + (attempt * 4)
+                logger.warning(f"[IMAGE] Rate limit hatası (429), key döndürülüyor. Güvenlik için {wait_t}sn bekleniyor...")
                 _rotate_key()
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/nano-banana-2:predict?key={_current_key()}"
+                time.sleep(wait_t)
                 continue
                 
             response.raise_for_status()
@@ -111,6 +114,9 @@ def generate_image(
                 f.write(img_raw)
                 
             logger.info(f"[IMAGE] ✅ Görsel kaydedildi: {output_path}")
+            
+            # API spamini önlemek için her başarılı istek sonrası küçük es (breathroom)
+            time.sleep(3)
             return True
             
         except requests.exceptions.HTTPError as e:

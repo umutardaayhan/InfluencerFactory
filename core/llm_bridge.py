@@ -168,10 +168,12 @@ class _RetryHandler:
                     logger.warning(f"[LLM] Rate limit (deneme {attempt+1}): {str(e)[:80]}")
                     _rotate_key()
                     if attempt < len(_API_KEYS) * 2:
-                        time.sleep(3 + attempt)
+                        wait_time = 6 + (attempt * 3)
+                        logger.warning(f"[LLM] {wait_time} saniye bekleniyor...")
+                        time.sleep(wait_time)
                     else:
-                        logger.warning("[LLM] Dakikalık kota yenilemesi için 60s bekleniyor...")
-                        time.sleep(60)
+                        logger.warning("[LLM] Dakikalık kota yenilemesi için 65s bekleniyor...")
+                        time.sleep(65)
                 elif _is_parse_error(e) and json_retries < MAX_JSON_RETRY:
                     json_retries += 1
                     logger.warning(f"[LLM] JSON/Parse hatası (deneme {json_retries}/{MAX_JSON_RETRY})")
@@ -193,9 +195,12 @@ class _RetryHandler:
                     logger.warning(f"[LLM] Rate limit (deneme {attempt+1}): {str(e)[:80]}")
                     _rotate_key()
                     if attempt < len(_API_KEYS) * 2:
-                        await asyncio.sleep(3 + attempt)
+                        wait_time = 6 + (attempt * 3)
+                        logger.warning(f"[LLM] {wait_time} saniye bekleniyor...")
+                        await asyncio.sleep(wait_time)
                     else:
-                        await asyncio.sleep(60)
+                        logger.warning("[LLM] Dakikalık kota yenilemesi için 65s bekleniyor...")
+                        await asyncio.sleep(65)
                 elif _is_parse_error(e) and json_retries < MAX_JSON_RETRY:
                     json_retries += 1
                     continue
