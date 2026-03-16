@@ -103,3 +103,12 @@
 ?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
 ??? **Geri Dönüº Ad?mlar?:** Olas? hata durumunda ilgili dosyalar için `git checkout -- .` ya da önceki commite dönüº yap?labilir.
 ========================================
+
+=========================================
+?? **Tarih/Saat:** [16.03.2026 - 06:01]
+?? **Sorun:** Konsola yazd?r?lan tekli medya üretimlerinde, terminal geniºli?ine s??mayan (çok uzun promptlar) cümleler kesiliyordu / eksik kal?yordu.
+?? **?ºlem Özeti:** `main.py` içerisindeki `rich.syntax.Syntax` oluºturucular?na `word_wrap=True` parametresi eklenerek çok uzun json value sat?rlar?n?n otomatik olarak alt sat?rdan devam etmesi sa?land?.
+?? **Etkilenen Kapsam:** `main.py`
+?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
+??? **Geri Dönüº Ad?mlar?:** Olas? hata durumunda ilgili dosyalar için `git checkout -- .` ya da önceki commite dönüº yap?labilir.
+=========================================

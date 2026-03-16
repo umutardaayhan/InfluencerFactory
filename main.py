@@ -58,7 +58,7 @@ def show_banner():
         expand=False
     )))
     console.print(
-        "[dim]Sürüm 1.0 | LangGraph + Gemini | github.com/...[/dim]\n",
+        "[dim]Sürüm 1.0 | LangGraph + Gemini | github.com/umutardaayhan[/dim]\n",
         justify="center"
     )
 
@@ -608,7 +608,7 @@ Based on the above, generate a highly detailed, scene-focused prompt."""
 
                     console.print("\n[bold cyan]✨ Görsel Promptunuz hazır![/bold cyan]")
                     json_str = json.dumps(vp.model_dump(), indent=4, ensure_ascii=False)
-                    syntax = Syntax(json_str, "json", theme="monokai", padding=1)
+                    syntax = Syntax(json_str, "json", theme="monokai", padding=1, word_wrap=True)
                     console.print(Panel(syntax, title="[bold yellow]🤖 Image Prompt Data (JSON)[/bold yellow]", border_style="yellow"))
                         
                 elif media_type == "video":
@@ -623,7 +623,7 @@ Based on the above, generate a highly detailed, scene-focused prompt."""
 
                     console.print("\n[bold cyan]✨ Video Promptunuz hazır![/bold cyan]")
                     json_str = json.dumps(vp.model_dump(), indent=4, ensure_ascii=False)
-                    syntax = Syntax(json_str, "json", theme="monokai", padding=1)
+                    syntax = Syntax(json_str, "json", theme="monokai", padding=1, word_wrap=True)
                     console.print(Panel(syntax, title="[bold magenta]🎬 Video Directive Data (JSON)[/bold magenta]", border_style="magenta"))
                     
                 else:
@@ -649,7 +649,7 @@ Generate a compelling, character-consistent caption for a social media post base
 
                     console.print("\n[bold cyan]✨ Metin/Caption hazır![/bold cyan]")
                     json_str = json.dumps(cap.model_dump(), indent=4, ensure_ascii=False)
-                    syntax = Syntax(json_str, "json", theme="monokai", padding=1)
+                    syntax = Syntax(json_str, "json", theme="monokai", padding=1, word_wrap=True)
                     console.print(Panel(syntax, title="[bold green]✍️ Text/Caption Data (JSON)[/bold green]", border_style="green"))
 
             console.print()
