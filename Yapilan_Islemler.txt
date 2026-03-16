@@ -26,6 +26,15 @@
 =========================================
 
 =========================================
+🕒 **Tarih/Saat:** 16.03.2026 - 03:05
+⚠️ **Sorun:** İçerik üretim fabrikası çalıştığında `app.invoke()` metodu LangGraph akışını tamamını bloke ediyordu. Bu yüzden CLI üzerindeki `rich.progress` arayüzü %17'de (toplam 6 ajanın 1. adımında) donuyormuş hissi veriyor, tüm jenerasyon dakikalarca bekletilirken arkada ne olup bittiği asla görünmüyordu.
+🎯 **İşlem Özeti:** Pipeline çağrısı `app.invoke()` yapısından `.stream()` yapısına dönüştürüldü. Artık LangGraph'tan gelen her adım emit edildiğinde ilerleme çubuğu dinamik ve gerçek zamanlı olarak (UI event-loop) güncelleniyor. Ayrıca ajanların bitişi `progress.console.print` ile yeşil bir tik atılarak kullanıcılara bildirim olarak akacak şekilde estetikleştirildi.
+📁 **Etkilenen Kapsam:** main.py
+🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
+🛠️ **Geri Dönüş Adımları:** git checkout main.py komutu ile eski statik invoke mantığına geri dönülebilir.
+=========================================
+
+=========================================
 🕒 **Tarih/Saat:** 16.03.2026 - 02:05
 ⚠️ **Sorun:** Proje çalıştırıldığında `No module named 'agents.context_builder'` şeklinde ölümcül (fatal) bir hata fırlatıyordu.
 🎯 **İşlem Özeti:** Sorun araştırıldığında, geçmiş commitlerde (`7809a95`) `context_builder.py`, `quality_controller.py` ve `visual_prompter.py` modüllerinin hiçbir açıklama yapılmadan yanlışlıkla silindiği tespit edildi. Bu silinmiş ajanlar en son bulundukları stabil git noktasından (`5391b61`) bulunup tekrar restore edilerek projeye eklendi.

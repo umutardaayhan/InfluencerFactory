@@ -353,14 +353,32 @@ def run_content_pipeline(persona: dict, month: str, prompt: str):
     ) as progress:
         task = progress.add_task("Pipeline başlatılıyor...", total=len(steps))
 
-        # Pipeline'ı derle ve çalıştır
-        for i, (desc, _) in enumerate(steps):
-            progress.update(task, description=desc, completed=i)
-
         app = compile_workflow()
-        progress.update(task, description="🔄 Pipeline çalışıyor...", completed=1)
-        final_state = app.invoke(initial_state)
-        progress.update(task, description="✅ Pipeline tamamlandı!", completed=len(steps))
+        
+        # Adım mapping (hangi node, kaçıncı aşamaya ve isme denk geliyor)
+        step_mapping = {node_id: (i+1, desc) for i, (desc, node_id) in enumerate(steps)}
+        
+        progress.update(task, description="🔄 Pipeline uyandırılıyor...", completed=0)
+        
+        final_state = initial_state
+        for output in app.stream(initial_state):
+            for node_name, state in output.items():
+                if node_name in step_mapping:
+                    step_num, desc = step_mapping[node_name]
+                    
+                    # Kullanıcıyı detaylı bilgilendir
+                    progress.console.print(f"  [bold green]✓[/bold green] [cyan]{desc.split('—')[0].strip()}[/cyan] [dim]tamamlandı.[/dim]")
+                    
+                    # Sonraki adımı bulup progress mesajını güncelle
+                    next_desc = "Derleniyor..."
+                    if step_num < len(steps):
+                        next_desc = f"⚙️ Çalışıyor: {steps[step_num][0].split('—')[0].strip()}..."
+                        
+                    progress.update(task, description=next_desc, completed=step_num)
+                    
+                final_state = state
+                
+        progress.update(task, description="✅ Tüm ajanlar işlemlerini tamamladı!", completed=len(steps))
 
     # ── Sonuç Raporu ────────────────────────────────────
     package = final_state.get("final_package")
