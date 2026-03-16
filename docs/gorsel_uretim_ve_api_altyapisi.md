@@ -99,18 +99,20 @@ Response → Binary image → Diske kaydet
   attempt 2: 16sn bekleme
 ```
 
-### Prompt Güçlendirme (Referans Görsel)
+### Prompt Güçlendirme ve Img2Img (Referans Görsel)
 
-Tekil görsel üretim modunda (`main.py > 🎨 Tekil Görsel Üret`), AI prompt oluşturma aşamasında:
+Tekil görsel üretim modunda (`main.py > 🎨 Tekil Görsel Üret`) iki farklı referans ağırlık mekanizması devreye girer:
 
-1. `personas/<artist>/images/` klasöründen referans görsel alınır
-2. Görsel Base64'e çevrilir (`image_to_base64()`)
-3. Gemini Vision LLM'e `HumanMessage(content=[text, image_url])` olarak gönderilir
-4. LLM, referans görseldeki yüz yapısı, stil, renk paletini promptun içine yazar
-5. Bu zenginleştirilmiş prompt Pollinations'a gönderilir
+1. **LLM Vision ile Metinsel Referans:**  
+   `personas/<artist>/images/` klasöründen referans görsel alınır. Gemini Vision LLM aracılığıyla görseldeki yüz yapısı, detayları ingilizce promptun içerisine aktarılır.
+   
+2. **Nano Banana (Pollinations) Img2Img Adaptasyonu:**  
+   Eğer referans görsel mevcutsa, `core/image_generator.py` bu resmi geçici ve anonim olarak **Catbox.moe** bulut sistemine yükler. 
+   Elde edilen public resim URL'i, final promptun en başına eklenir (örn: `https://files.catbox.moe/... prompt-text`).
+   Pollinations mimarisi bu URL'yi algıladığında salt metin üretimini bir kenara bırakır ve resmi bir "başlangıç durumu (init_image)" olarak ele alarak **Img2Img resimden-resime** üretim gerçekleştirir.
 
 ```
-Referans Resim → Gemini Vision → Detaylı İngilizce Prompt → Pollinations → Final Görsel
+Referans Resim → Catbox Bulut (URL) & Gemini Vision → URL + Detaylı Prompt → Pollinations → Final Görsel
 ```
 
 ---

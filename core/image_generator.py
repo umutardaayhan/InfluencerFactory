@@ -45,15 +45,30 @@ def generate_image(
     # Pollinations sadece GET URL path üzerinden metin algılar (POST Payloadlar "prompt" metni olarak yorumlanıp default 768x768 çizer)
     final_prompt = prompt
     
+    if reference_image_path:
+        logger.info("[IMAGE] Referans görsel algılandı, bulut sistemi üzerinden Nano Banana'ya aktarılıyor...")
+        try:
+            with open(reference_image_path, 'rb') as f:
+                res = requests.post(
+                    'https://catbox.moe/user/api.php', 
+                    data={'reqtype': 'fileupload'}, 
+                    files={'fileToUpload': f},
+                    timeout=20
+                )
+            res.raise_for_status()
+            image_url = res.text.strip()
+            # Pollinations, URL içinde resim linki tespit ettiğinde Img2Img / Image Reference özelliği gösterir
+            final_prompt = f"{image_url} {final_prompt}"
+            logger.info(f"[IMAGE] Görsel başarıyla yüklendi: {image_url}")
+        except Exception as e:
+            logger.error(f"[IMAGE] Referans görsel yüklenemedi, salt metin prompt'u ile devam ediliyor: {e}")
+    
     # URL'ye gömüleceği için tehlikeli karakterleri temizle ve 350 karaktere kırp (HTTP 500 Header limiti)
     import re
     final_prompt = re.sub(r'[\n\r]+', ' ', final_prompt)
     if len(final_prompt) > 350:
         logger.warning(f"[IMAGE] Prompt API limitlerini aşıyor ({len(final_prompt)} karakter). Kırpılıyor...")
         final_prompt = final_prompt[:350].strip()
-        
-    if reference_image_path:
-        logger.info("[IMAGE] Referans görsel algılandı, prompt'a stil ağırlığı yansıtılıyor...")
         
     from rich.console import Console
     Console().print(f"\n  [dim]🍌 Nano Banana 2 render motoru başlatıldı ({width}x{height}px)...[/dim]")

@@ -51,7 +51,15 @@
 🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
 🛠️ **Geri Dönüş Adımları:** Yapılan commit geri alınabilir.
 =========================================
+
 =========================================
+🕒 **Tarih/Saat:** 16.03.2026 - 04:15
+⚠️ **Sorun:** Nano Banana'ya gönderilen istemlerde `reference_image_path` parametresi kodda bulunuyordu ancak Pollinations.ai proxy'si resim dosyasını doğrudan kabul etmediği için, özellik Nano Banana'ya metin dışında salt referans resmi atamıyordu.
+🎯 **İşlem Özeti:** `core/image_generator.py` içerisindeki Img2Img mekanizması güncellendi. Eğer bir referans resim dosyası varsa; sistem bunu anonim bir bulut platformuna (`catbox.moe`) geçici olarak yükleyip bir public URL alıyor ve bu URL'yi Nano Banana promptunun en başına ekliyor. Böylece Pollinations bu resmi başlangıç referansı (init_image) olarak okuyup karakterin yüzünü daha istikrarlı çizebilecektir. Yeni yapay zeka Img2Img davranışı `docs/gorsel_uretim_ve_api_altyapisi.md` belgesine dokümante edildi.
+📁 **Etkilenen Kapsam:** core/image_generator.py, docs/gorsel_uretim_ve_api_altyapisi.md
+🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
+🛠️ **Geri Dönüş Adımları:** Yapılan commit geri alınabilir.
+==================================================================================
 🕒 **Tarih/Saat:** 16.03.2026 - 03:15
 ⚠️ **Sorun:** İçerik üretim takvimi oluşturmak dakikalar sürüyordu ancak arkaplanda hangi adımın (hangi LLM'in kaçıncı içeriği) yazdığı hakkında arayüzde bir teşhis/bilgi emaresi yoktu. Kullanıcı sistemin donduğunu ve çok yavaş çalıştığını sanıyordu.
 🎯 **İşlem Özeti:** `strategist.py`, `visual_prompter.py` ve `copywriter.py` ajanlarına `rich` kütüphanesi entegre edildi. Artık uzun süren ve döngü halinde günleri/haftaları dolaşan her LLM isteği öncesi (ör: "⏳ Copywriter: 20 metinden 5. (2026-03-01 Instagram) caption yazılıyor...") detaylı şekilde CLI arayüzüne yazdırılıyor (adım teşhisi).
