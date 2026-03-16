@@ -1,69 +1,78 @@
 =========================================
-🕒 **Tarih/Saat:** 15.03.2026 - 15:35
-⚠️ **Sorun:** .env dosyasında önceki projelerden (Replik AI) kalan kullanılmayan çevre değişkenleri (Telegram, SMTP, Redis vb.) bulunuyordu.
-🎯 **İşlem Özeti:** Sadece projenin ihtiyaç duyduğu GEMINI_API_KEYS ve OPENROUTER_API_KEY bırakılarak dosya temizlendi.
-📁 **Etkilenen Kapsam:** .env
-🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** HAYIR
-🛠️ **Geri Dönüş Adımları:** .env dosyası git-ignored olduğu için manuel olarak eski değerlerin (.env.example vb.) girilmesi gerekir.
+?? **Tarih/Saat:** 15.03.2026 - 15:35
+?? **Sorun:** .env dosyas?nda �nceki projelerden (Replik AI) kalan kullan?lmayan �evre de?i�kenleri (Telegram, SMTP, Redis vb.) bulunuyordu.
+?? **?�lem �zeti:** Sadece projenin ihtiya� duydu?u GEMINI_API_KEYS ve OPENROUTER_API_KEY b?rak?larak dosya temizlendi.
+?? **Etkilenen Kapsam:** .env
+?? **SADECE G?T ?LE D�N�LEB?L?R M??:** HAYIR
+??? **Geri D�n�� Ad?mlar?:** .env dosyas? git-ignored oldu?u i�in manuel olarak eski de?erlerin (.env.example vb.) girilmesi gerekir.
 =========================================
 
 =========================================
-🕒 **Tarih/Saat:** 16.03.2026 - 01:25
-⚠️ **Sorun:** Nano Banana 2 (Pollinations) uzun promptlarda "500 Server Error" veya timeout dönüyordu; ayrıca agresif API rate limits aşılamıyordu.
-🎯 **İşlem Özeti:** API'in kopmalarına karşı retry sayısını 5'e çıkardık, farklı "flux", "turbo", "sana" modelleri için failover (rotasyon) eklendi, WAF bloğunu kırmak için User-Agent geçirildi ve gerekirse prompt'u kırpan dinamik bir fallback mekanizması uyguladık.
-📁 **Etkilenen Kapsam:** core/image_generator.py
-🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
-🛠️ **Geri Dönüş Adımları:** git checkout core/image_generator.py komutuyla kod eski haline alınabilir.
+?? **Tarih/Saat:** 16.03.2026 - 01:25
+?? **Sorun:** Nano Banana 2 (Pollinations) uzun promptlarda "500 Server Error" veya timeout d�n�yordu; ayr?ca agresif API rate limits a�?lam?yordu.
+?? **?�lem �zeti:** API'in kopmalar?na kar�? retry say?s?n? 5'e �?kard?k, farkl? "flux", "turbo", "sana" modelleri i�in failover (rotasyon) eklendi, WAF blo?unu k?rmak i�in User-Agent ge�irildi ve gerekirse prompt'u k?rpan dinamik bir fallback mekanizmas? uygulad?k.
+?? **Etkilenen Kapsam:** core/image_generator.py
+?? **SADECE G?T ?LE D�N�LEB?L?R M??:** EVET
+??? **Geri D�n�� Ad?mlar?:** git checkout core/image_generator.py komutuyla kod eski haline al?nabilir.
 =========================================
 
 =========================================
-🕒 **Tarih/Saat:** 16.03.2026 - 01:55
-⚠️ **Sorun:** Oluşturulan promptlar salt metin (Markdown) olarak ve konsolda düz metin şeklinde gösteriliyordu. Profesyonel bir Prompt Engineering hissi vermiyordu.
-🎯 **İşlem Özeti:** Compiler ajanına promptları JSON olarak kaydetme özelliği (output/_prompts.json) ve CLI (`main.py`) arayüzüne de zengin `rich.syntax` ile renkli JSON formatında terminal çıktısı verme yeteneği eklendi.
-📁 **Etkilenen Kapsam:** agents/compiler.py, main.py
-🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
-🛠️ **Geri Dönüş Adımları:** git checkout agents/compiler.py main.py komutu uygulanabilir.
+?? **Tarih/Saat:** 16.03.2026 - 01:55
+?? **Sorun:** Olu�turulan promptlar salt metin (Markdown) olarak ve konsolda d�z metin �eklinde g�steriliyordu. Profesyonel bir Prompt Engineering hissi vermiyordu.
+?? **?�lem �zeti:** Compiler ajan?na promptlar? JSON olarak kaydetme �zelli?i (output/_prompts.json) ve CLI (`main.py`) aray�z�ne de zengin `rich.syntax` ile renkli JSON format?nda terminal �?kt?s? verme yetene?i eklendi.
+?? **Etkilenen Kapsam:** agents/compiler.py, main.py
+?? **SADECE G?T ?LE D�N�LEB?L?R M??:** EVET
+??? **Geri D�n�� Ad?mlar?:** git checkout agents/compiler.py main.py komutu uygulanabilir.
 =========================================
 
 =========================================
-🕒 **Tarih/Saat:** 16.03.2026 - 03:05
-⚠️ **Sorun:** İçerik üretim fabrikası çalıştığında `app.invoke()` metodu LangGraph akışını tamamını bloke ediyordu. Bu yüzden CLI üzerindeki `rich.progress` arayüzü %17'de (toplam 6 ajanın 1. adımında) donuyormuş hissi veriyor, tüm jenerasyon dakikalarca bekletilirken arkada ne olup bittiği asla görünmüyordu.
-🎯 **İşlem Özeti:** Pipeline çağrısı `app.invoke()` yapısından `.stream()` yapısına dönüştürüldü. Artık LangGraph'tan gelen her adım emit edildiğinde ilerleme çubuğu dinamik ve gerçek zamanlı olarak (UI event-loop) güncelleniyor. Ayrıca ajanların bitişi `progress.console.print` ile yeşil bir tik atılarak kullanıcılara bildirim olarak akacak şekilde estetikleştirildi.
-📁 **Etkilenen Kapsam:** main.py
-🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
-🛠️ **Geri Dönüş Adımları:** git checkout main.py komutu ile eski statik invoke mantığına geri dönülebilir.
+?? **Tarih/Saat:** 16.03.2026 - 03:05
+?? **Sorun:** ?�erik �retim fabrikas? �al?�t???nda `app.invoke()` metodu LangGraph ak?�?n? tamam?n? bloke ediyordu. Bu y�zden CLI �zerindeki `rich.progress` aray�z� %17'de (toplam 6 ajan?n 1. ad?m?nda) donuyormu� hissi veriyor, t�m jenerasyon dakikalarca bekletilirken arkada ne olup bitti?i asla g�r�nm�yordu.
+?? **?�lem �zeti:** Pipeline �a?r?s? `app.invoke()` yap?s?ndan `.stream()` yap?s?na d�n��t�r�ld�. Art?k LangGraph'tan gelen her ad?m emit edildi?inde ilerleme �ubu?u dinamik ve ger�ek zamanl? olarak (UI event-loop) g�ncelleniyor. Ayr?ca ajanlar?n biti�i `progress.console.print` ile ye�il bir tik at?larak kullan?c?lara bildirim olarak akacak �ekilde estetikle�tirildi.
+?? **Etkilenen Kapsam:** main.py
+?? **SADECE G?T ?LE D�N�LEB?L?R M??:** EVET
+??? **Geri D�n�� Ad?mlar?:** git checkout main.py komutu ile eski statik invoke mant???na geri d�n�lebilir.
 =========================================
 
 =========================================
-🕒 **Tarih/Saat:** 16.03.2026 - 02:05
-⚠️ **Sorun:** Proje çalıştırıldığında `No module named 'agents.context_builder'` şeklinde ölümcül (fatal) bir hata fırlatıyordu.
-🎯 **İşlem Özeti:** Sorun araştırıldığında, geçmiş commitlerde (`7809a95`) `context_builder.py`, `quality_controller.py` ve `visual_prompter.py` modüllerinin hiçbir açıklama yapılmadan yanlışlıkla silindiği tespit edildi. Bu silinmiş ajanlar en son bulundukları stabil git noktasından (`5391b61`) bulunup tekrar restore edilerek projeye eklendi.
-📁 **Etkilenen Kapsam:** agents/context_builder.py, agents/quality_controller.py, agents/visual_prompter.py
-🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
-🛠️ **Geri Dönüş Adımları:** Yapılan düzeltme commit geri alınarak iptal edilebilir.
+?? **Tarih/Saat:** 16.03.2026 - 02:05
+?? **Sorun:** Proje �al?�t?r?ld???nda `No module named 'agents.context_builder'` �eklinde �l�mc�l (fatal) bir hata f?rlat?yordu.
+?? **?�lem �zeti:** Sorun ara�t?r?ld???nda, ge�mi� commitlerde (`7809a95`) `context_builder.py`, `quality_controller.py` ve `visual_prompter.py` mod�llerinin hi�bir a�?klama yap?lmadan yanl?�l?kla silindi?i tespit edildi. Bu silinmi� ajanlar en son bulunduklar? stabil git noktas?ndan (`5391b61`) bulunup tekrar restore edilerek projeye eklendi.
+?? **Etkilenen Kapsam:** agents/context_builder.py, agents/quality_controller.py, agents/visual_prompter.py
+?? **SADECE G?T ?LE D�N�LEB?L?R M??:** EVET
+??? **Geri D�n�� Ad?mlar?:** Yap?lan d�zeltme commit geri al?narak iptal edilebilir.
 =========================================
 
 =========================================
-🕒 **Tarih/Saat:** 16.03.2026 - 04:05
-⚠️ **Sorun:** Projedeki LLM (LangGraph ajan modelleri) ajanların modüllerine/core scriptlerine yayılmış durumdaydı ve görsel motor modeli (Nano Banana vs.) manuel harcoded listeyle kontrol ediliyordu. Tek merkezli bir yapılandırma yoktu.
-🎯 **İşlem Özeti:** `core/config.py` adlı yeni yapılandırma dosyası oluşturularak `AI_MODELS` isimli tek bir kod bloğu (dictionary) tanımlandı. Hem 6 farklı LangGraph ajanının Gemini ayarları hem de görsel üretim motorunun (Nano Banana 2) rotasyon modelleri buraya bağlandı. Kullanıcının isteği üzerine Resim modeli önceliği `gemini-3.1-flash-image-preview` olacak şekilde güncellendi.
-📁 **Etkilenen Kapsam:** core/config.py (Yeni), core/llm_bridge.py, core/image_generator.py
-🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
-🛠️ **Geri Dönüş Adımları:** Yapılan commit geri alınabilir.
+?? **Tarih/Saat:** 16.03.2026 - 04:05
+?? **Sorun:** Projedeki LLM (LangGraph ajan modelleri) ajanlar?n mod�llerine/core scriptlerine yay?lm?� durumdayd? ve g�rsel motor modeli (Nano Banana vs.) manuel harcoded listeyle kontrol ediliyordu. Tek merkezli bir yap?land?rma yoktu.
+?? **?�lem �zeti:** `core/config.py` adl? yeni yap?land?rma dosyas? olu�turularak `AI_MODELS` isimli tek bir kod blo?u (dictionary) tan?mland?. Hem 6 farkl? LangGraph ajan?n?n Gemini ayarlar? hem de g�rsel �retim motorunun (Nano Banana 2) rotasyon modelleri buraya ba?land?. Kullan?c?n?n iste?i �zerine Resim modeli �nceli?i `gemini-3.1-flash-image-preview` olacak �ekilde g�ncellendi.
+?? **Etkilenen Kapsam:** core/config.py (Yeni), core/llm_bridge.py, core/image_generator.py
+?? **SADECE G?T ?LE D�N�LEB?L?R M??:** EVET
+??? **Geri D�n�� Ad?mlar?:** Yap?lan commit geri al?nabilir.
 =========================================
 
 =========================================
-🕒 **Tarih/Saat:** 16.03.2026 - 04:15
-⚠️ **Sorun:** Nano Banana'ya gönderilen istemlerde `reference_image_path` parametresi kodda bulunuyordu ancak Pollinations.ai proxy'si resim dosyasını doğrudan kabul etmediği için, özellik Nano Banana'ya metin dışında salt referans resmi atamıyordu.
-🎯 **İşlem Özeti:** `core/image_generator.py` içerisindeki Img2Img mekanizması güncellendi. Eğer bir referans resim dosyası varsa; sistem bunu anonim bir bulut platformuna (`catbox.moe`) geçici olarak yükleyip bir public URL alıyor ve bu URL'yi Nano Banana promptunun en başına ekliyor. Böylece Pollinations bu resmi başlangıç referansı (init_image) olarak okuyup karakterin yüzünü daha istikrarlı çizebilecektir. Yeni yapay zeka Img2Img davranışı `docs/gorsel_uretim_ve_api_altyapisi.md` belgesine dokümante edildi.
-📁 **Etkilenen Kapsam:** core/image_generator.py, docs/gorsel_uretim_ve_api_altyapisi.md
-🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
-🛠️ **Geri Dönüş Adımları:** Yapılan commit geri alınabilir.
+?? **Tarih/Saat:** 16.03.2026 - 04:15
+?? **Sorun:** Nano Banana'ya g�nderilen istemlerde `reference_image_path` parametresi kodda bulunuyordu ancak Pollinations.ai proxy'si resim dosyas?n? do?rudan kabul etmedi?i i�in, �zellik Nano Banana'ya metin d?�?nda salt referans resmi atam?yordu.
+?? **?�lem �zeti:** `core/image_generator.py` i�erisindeki Img2Img mekanizmas? g�ncellendi. E?er bir referans resim dosyas? varsa; sistem bunu anonim bir bulut platformuna (`catbox.moe`) ge�ici olarak y�kleyip bir public URL al?yor ve bu URL'yi Nano Banana promptunun en ba�?na ekliyor. B�ylece Pollinations bu resmi ba�lang?� referans? (init_image) olarak okuyup karakterin y�z�n� daha istikrarl? �izebilecektir. Yeni yapay zeka Img2Img davran?�? `docs/gorsel_uretim_ve_api_altyapisi.md` belgesine dok�mante edildi.
+?? **Etkilenen Kapsam:** core/image_generator.py, docs/gorsel_uretim_ve_api_altyapisi.md
+?? **SADECE G?T ?LE D�N�LEB?L?R M??:** EVET
+??? **Geri D�n�� Ad?mlar?:** Yap?lan commit geri al?nabilir.
 ==================================================================================
-🕒 **Tarih/Saat:** 16.03.2026 - 03:15
-⚠️ **Sorun:** İçerik üretim takvimi oluşturmak dakikalar sürüyordu ancak arkaplanda hangi adımın (hangi LLM'in kaçıncı içeriği) yazdığı hakkında arayüzde bir teşhis/bilgi emaresi yoktu. Kullanıcı sistemin donduğunu ve çok yavaş çalıştığını sanıyordu.
-🎯 **İşlem Özeti:** `strategist.py`, `visual_prompter.py` ve `copywriter.py` ajanlarına `rich` kütüphanesi entegre edildi. Artık uzun süren ve döngü halinde günleri/haftaları dolaşan her LLM isteği öncesi (ör: "⏳ Copywriter: 20 metinden 5. (2026-03-01 Instagram) caption yazılıyor...") detaylı şekilde CLI arayüzüne yazdırılıyor (adım teşhisi).
-📁 **Etkilenen Kapsam:** agents/strategist.py, agents/visual_prompter.py, agents/copywriter.py
-🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
-🛠️ **Geri Dönüş Adımları:** Yapılan git commit geri alınabilir.
+?? **Tarih/Saat:** 16.03.2026 - 03:15
+?? **Sorun:** ?�erik �retim takvimi olu�turmak dakikalar s�r�yordu ancak arkaplanda hangi ad?m?n (hangi LLM'in ka�?nc? i�eri?i) yazd??? hakk?nda aray�zde bir te�his/bilgi emaresi yoktu. Kullan?c? sistemin dondu?unu ve �ok yava� �al?�t???n? san?yordu.
+?? **?�lem �zeti:** `strategist.py`, `visual_prompter.py` ve `copywriter.py` ajanlar?na `rich` k�t�phanesi entegre edildi. Art?k uzun s�ren ve d�ng� halinde g�nleri/haftalar? dola�an her LLM iste?i �ncesi (�r: "? Copywriter: 20 metinden 5. (2026-03-01 Instagram) caption yaz?l?yor...") detayl? �ekilde CLI aray�z�ne yazd?r?l?yor (ad?m te�hisi).
+?? **Etkilenen Kapsam:** agents/strategist.py, agents/visual_prompter.py, agents/copywriter.py
+?? **SADECE G?T ?LE D�N�LEB?L?R M??:** EVET
+??? **Geri D�n�� Ad?mlar?:** Yap?lan git commit geri al?nabilir.
 =========================================
+
+=========================================
+?? **Tarih/Saat:** 16.03.2026 - 05:15
+?? **Sorun:** Nano Banana 2 API'sinin stabil yan?t vermemesi ve IP'mizi bloklamas? projenin ana i� ak?�?n? (i�erik �retimini) kilitliyordu.
+?? **?�lem �zeti:** Kullan?c? onay?na istinaden sistemin **resim ve video render yetenekleri kod taban?ndan tamamen silinmi�tir.** Sistem art?k son a�amada diske resim kaydetmeye �al?�mayacak, bir prompt m�hendisi gibi JSON olarak promptlar? listeleyip operasyonu sonland?racakt?r.
+?? **Etkilenen Kapsam:** core/image_generator.py (Silindi), core/config.py, main.py, docs/*
+?? **SADECE G?T ?LE D�N�LEB?L?R M??:** EVET
+??? **Geri D�n�� Ad?mlar?:** Yap?lan commit ge�mi�e sard?r?larak image olu�turma motoru projeye tekrar dahil edilebilir.
+=======================================

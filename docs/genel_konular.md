@@ -21,12 +21,12 @@ Proje, **6 uzman LangGraph ajanından** oluşan bir pipeline ile çalışır:
 **Dosya:** `docs/gorsel_uretim_ve_api_altyapisi.md`
 
 - **LLM:** Gemini 2.5 Flash / Flash-Lite (langchain-google-genai)
-- **Görsel Üretim:** Nano Banana 2 (Pollinations.ai proxy üzerinden)
+- **Görsel/Video Üretimi:** Sistem sadece AI metinsel prompt tasarımı (JSON) sunar, doğrudan render yeteneği kapatılmıştır.
 - **API Key Yönetimi:** `.env` → `GEMINI_API_KEYS` (virgülle ayrılmış, otomatik rotasyon)
 - **Rate Limit Koruması:** Exponential backoff + key rotation + spam koruması
 - **Referans Görsel:** Gemini Vision ile persona fotoğrafı LLM'e okutularak prompt güçlendirme
 
-**İlgili dosyalar:** `core/llm_bridge.py`, `core/image_generator.py`, `.env`
+**İlgili dosyalar:** `core/llm_bridge.py`, `.env`
 
 ---
 
@@ -35,7 +35,7 @@ Proje, **6 uzman LangGraph ajanından** oluşan bir pipeline ile çalışır:
 
 - **CLI:** Rich + InquirerPy ile interaktif terminal arayüzü
 - **Persona Sistemi:** `seed.json` (kullanıcı girdisi) → `persona.json` (AI üretimi)
-- **Menü Seçenekleri:** Tam içerik paketi üretimi, tekil görsel üretim, persona yönetimi
+- **Menü Seçenekleri:** Tam içerik paketi üretimi, persona yönetimi
 - **Estetik:** Gothic/Dark tema, Rich Panel hizalama, tiyatral mesajlar
 
 **İlgili dosyalar:** `main.py`, `cli_wizard.py`, `core/persona_loader.py`, `personas/*/`

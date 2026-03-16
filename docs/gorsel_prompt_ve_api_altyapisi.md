@@ -1,6 +1,6 @@
-# 🖼️ Görsel Üretim ve API Altyapısı
+# 🖼️ Görsel Prompt Mühendisliği ve API Altyapısı
 
-Bu belge, Influencer Factory'nin LLM bağlantı katmanını, görsel üretim altyapısını, API key yönetimini ve rate limiting stratejilerini açıklar.
+Bu belge, Influencer Factory'nin LLM bağlantı katmanını, görsel spesifikasyonları üreten prompt mühendisliği altyapısını ve API key yönetimini açıklar.
 
 ---
 
@@ -65,55 +65,7 @@ result = llm.invoke([HumanMessage(content=prompt)])
 
 ---
 
-## Görsel Üretim (`core/image_generator.py`)
 
-### Nano Banana 2 — Pollinations Proxy
-
-Google'ın Nano Banana 2 (Imagen) API'si bölge/tier kısıtlamalarından dolayı doğrudan erişilemediği için, Pollinations.ai açık erişim proxy'si kullanılır.
-
-```
-generate_image(prompt, reference_image_path, output_path, aspect_ratio)
-    ↓
-Prompt → URL encode → GET https://image.pollinations.ai/prompt/{prompt}?width=...&height=...
-    ↓
-Response → Binary image → Diske kaydet
-```
-
-### Teknik Parametreler
-
-| Parametre | Değer | Açıklama |
-|-----------|-------|----------|
-| **Max Prompt Length** | 350 karakter | URL GET limiti nedeniyle kırpılır |
-| **Default Boyut** | 1024x1024 | 1:1 (Kare Post) |
-| **9:16 Boyut** | 576x1024 | Story / Reels / TikTok |
-| **16:9 Boyut** | 1024x576 | YouTube Kapak |
-| **Timeout** | 60 saniye | Aşarsa retry |
-| **Spam Koruması** | 2sn | Her başarılı üretim sonrası |
-
-### Rate Limit Yönetimi (Görsel)
-
-```
-429 hatası:
-  attempt 0: 8sn bekleme
-  attempt 1: 12sn bekleme
-  attempt 2: 16sn bekleme
-```
-
-### Prompt Güçlendirme ve Img2Img (Referans Görsel)
-
-Tekil görsel üretim modunda (`main.py > 🎨 Tekil Görsel Üret`) iki farklı referans ağırlık mekanizması devreye girer:
-
-1. **LLM Vision ile Metinsel Referans:**  
-   `personas/<artist>/images/` klasöründen referans görsel alınır. Gemini Vision LLM aracılığıyla görseldeki yüz yapısı, detayları ingilizce promptun içerisine aktarılır.
-   
-2. **Nano Banana (Pollinations) Img2Img Adaptasyonu:**  
-   Eğer referans görsel mevcutsa, `core/image_generator.py` bu resmi geçici ve anonim olarak **Catbox.moe** bulut sistemine yükler. 
-   Elde edilen public resim URL'i, final promptun en başına eklenir (örn: `https://files.catbox.moe/... prompt-text`).
-   Pollinations mimarisi bu URL'yi algıladığında salt metin üretimini bir kenara bırakır ve resmi bir "başlangıç durumu (init_image)" olarak ele alarak **Img2Img resimden-resime** üretim gerçekleştirir.
-
-```
-Referans Resim → Catbox Bulut (URL) & Gemini Vision → URL + Detaylı Prompt → Pollinations → Final Görsel
-```
 
 ---
 
@@ -143,8 +95,5 @@ ERROR → Kritik hatalar (HTTP 500, timeout)
 ## Değişiklik Geçmişi
 
 | Tarih | Değişiklik | Etkilenen Alanlar |
-|-------|-----------|-------------------|
-| 15.03.2026 | İlk dokümantasyon oluşturuldu | Tümü |
-| 15.03.2026 | Pollinations proxy entegrasyonu | `image_generator.py` |
 | 15.03.2026 | Gemini Vision ile prompt güçlendirme | `main.py`, `llm_bridge.py` |
-| 15.03.2026 | Prompt 350 karakter kırpma | `image_generator.py` |
+| 16.03.2026 | Görsel Üretim Motoru Silindi | `core/image_generator.py` |
