@@ -559,8 +559,8 @@ def main():
                 ).execute()
                 
                 user_prompt = inquirer.text(
-                    message="İstediğin içerik detayları (Ne görünecek?):",
-                    default="Konserde sahnede harika bir poz",
+                    message="İstediğin içerik detayları (Otonom rastgele üretim için BOŞ BIRAK):",
+                    default="",
                     qmark="💬",
                 ).execute()
                 
@@ -577,6 +577,11 @@ def main():
                 vi = persona_dict.get("visual_identity", {})
                 master_prompt = vi.get("ai_reference_prompt", "")
                 
+                if not user_prompt.strip():
+                    prompt_instruction = "## AUTONOMOUS MODE\nGenerate a COMPLETELY RANDOM, creative, and highly detailed scene that perfectly fits this artist's persona, aesthetic, and lifestyle. Surprise me."
+                else:
+                    prompt_instruction = f"## USER REQUEST\n{user_prompt}\n\nBased on the above, generate a highly detailed, scene-focused prompt."
+
                 sys_prompt = f"""You are an Expert Prompt Engineer for AI Image/Video Generation.
 ## ARTIST VISUAL IDENTITY TO KEEP IN MIND
 - Master Reference: {master_prompt}
@@ -591,10 +596,7 @@ INSTEAD, you MUST heavily detail the REST of the image:
 3. The Camera Angle & Composition (lens type, framing, depth of field).
 4. The Action & Pose (what the character is doing, posture, expression context).
 
-## USER REQUEST
-{user_prompt}
-
-Based on the above, generate a highly detailed, scene-focused prompt."""
+{prompt_instruction}"""
 
                 if media_type == "image":
                     with Progress(SpinnerColumn(), TextColumn("[cyan]Görsel promptu JSON/XML olarak tasarlanıyor..."), console=console) as prog:
@@ -630,16 +632,18 @@ Based on the above, generate a highly detailed, scene-focused prompt."""
                     from core.models import Caption
                     with Progress(SpinnerColumn(), TextColumn("[cyan]Metin/Caption JSON olarak yazılıyor..."), console=console) as prog:
                         prog.add_task("", total=None)
+                        if not user_prompt.strip():
+                            cap_instruction = "## AUTONOMOUS MODE\nGenerate a COMPLETELY RANDOM, engaging, and highly characteristic social media caption that perfectly fits this artist's daily life, music, or aesthetic."
+                        else:
+                            cap_instruction = f"## USER REQUEST\n{user_prompt}\n\nGenerate a compelling, character-consistent caption for a social media post based on this request."
+
                         sys_prompt_text = f"""You are an Expert Copywriter and Social Media Manager for this persona.
 ## ARTIST PERSONA
 - Name: {persona_dict.get('name', '')}
 - Biography: {persona_dict.get('biography', '')}
 - Personality: {persona_dict.get('personality_hints', '')}
 
-## USER REQUEST
-{user_prompt}
-
-Generate a compelling, character-consistent caption for a social media post based on this request."""
+{cap_instruction}"""
                         cap_llm = get_structured_llm("single_text_prompter", Caption)
                         try:
                             cap = cap_llm.invoke([HumanMessage(content=sys_prompt_text)])

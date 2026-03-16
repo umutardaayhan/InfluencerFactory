@@ -112,3 +112,12 @@
 ?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
 ??? **Geri Dönüº Ad?mlar?:** Olas? hata durumunda ilgili dosyalar için `git checkout -- .` ya da önceki commite dönüº yap?labilir.
 =========================================
+
+=========================================
+?? **Tarih/Saat:** [16.03.2026 - 06:05]
+?? **Sorun:** Tekli medya (prompt, video, metin) üretirken kullan?c?n?n her seferinde bir içerik detay? girmesi gerekiyordu. Tamamen yapay zeka taraf?ndan rastgele (autonomous) kurgulanm?º bir prompt üretme seçene?i eksikti.
+?? **?ºlem Özeti:** `main.py` içerisindeki tekli medya üretim ak?º?nda "içerik detaylar?" girdisi boº b?rak?labilir hale getirildi. E?er boº b?rak?l?rsa sisteme "Tamamen Otonom (Autonomous Mode)" talimat? geçilerek artistin kimli?ine uygun rastgele ve sürprizli yarat?c? bir prompt üretmesi sa?land?.
+?? **Etkilenen Kapsam:** `main.py`
+?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
+??? **Geri Dönüº Ad?mlar?:** Olas? hata durumunda ilgili dosyalar için `git checkout -- .` ya da önceki commite dönüº yap?labilir.
+=========================================
