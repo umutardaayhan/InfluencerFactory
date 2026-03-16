@@ -148,3 +148,21 @@
 ?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
 ??? **Geri Dönüº Ad?mlar?:** \`git restore main.py\` ile.
 =========================================
+
+=========================================
+?? **Tarih/Saat:** 16.03.2026 - 16:50
+?? **Sorun:** ªark? sözleri, beste türleri vb. da??n?k kaynaklardan yay?n takvimi ve master prompt oluºturman?n manuel olarak çok zaman almas?. Üstelik Notebook LM için özel bir master ºablonun bulunmamas?.
+?? **?ºlem Özeti:** Notebook LM kullanarak da??n?k ºark? verilerinden "Master Prompt" üretme tekni?ini ad?m ad?m aç?klayan bir rehber (Markdown) dosyas? oluºturuldu. Ek olarak proje kurallar? (Feynman/Ajans tekni?i) dokümana entegre edildi.
+?? **Etkilenen Kapsam:** docs/notebook_lm_master_prompt_sarki.md
+?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
+??? **Geri Dönüº Ad?mlar?:** git checkout HEAD -- docs/notebook_lm_master_prompt_sarki.md
+=========================================
+
+=========================================
+?? **Tarih/Saat:** 16.03.2026 - 17:15
+?? **Sorun:** Notebook LM'in genel bir AI gibi davranmas? ve projenin "Menajer" ihtiyac?na tam odaklanamamas?.
+?? **?ºlem Özeti:** Notebook LM için "Sohbet Özelleºtirme" (Menajer Rolü) talimatlar? rehber dosyas?na eklendi. Art?k Notebook LM bir müzik menajeri ve pazarlama dehas? gibi yap?land?r?labilecek.
+?? **Etkilenen Kapsam:** docs/notebook_lm_master_prompt_sarki.md
+?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
+??? **Geri Dönüº Ad?mlar?:** git checkout HEAD -- docs/notebook_lm_master_prompt_sarki.md
+=========================================
