@@ -82,6 +82,7 @@ Uyarı:          bright_yellow
 personas/
 └── <artist_name>/
     ├── seed.json       ← Kullanıcı girdisi (DOKUNULMAZ)
+    ├── custom_data.json ← Gerçek veriler (Şarkı, etkinlik, ürün vb.)
     ├── persona.json    ← AI üretimi (OTOMATİK)
     └── images/         ← Referans görseller (DOKUNULMAZ)
         ├── portrait.jpg
@@ -189,3 +190,4 @@ python main.py
 | 15.03.2026 | İlk dokümantasyon oluşturuldu | Tümü |
 | 15.03.2026 | Tekil Görsel Üretim menüsü ve prompt akışı eklendi | `main.py` |
 | 15.03.2026 | Referans görsel ile Vision prompt güçlendirme | `main.py` |
+| 16.03.2026 | custom_data.json desteği eklendi | `core/persona_loader.py`, `main.py` |

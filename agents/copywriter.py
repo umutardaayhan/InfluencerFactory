@@ -10,6 +10,7 @@ Etkilediği dosyalar: core/state.py (captions alanı),
 """
 import json
 import logging
+from typing import Optional
 
 from langchain_core.messages import HumanMessage
 
@@ -20,7 +21,7 @@ from core.llm_bridge import get_structured_llm
 logger = logging.getLogger(__name__)
 
 
-def _build_copywriter_prompt(persona_dict: dict, slots: list) -> str:
+def _build_copywriter_prompt(persona_dict: dict, slots: list, custom_data: Optional[dict] = None) -> str:
     """Metin yazarına gönderilecek prompt."""
     personality = persona_dict.get("personality", {})
     music = persona_dict.get("music", {})
@@ -32,7 +33,7 @@ def _build_copywriter_prompt(persona_dict: dict, slots: list) -> str:
             f"- [{s.date}_{s.platform}] Platform: {s.platform} | Type: {s.content_type} | Brief: {s.brief}"
         )
 
-    return f"""You are a ghostwriter for a music artist. You write social media captions 
+    prompt_str = f"""You are a ghostwriter for a music artist. You write social media captions 
 that sound EXACTLY like the artist speaks — not like a marketing agency.
 
 ## ARTIST VOICE PROFILE
@@ -44,7 +45,17 @@ that sound EXACTLY like the artist speaks — not like a marketing agency.
 - Catchphrases: {personality.get('catchphrases', [])}
 - Genre: {music.get('genre', 'Unknown')}
 - Visual Aesthetic: {vi.get('visual_references', 'N/A')}
+"""
 
+    if custom_data:
+        prompt_str += f"""
+## CUSTOM DATA / ACTUAL ASSETS
+{json.dumps(custom_data, indent=2, ensure_ascii=False)}
+
+CRITICAL INSTRUCTION: If you are writing about a song, event, or product, refer to the actual names, lyrics, or details from the CUSTOM DATA above. DO NOT invent fake song names or lyrics.
+"""
+
+    prompt_str += f"""
 ## CONTENT SLOTS
 {chr(10).join(slot_briefs)}
 
@@ -73,6 +84,7 @@ For EACH slot, write a caption that:
 
 Generate one PostCaption per slot. slot_ref format: "YYYY-MM-DD_platform"
 """
+    return prompt_str
 
 
 def copywriter_node(state: InfluencerState) -> dict:
@@ -81,6 +93,7 @@ def copywriter_node(state: InfluencerState) -> dict:
     """
     persona = state["persona"]
     weekly_plans = state["weekly_plans"]
+    custom_data = state.get("custom_data")
 
     persona_dict = persona.model_dump() if hasattr(persona, 'model_dump') else persona
 
@@ -101,7 +114,7 @@ def copywriter_node(state: InfluencerState) -> dict:
         console.print(f"    [dim]⏳ Copywriter: {len(all_slots)} metinden {index+1}. ({slot.date} {slot.platform}) caption yazılıyor...[/dim]")
         try:
             cap_llm = get_structured_llm("copywriter", PostCaption)
-            prompt = _build_copywriter_prompt(persona_dict, [slot])
+            prompt = _build_copywriter_prompt(persona_dict, [slot], custom_data)
             single_prompt = f"""{prompt}
 
 Generate ONLY the PostCaption for this specific slot:

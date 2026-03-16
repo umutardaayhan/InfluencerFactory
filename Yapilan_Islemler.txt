@@ -121,3 +121,12 @@
 ?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
 ??? **Geri Dönüº Ad?mlar?:** Olas? hata durumunda ilgili dosyalar için `git checkout -- .` ya da önceki commite dönüº yap?labilir.
 =========================================
+
+=========================================
+?? **Tarih/Saat:** [16.03.2026 - 06:18]
+?? **Sorun:** Personalar?n içerik takvimlerinde ve promptlar?nda mock/rastgele veriler yerine gerçek (custom) verilerin kullan?lmas? gereksinimi.
+?? **?ºlem Özeti:** `custom_data.json` dosyas? deste?i eklendi. Bu dosya `core/persona_loader.py` üzerinden okunarak `InfluencerState`'e dahil edildi ve `strategist`, `visual_prompter`, `copywriter` ajanlar?n?n promptlar?na ba?land?.
+?? **Etkilenen Kapsam:** `core/state.py`, `core/persona_loader.py`, `main.py`, `agents/strategist.py`, `agents/visual_prompter.py`, `agents/copywriter.py`
+?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
+??? **Geri Dönüº Ad?mlar?:** `git restore .` ile veya commit öncesi geri dönülebilir.
+=========================================

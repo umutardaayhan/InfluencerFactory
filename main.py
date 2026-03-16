@@ -296,7 +296,7 @@ def run_persona_build(persona: dict, rebuild: bool = False):
 
 def run_content_pipeline(persona: dict, month: str, prompt: str):
     """Tam içerik üretim pipeline'ını çalıştırır."""
-    from core.persona_loader import load_seed, discover_images, load_cached_persona
+    from core.persona_loader import load_seed, discover_images, load_cached_persona, load_custom_data
     from core.workflow import compile_workflow
     from core.llm_bridge import get_total_tokens, reset_token_counter
 
@@ -304,12 +304,14 @@ def run_content_pipeline(persona: dict, month: str, prompt: str):
     seed = load_seed(artist_dir)
     images = discover_images(artist_dir)
     cached = load_cached_persona(artist_dir)
+    custom_data = load_custom_data(artist_dir)
 
     console.print()
     console.print(Panel(
         f"[bright_cyan]🎤 {persona['name']}[/bright_cyan]  ·  "
         f"[bright_yellow]📅 {month}[/bright_yellow]  ·  "
-        f"[dim]{'Persona: cache ✓' if cached else 'Persona: yeni oluşturulacak'}[/dim]\n\n"
+        f"[dim]{'Persona: cache ✓' if cached else 'Persona: yeni oluşturulacak'}[/dim]  ·  "
+        f"[dim]{'Custom Data ✓' if custom_data else 'Custom Data: yok'}[/dim]\n\n"
         f"[white]💬 {prompt}[/white]",
         title="[bold bright_magenta]🚀 İçerik Üretimi Başlıyor[/bold bright_magenta]",
         border_style="bright_magenta",
@@ -325,6 +327,7 @@ def run_content_pipeline(persona: dict, month: str, prompt: str):
         "user_prompt": prompt,
         "month_target": month,
         "persona": cached,
+        "custom_data": custom_data,
         "release_strategy": None,
         "weekly_plans": None,
         "visual_prompts": None,

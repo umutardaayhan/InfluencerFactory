@@ -99,6 +99,7 @@ class InfluencerState(TypedDict):
     user_prompt: str                        # Kullanıcı istemi
     month_target: str                       # Hedef ay (YYYY-MM)
     persona_dir: str                        # Persona klasör yolu
+    custom_data: Optional[dict]             # Kullanıcı tanımlı gerçek/özel veriler (custom_data.json)
 
     # Context Builder Çıktısı
     persona: Optional[PersonaProfile]
@@ -176,3 +177,4 @@ compiler → END
 | Tarih | Değişiklik | Etkilenen Alanlar |
 |-------|-----------|-------------------|
 | 15.03.2026 | İlk dokümantasyon oluşturuldu | Tümü |
+| 16.03.2026 | custom_data.json desteği eklendi | core/state.py, core/persona_loader.py, main.py, agents |

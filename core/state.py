@@ -30,6 +30,8 @@ class InfluencerState(TypedDict):
     user_prompt: str                        # Kullanıcının tek satırlık istemi
     month_target: str                       # Hedef ay (YYYY-MM)
     persona_dir: str                        # Persona klasör yolu
+    custom_data: Optional[dict]             # Kullanıcı tanımlı gerçek/özel veriler (custom_data.json)
+
 
     # ── Context Builder Çıktısı ──────────────────────────────
     persona: Optional[PersonaProfile]       # Otomatik üretilmiş tam persona

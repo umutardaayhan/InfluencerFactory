@@ -77,6 +77,26 @@ def discover_images(persona_dir: str) -> list[str]:
         logger.info(f"[PERSONA] {len(image_paths)} adet görsel bulundu.")
 
     return image_paths
+def load_custom_data(persona_dir: str) -> Optional[dict]:
+    """
+    Kullanıcının sağladığı custom_data.json dosyasını yükler.
+
+    Returns:
+        Gerektiğinde dict, yoksa None
+    """
+    custom_data_path = Path(persona_dir) / "custom_data.json"
+
+    if not custom_data_path.exists():
+        return None
+
+    try:
+        with open(custom_data_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        logger.info(f"[PERSONA] custom_data.json yüklendi: {custom_data_path.name}")
+        return data
+    except Exception as e:
+        logger.warning(f"[PERSONA] custom_data.json okunamadı veya JSON geçersiz: {e}")
+        return None
 
 
 def load_cached_persona(persona_dir: str) -> Optional[PersonaProfile]:

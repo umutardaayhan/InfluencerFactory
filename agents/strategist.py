@@ -11,6 +11,7 @@ Etkilediği dosyalar: core/state.py (release_strategy, weekly_plans alanlarını
 import json
 import logging
 from datetime import datetime
+from typing import Optional
 
 from langchain_core.messages import HumanMessage
 
@@ -21,7 +22,7 @@ from core.llm_bridge import get_structured_llm
 logger = logging.getLogger(__name__)
 
 
-def _build_strategy_prompt(persona: dict, month: str, user_prompt: str) -> str:
+def _build_strategy_prompt(persona: dict, month: str, user_prompt: str, custom_data: Optional[dict] = None) -> str:
     """Stratejist'e gönderilecek ana promptu oluşturur."""
 
     music = persona.get("music", {})
@@ -29,7 +30,7 @@ def _build_strategy_prompt(persona: dict, month: str, user_prompt: str) -> str:
     discography = music.get("discography", [])
     upcoming = music.get("upcoming_releases", [])
 
-    return f"""You are an expert music marketing strategist. You plan release campaigns 
+    prompt_str = f"""You are an expert music marketing strategist. You plan release campaigns 
 for independent artists with detailed day-by-day content calendars.
 
 ## ARTIST PROFILE
@@ -43,7 +44,17 @@ for independent artists with detailed day-by-day content calendars.
 
 ## UPCOMING RELEASES
 {json.dumps(upcoming, indent=2, ensure_ascii=False)}
+"""
 
+    if custom_data:
+        prompt_str += f"""
+## CUSTOM DATA / ACTUAL ASSETS
+{json.dumps(custom_data, indent=2, ensure_ascii=False)}
+
+CRITICAL INSTRUCTION: You MUST use the actual songs, lyrics, events, or products listed in the CUSTOM DATA section above. DO NOT invent fake or mock song names. Incorporate these real assets into your strategy.
+"""
+
+    prompt_str += f"""
 ## USER REQUEST
 {user_prompt}
 
@@ -67,6 +78,7 @@ Create a comprehensive 1-month release strategy and weekly content plan.
 Respond in the EXACT JSON structure expected. Use dates in YYYY-MM-DD format.
 All text content should be in Turkish.
 """
+    return prompt_str
 
 
 def strategist_node(state: InfluencerState) -> dict:
@@ -76,6 +88,7 @@ def strategist_node(state: InfluencerState) -> dict:
     persona = state["persona"]
     month = state["month_target"]
     user_prompt = state["user_prompt"]
+    custom_data = state.get("custom_data")
 
     logger.info(f"[STRATEGIST] 🧠 Strateji oluşturuluyor: {month}")
     
@@ -88,7 +101,7 @@ def strategist_node(state: InfluencerState) -> dict:
     # ── Release Strategy üret ──────────────────────────────
     console.print(f"    [dim]⏳ Stratejist: {month} ayı {persona_dict.get('stage_name', 'Artist')} için genel yayım stratejisi kurgulanıyor...[/dim]")
     strategy_llm = get_structured_llm("strategist", ReleaseStrategy)
-    strategy_prompt = _build_strategy_prompt(persona_dict, month, user_prompt)
+    strategy_prompt = _build_strategy_prompt(persona_dict, month, user_prompt, custom_data)
 
     release_strategy = strategy_llm.invoke([HumanMessage(content=strategy_prompt)])
     logger.info(f"[STRATEGIST] Yayım stratejisi hazır: {release_strategy.theme}")

@@ -13,6 +13,7 @@ Etkilediği dosyalar: core/state.py (visual_prompts, video_prompts alanları),
 """
 import json
 import logging
+from typing import Optional
 
 from langchain_core.messages import HumanMessage
 
@@ -35,7 +36,7 @@ def _collect_slots(weekly_plans, need_visual: bool = True, need_video: bool = Fa
     return slots
 
 
-def _build_visual_prompt(persona_dict: dict, slots: list) -> str:
+def _build_visual_prompt(persona_dict: dict, slots: list, custom_data: Optional[dict] = None) -> str:
     """Görsel prompt üretim yönergesi."""
     vi = persona_dict.get("visual_identity", {})
     master_prompt = vi.get("ai_reference_prompt", "")
@@ -46,7 +47,7 @@ def _build_visual_prompt(persona_dict: dict, slots: list) -> str:
             f"- [{s.date}_{s.platform}] Type: {s.content_type} | Brief: {s.brief}"
         )
 
-    return f"""You are an expert AI Image Prompt Engineer specializing in music artist content.
+    prompt_str = f"""You are an expert AI Image Prompt Engineer specializing in music artist content.
 
 ## ARTIST VISUAL IDENTITY
 - Appearance: {vi.get('appearance', 'N/A')}
@@ -56,7 +57,17 @@ def _build_visual_prompt(persona_dict: dict, slots: list) -> str:
 
 ## MASTER REFERENCE PROMPT (use as base for ALL prompts)
 {master_prompt}
+"""
 
+    if custom_data:
+        prompt_str += f"""
+## CUSTOM DATA / ACTUAL ASSETS
+{json.dumps(custom_data, indent=2, ensure_ascii=False)}
+
+CRITICAL INSTRUCTION: If the content slot refers to a specific song, event, or product listed in the CUSTOM DATA, you MUST incorporate its visual elements (e.g. song theme, product design) into the prompt.
+"""
+
+    prompt_str += f"""
 ## CONTENT SLOTS NEEDING VISUAL PROMPTS
 {chr(10).join(slot_briefs)}
 
@@ -80,9 +91,10 @@ For EACH slot above, create a detailed AI image generation prompt.
 
 Generate one VisualPrompt per slot.
 """
+    return prompt_str
 
 
-def _build_video_prompt(persona_dict: dict, slots: list) -> str:
+def _build_video_prompt(persona_dict: dict, slots: list, custom_data: Optional[dict] = None) -> str:
     """Video prompt üretim yönergesi."""
     vi = persona_dict.get("visual_identity", {})
     master_prompt = vi.get("ai_reference_prompt", "")
@@ -94,7 +106,7 @@ def _build_video_prompt(persona_dict: dict, slots: list) -> str:
             f"- [{s.date}_{s.platform}] Type: {s.content_type} | Duration: {duration}s | Brief: {s.brief}"
         )
 
-    return f"""You are an expert AI Video Director specializing in music video content and social media clips.
+    prompt_str = f"""You are an expert AI Video Director specializing in music video content and social media clips.
 
 ## ARTIST VISUAL IDENTITY
 - Appearance: {vi.get('appearance', 'N/A')}
@@ -104,7 +116,17 @@ def _build_video_prompt(persona_dict: dict, slots: list) -> str:
 
 ## MASTER REFERENCE PROMPT
 {master_prompt}
+"""
 
+    if custom_data:
+        prompt_str += f"""
+## CUSTOM DATA / ACTUAL ASSETS
+{json.dumps(custom_data, indent=2, ensure_ascii=False)}
+
+CRITICAL INSTRUCTION: If the content slot refers to a specific song, event, or product listed in the CUSTOM DATA, incorporate its thematic elements into the video directive.
+"""
+
+    prompt_str += f"""
 ## CONTENT SLOTS NEEDING VIDEO PROMPTS
 {chr(10).join(slot_briefs)}
 
@@ -132,6 +154,7 @@ For EACH slot above, create a detailed AI video generation directive.
 
 Generate one VideoPrompt per slot.
 """
+    return prompt_str
 
 
 def visual_prompter_node(state: InfluencerState) -> dict:
@@ -140,6 +163,7 @@ def visual_prompter_node(state: InfluencerState) -> dict:
     """
     persona = state["persona"]
     weekly_plans = state["weekly_plans"]
+    custom_data = state.get("custom_data")
 
     persona_dict = persona.model_dump() if hasattr(persona, 'model_dump') else persona
 
@@ -159,7 +183,7 @@ def visual_prompter_node(state: InfluencerState) -> dict:
         
         for i in range(0, len(visual_slots), batch_size):
             batch = visual_slots[i:i + batch_size]
-            prompt = _build_visual_prompt(persona_dict, batch)
+            prompt = _build_visual_prompt(persona_dict, batch, custom_data)
             current_batch = (i // batch_size) + 1
             
             console.print(f"    [dim]⏳ Görsel Prompter: {len(visual_slots)} görselden {i+1}-{min(i+batch_size, len(visual_slots))} arası hesaplanıyor... (Batch {current_batch}/{total_batches})[/dim]")
@@ -192,7 +216,7 @@ Generate ONLY the VisualPrompt for this specific slot:
             console.print(f"    [dim]⏳ Video Prompter: {len(video_slots)} videodan {index+1}. ({slot.date} {slot.platform}) yönetmen notları kurgulanıyor...[/dim]")
             try:
                 vid_llm = get_structured_llm("visual_prompter", VideoPrompt)
-                prompt = _build_video_prompt(persona_dict, [slot])
+                prompt = _build_video_prompt(persona_dict, [slot], custom_data)
                 single_prompt = f"""{prompt}
 
 Generate ONLY the VideoPrompt for this specific slot:
