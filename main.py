@@ -577,18 +577,24 @@ def main():
                 vi = persona_dict.get("visual_identity", {})
                 master_prompt = vi.get("ai_reference_prompt", "")
                 
-                sys_prompt = f"""You are an Expert Prompt Engineer.
-## ARTIST VISUAL IDENTITY
-- Appearance: {vi.get('appearance', 'N/A')}
-- Fashion: {vi.get('fashion_style', 'N/A')}
+                sys_prompt = f"""You are an Expert Prompt Engineer for AI Image/Video Generation.
+## ARTIST VISUAL IDENTITY TO KEEP IN MIND
+- Master Reference: {master_prompt}
+- Fashion Style: {vi.get('fashion_style', 'N/A')}
 
-## MASTER REFERENCE PROMPT
-{master_prompt}
+## CRITICAL INSTRUCTION
+We already use an image/face reference (LoRA/ControlNet) for the character's exact appearance. 
+DO NOT overly describe the character's physical facial features (e.g., eye shape, face shape, freckles).
+INSTEAD, you MUST heavily detail the REST of the image:
+1. The Environment & Background (location, architecture, nature, textures).
+2. The Lighting & Atmosphere (time of day, light sources, shadows, mood).
+3. The Camera Angle & Composition (lens type, framing, depth of field).
+4. The Action & Pose (what the character is doing, posture, expression context).
 
 ## USER REQUEST
 {user_prompt}
 
-Based on the above, generate a highly detailed prompt specifically tailored to this persona."""
+Based on the above, generate a highly detailed, scene-focused prompt."""
 
                 if media_type == "image":
                     with Progress(SpinnerColumn(), TextColumn("[cyan]Görsel promptu JSON/XML olarak tasarlanıyor..."), console=console) as prog:

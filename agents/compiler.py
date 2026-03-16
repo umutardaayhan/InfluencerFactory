@@ -69,7 +69,7 @@ def _write_package_files(package: MonthlyPackage, output_dir: Path):
         lines_vis.append(f"")
         for i, vp in enumerate(package.visual_prompts, 1):
             lines_vis.append(f"## Görsel #{i} — {vp.slot_ref}")
-            lines_vis.append(f"- **Araç:** {vp.target_tool} | **Oran:** {vp.aspect_ratio}")
+            lines_vis.append(f"- **Oran:** {vp.aspect_ratio}")
             lines_vis.append(f"- **Stil:** {', '.join(vp.style_tags)}")
             lines_vis.append(f"")
             lines_vis.append(f"> {vp.prompt_text}")

@@ -101,7 +101,6 @@ class VisualPrompt(BaseModel):
     negative_prompt: str = Field(default="", description="Kaçınılacak öğeler")
     aspect_ratio: str = Field(description="Oran (1:1, 4:5, 9:16, 16:9)")
     style_tags: List[str] = Field(description="Stil etiketleri (cinematic, noir, dreamy vb.)")
-    target_tool: str = Field(default="Midjourney", description="Hedef araç (Midjourney, DALL-E, Flux)")
 
 
 class VideoPrompt(BaseModel):

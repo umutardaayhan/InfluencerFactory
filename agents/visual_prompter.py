@@ -76,7 +76,6 @@ For EACH slot above, create a detailed AI image generation prompt.
 - Adapt mood/setting to match the content type (teaser=mysterious, release=energetic, BTS=casual)
 - Include appropriate aspect ratios: Instagram=4:5 or 1:1, TikTok/Reels=9:16, Twitter=16:9 or 1:1
 - Add negative_prompt to avoid unwanted elements
-- Specify target_tool (Midjourney, DALL-E, or Flux)
 - slot_ref format: "YYYY-MM-DD_platform"
 
 Generate one VisualPrompt per slot.

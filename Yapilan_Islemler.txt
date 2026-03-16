@@ -94,3 +94,12 @@
 ?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
 ??? **Geri Dönüº Ad?mlar?:** Olas? hata durumunda ilgili dosyalar için `git checkout -- .` ya da önceki commite dönüº yap?labilir.
 =========================================
+
+=========================================
+?? **Tarih/Saat:** [16.03.2026 - 05:51]
+?? **Sorun:** Tekli resim üretimi promptlar?nda detaylar?n yüz hatlar?na fazla odaklanmas?, arka plan/ortam?n zay?f kalmas? ve "target_tool" gibi gereksiz parametrelerin yer almas?.
+?? **?ºlem Özeti:** `core/models.py` içinden `target_tool` kald?r?ld?, buna ba?l? `compiler.py` ve `visual_prompter.py` güncellendi. `main.py` içerisindeki tekli resim system promptuna referans görsel (LoRA/ControlNet) kullan?laca?? belirtilip, karakter özellikleri yerine çevre, ?º?k ve kompozisyona odaklanmas? komutland?.
+?? **Etkilenen Kapsam:** `core/models.py`, `agents/compiler.py`, `agents/visual_prompter.py`, `main.py`
+?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
+??? **Geri Dönüº Ad?mlar?:** Olas? hata durumunda ilgili dosyalar için `git checkout -- .` ya da önceki commite dönüº yap?labilir.
+========================================
