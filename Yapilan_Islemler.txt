@@ -130,3 +130,12 @@
 ?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
 ??? **Geri Dönüº Ad?mlar?:** `git restore .` ile veya commit öncesi geri dönülebilir.
 =========================================
+
+=========================================
+?? **Tarih/Saat:** [16.03.2026 - 06:22]
+?? **Sorun:** Kullan?c?lar?n custom_data.json dosyas?n? CLI menüsünden kolayca oluºturup yönetebilmesi ihtiyac?.
+?? **?ºlem Özeti:** Ana CLI menüsüne '?? Özel Veri Yönetimi' seçene?i eklendi. Kullan?c? bu seçene?i seçti?inde, e?er dosya yoksa örnek ºablonla otomatik oluºturuluyor ve iºletim sisteminin varsay?lan metin düzenleyicisinde aç?l?yor.
+?? **Etkilenen Kapsam:** `main.py`
+?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
+??? **Geri Dönüº Ad?mlar?:** `git restore main.py` veya önceki commite dönüº.
+=========================================

@@ -158,6 +158,7 @@ def main_menu(has_personas: bool = True) -> str:
         {"name": "👁️  Persona Oluştur    — Fotoğraflardan görsel kimlik analizi", "value": "persona"},
         {"name": "🔄 Persona Yenile      — Mevcut persona'yı sil ve tekrar oluştur", "value": "rebuild"},
         {"name": "📋 Persona Bilgisi     — Seçili sanatçının detaylarını göster", "value": "info"},
+        {"name": "📝 Özel Veri Yönetimi  — Gerçek verileri (şarkı, etkinlik) ekle/düzenle", "value": "custom_data"},
         Separator(),
         {"name": "❌ Çıkış", "value": "exit"},
     ]
@@ -495,6 +496,55 @@ def main():
             show_persona_card(selected)
 
             if action == "info":
+                continue
+
+            elif action == "custom_data":
+                custom_data_path = Path(selected["dir"]) / "custom_data.json"
+                if not custom_data_path.exists():
+                    confirm = inquirer.confirm(
+                        message=f"{selected['name']} için custom_data.json bulunamadı. Şablon oluşturulsun mu?",
+                        default=True,
+                        qmark="📝",
+                    ).execute()
+                    if confirm:
+                        import json
+                        template = {
+                            "important_notes": "Buraya yapay zekanın kesinlikle uymasını istediğiniz genel kuralları veya özel durumları yazabilirsiniz.",
+                            "upcoming_events": [
+                                {
+                                    "date": "2026-05-15",
+                                    "event_name": "Albüm Lansman Konseri",
+                                    "location": "Zorlu PSM, İstanbul",
+                                    "details": "Sahnede devasa kırmızı bir ay dekoru olacak."
+                                }
+                            ],
+                            "real_songs": [
+                                {
+                                    "title": "Kanlı Ay",
+                                    "theme": "İhanet ve yeniden doğuş",
+                                    "key_lyrics": "Gökyüzü kızıla boyandığında, saklanacak yerin kalmayacak."
+                                }
+                            ],
+                            "products_or_merch": [
+                                {
+                                    "name": "Karanlık Seri Tişört",
+                                    "description": "Önünde gotik fontla Kanlı Ay yazan siyah oversize tişört."
+                                }
+                            ]
+                        }
+                        with open(custom_data_path, "w", encoding="utf-8") as f:
+                            json.dump(template, f, ensure_ascii=False, indent=4)
+                        show_success(f"Şablon oluşturuldu: {custom_data_path}")
+                    else:
+                        continue
+                
+                # Dosyayı varsayılan düzenleyici ile aç (Windows için)
+                try:
+                    import os
+                    os.startfile(custom_data_path)
+                    console.print(f"  [dim]Dosya varsayılan metin düzenleyicide açıldı. Düzenleyip kaydedebilirsiniz.[/dim]")
+                except Exception as e:
+                    show_error(f"Dosya otomatik açılamadı. Lütfen şu dosyayı manuel düzenleyin: {custom_data_path}")
                 continue
 
             elif action == "persona":
