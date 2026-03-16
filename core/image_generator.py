@@ -59,8 +59,9 @@ def generate_image(
     Console().print(f"\n  [dim]🍌 Nano Banana 2 render motoru başlatıldı ({width}x{height}px)...[/dim]")
     
     # Geliştirilmiş Retry & Fallback Mekanizması (API stabilite onarımları)
+    from core.config import AI_MODELS
     max_attempts = 5
-    models_to_try = ["flux", "turbo", "sana", ""] # Sonuncu empty string = default
+    models_to_try = AI_MODELS.get("image_generator", ["flux", "turbo", "sana", ""])
     
     for attempt in range(max_attempts):
         try:

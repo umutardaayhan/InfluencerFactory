@@ -81,19 +81,10 @@ def _current_key() -> str:
 
 # ─── Model Registry ───────────────────────────────────────────
 
-# AI NOTE: Tüm ajan-model atamaları SADECE buradan yönetilir.
-INFLUENCER_MODELS = {
-    "context_builder":     {"model": "gemini-2.5-flash", "temp": 0.4, "max_tokens": 4096},
-    "strategist":          {"model": "gemini-2.5-flash", "temp": 0.6, "max_tokens": 8192},
-    "visual_prompter":     {"model": "gemini-2.5-flash", "temp": 0.8, "max_tokens": 8192},
-    "copywriter":          {"model": "gemini-2.5-flash", "temp": 0.9, "max_tokens": 4096},
-    "quality_controller":  {"model": "gemini-2.5-flash-lite", "temp": 0.1, "max_tokens": 2048},
-    "compiler":            {"model": "gemini-2.5-flash-lite", "temp": 0.3, "max_tokens": 8192},
-}
-
+from core.config import AI_MODELS
 
 def _get_model_config(role: str) -> tuple:
-    config = INFLUENCER_MODELS.get(role)
+    config = AI_MODELS.get(role)
     if not config:
         logger.warning(f"[LLM] Bilinmeyen rol: {role}. Fallback: gemini-2.5-flash-lite")
         return "gemini-2.5-flash-lite", 0.7, 4096

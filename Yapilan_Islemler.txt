@@ -44,6 +44,14 @@
 =========================================
 
 =========================================
+🕒 **Tarih/Saat:** 16.03.2026 - 04:05
+⚠️ **Sorun:** Projedeki LLM (LangGraph ajan modelleri) ajanların modüllerine/core scriptlerine yayılmış durumdaydı ve görsel motor modeli (Nano Banana vs.) manuel harcoded listeyle kontrol ediliyordu. Tek merkezli bir yapılandırma yoktu.
+🎯 **İşlem Özeti:** `core/config.py` adlı yeni yapılandırma dosyası oluşturularak `AI_MODELS` isimli tek bir kod bloğu (dictionary) tanımlandı. Hem 6 farklı LangGraph ajanının Gemini ayarları hem de görsel üretim motorunun (Nano Banana 2) rotasyon modelleri buraya bağlandı. Kullanıcının isteği üzerine Resim modeli önceliği `gemini-3.1-flash-image-preview` olacak şekilde güncellendi.
+📁 **Etkilenen Kapsam:** core/config.py (Yeni), core/llm_bridge.py, core/image_generator.py
+🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
+🛠️ **Geri Dönüş Adımları:** Yapılan commit geri alınabilir.
+=========================================
+=========================================
 🕒 **Tarih/Saat:** 16.03.2026 - 03:15
 ⚠️ **Sorun:** İçerik üretim takvimi oluşturmak dakikalar sürüyordu ancak arkaplanda hangi adımın (hangi LLM'in kaçıncı içeriği) yazdığı hakkında arayüzde bir teşhis/bilgi emaresi yoktu. Kullanıcı sistemin donduğunu ve çok yavaş çalıştığını sanıyordu.
 🎯 **İşlem Özeti:** `strategist.py`, `visual_prompter.py` ve `copywriter.py` ajanlarına `rich` kütüphanesi entegre edildi. Artık uzun süren ve döngü halinde günleri/haftaları dolaşan her LLM isteği öncesi (ör: "⏳ Copywriter: 20 metinden 5. (2026-03-01 Instagram) caption yazılıyor...") detaylı şekilde CLI arayüzüne yazdırılıyor (adım teşhisi).
