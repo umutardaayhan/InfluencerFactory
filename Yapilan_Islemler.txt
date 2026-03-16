@@ -85,3 +85,12 @@
 ?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
 ??? **Geri Dönüº Ad?mlar?:** Olas? hata durumunda ilgili dosyalar için `git checkout -- .` ya da önceki commite dönüº yap?labilir.
 ========================================
+
+=========================================
+?? **Tarih/Saat:** [16.03.2026 - 05:40]
+?? **Sorun:** Tekli medya üretiminde Pollinations.ai ile resim indirme hata veriyordu ve istenmiyordu; sadece JSON olarak prompt kurgusu talep ediliyordu.
+?? **?ºlem Özeti:** `core/image_generator.py` silindi. `main.py` CLI'daki "Tekli Medya Üret" opsiyonu Image, Video ve Text (Caption) formatlar?nda sadece JSON ç?kt? verecek ºekilde refactor edildi.
+?? **Etkilenen Kapsam:** `main.py` de?iºtirildi, `core/image_generator.py` silindi.
+?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
+??? **Geri Dönüº Ad?mlar?:** Olas? hata durumunda ilgili dosyalar için `git checkout -- .` ya da önceki commite dönüº yap?labilir.
+=========================================

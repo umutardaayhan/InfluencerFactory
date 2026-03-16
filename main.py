@@ -544,15 +544,16 @@ def main():
             elif action == "single_media":
                 from core.llm_bridge import get_structured_llm
                 from core.models import VisualPrompt, VideoPrompt
-                from core.image_generator import generate_image
                 from langchain_core.messages import HumanMessage
+                from rich.syntax import Syntax
                 import json
                 
                 media_type = inquirer.select(
                     message="Ne tür medya üretmek istersin?",
                     choices=[
-                        {"name": "🖼️ Resim (Pollinations.ai ile indirilir)", "value": "image"},
-                        {"name": "🎬 Video Promptu (Kurgu direktifi üretilir)", "value": "video"},
+                        {"name": "🖼️ Resim Promptu (JSON formatında çıktı)", "value": "image"},
+                        {"name": "🎬 Video Promptu (JSON kurgu formatında çıktı)", "value": "video"},
+                        {"name": "✍️  Metin/Caption (Sosyal medya metni)", "value": "text"},
                     ],
                     pointer="❯",
                 ).execute()
@@ -587,35 +588,25 @@ def main():
 ## USER REQUEST
 {user_prompt}
 
-Based on the above, generate a highly detailed generation prompt."""
+Based on the above, generate a highly detailed prompt specifically tailored to this persona."""
 
                 if media_type == "image":
-                    with Progress(SpinnerColumn(), TextColumn("[cyan]Görsel promptu hesaplanıyor..."), console=console) as prog:
+                    with Progress(SpinnerColumn(), TextColumn("[cyan]Görsel promptu JSON/XML olarak tasarlanıyor..."), console=console) as prog:
                         prog.add_task("", total=None)
                         vp_llm = get_structured_llm("single_visual_prompter", VisualPrompt)
                         try:
                             vp = vp_llm.invoke([HumanMessage(content=sys_prompt)])
-                            prompt_text = vp.prompt_text
                         except Exception as e:
                             show_error(f"LLM Hatası: {e}")
                             continue
 
-                    console.print(f"\n  [dim]Üretilen Prompt: {prompt_text}[/dim]")
-                    
-                    with Progress(SpinnerColumn(), TextColumn("[cyan]Resim indiriliyor (Pollinations.ai)..."), console=console) as prog:
-                        prog.add_task("", total=None)
-                        safe_name = selected['name'].replace(' ', '_').replace('/', '_')
-                        now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-                        out_path = f"output/{safe_name}_single_images/{now_str}.jpg"
-                        success = generate_image(prompt_text, out_path)
+                    console.print("\n[bold cyan]✨ Görsel Promptunuz hazır![/bold cyan]")
+                    json_str = json.dumps(vp.model_dump(), indent=4, ensure_ascii=False)
+                    syntax = Syntax(json_str, "json", theme="monokai", padding=1)
+                    console.print(Panel(syntax, title="[bold yellow]🤖 Image Prompt Data (JSON)[/bold yellow]", border_style="yellow"))
                         
-                    if success:
-                        show_success(f"Görsel kaydedildi: {out_path}")
-                    else:
-                        show_error("Görsel indirilemedi.")
-                        
-                else:
-                    with Progress(SpinnerColumn(), TextColumn("[cyan]Video direktifi hesaplanıyor..."), console=console) as prog:
+                elif media_type == "video":
+                    with Progress(SpinnerColumn(), TextColumn("[cyan]Video direktifi JSON/XML olarak tasarlanıyor..."), console=console) as prog:
                         prog.add_task("", total=None)
                         vid_llm = get_structured_llm("single_video_prompter", VideoPrompt)
                         try:
@@ -624,16 +615,36 @@ Based on the above, generate a highly detailed generation prompt."""
                             show_error(f"LLM Hatası: {e}")
                             continue
 
-                    console.print()
-                    result_table = Table(box=box.ROUNDED, border_style="magenta", padding=(0, 2))
-                    result_table.add_column("Özellik", style="dim", width=15)
-                    result_table.add_column("Değer", style="white")
-                    result_table.add_row("Sahne", vp.scene_description)
-                    result_table.add_row("Kamera", vp.camera_movement)
-                    result_table.add_row("Geçiş", vp.transition)
-                    result_table.add_row("Atmosfer", vp.mood_lighting)
-                    result_table.add_row("Stil Referansı", vp.style_reference)
-                    console.print(Panel(result_table, title="[bold magenta]🎬 Video Promptu[/bold magenta]", expand=False))
+                    console.print("\n[bold cyan]✨ Video Promptunuz hazır![/bold cyan]")
+                    json_str = json.dumps(vp.model_dump(), indent=4, ensure_ascii=False)
+                    syntax = Syntax(json_str, "json", theme="monokai", padding=1)
+                    console.print(Panel(syntax, title="[bold magenta]🎬 Video Directive Data (JSON)[/bold magenta]", border_style="magenta"))
+                    
+                else:
+                    from core.models import Caption
+                    with Progress(SpinnerColumn(), TextColumn("[cyan]Metin/Caption JSON olarak yazılıyor..."), console=console) as prog:
+                        prog.add_task("", total=None)
+                        sys_prompt_text = f"""You are an Expert Copywriter and Social Media Manager for this persona.
+## ARTIST PERSONA
+- Name: {persona_dict.get('name', '')}
+- Biography: {persona_dict.get('biography', '')}
+- Personality: {persona_dict.get('personality_hints', '')}
+
+## USER REQUEST
+{user_prompt}
+
+Generate a compelling, character-consistent caption for a social media post based on this request."""
+                        cap_llm = get_structured_llm("single_text_prompter", Caption)
+                        try:
+                            cap = cap_llm.invoke([HumanMessage(content=sys_prompt_text)])
+                        except Exception as e:
+                            show_error(f"LLM Hatası: {e}")
+                            continue
+
+                    console.print("\n[bold cyan]✨ Metin/Caption hazır![/bold cyan]")
+                    json_str = json.dumps(cap.model_dump(), indent=4, ensure_ascii=False)
+                    syntax = Syntax(json_str, "json", theme="monokai", padding=1)
+                    console.print(Panel(syntax, title="[bold green]✍️ Text/Caption Data (JSON)[/bold green]", border_style="green"))
 
             console.print()
 
