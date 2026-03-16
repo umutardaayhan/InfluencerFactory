@@ -42,3 +42,12 @@
 🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
 🛠️ **Geri Dönüş Adımları:** Yapılan düzeltme commit geri alınarak iptal edilebilir.
 =========================================
+
+=========================================
+🕒 **Tarih/Saat:** 16.03.2026 - 03:15
+⚠️ **Sorun:** İçerik üretim takvimi oluşturmak dakikalar sürüyordu ancak arkaplanda hangi adımın (hangi LLM'in kaçıncı içeriği) yazdığı hakkında arayüzde bir teşhis/bilgi emaresi yoktu. Kullanıcı sistemin donduğunu ve çok yavaş çalıştığını sanıyordu.
+🎯 **İşlem Özeti:** `strategist.py`, `visual_prompter.py` ve `copywriter.py` ajanlarına `rich` kütüphanesi entegre edildi. Artık uzun süren ve döngü halinde günleri/haftaları dolaşan her LLM isteği öncesi (ör: "⏳ Copywriter: 20 metinden 5. (2026-03-01 Instagram) caption yazılıyor...") detaylı şekilde CLI arayüzüne yazdırılıyor (adım teşhisi).
+📁 **Etkilenen Kapsam:** agents/strategist.py, agents/visual_prompter.py, agents/copywriter.py
+🔄 **SADECE GİT İLE DÖNÜLEBİLİR Mİ?:** EVET
+🛠️ **Geri Dönüş Adımları:** Yapılan git commit geri alınabilir.
+=========================================

@@ -78,11 +78,15 @@ def strategist_node(state: InfluencerState) -> dict:
     user_prompt = state["user_prompt"]
 
     logger.info(f"[STRATEGIST] 🧠 Strateji oluşturuluyor: {month}")
+    
+    from rich.console import Console
+    console = Console()
 
     # Persona'yı dict'e çevir (Pydantic model ise)
     persona_dict = persona.model_dump() if hasattr(persona, 'model_dump') else persona
 
     # ── Release Strategy üret ──────────────────────────────
+    console.print(f"    [dim]⏳ Stratejist: {month} ayı {persona_dict.get('stage_name', 'Artist')} için genel yayım stratejisi kurgulanıyor...[/dim]")
     strategy_llm = get_structured_llm("strategist", ReleaseStrategy)
     strategy_prompt = _build_strategy_prompt(persona_dict, month, user_prompt)
 
@@ -114,6 +118,7 @@ Include 5-7 content slots with real dates from {month}.
 """
         week_llm = get_structured_llm("strategist", WeeklyContentPlan)
         try:
+            console.print(f"    [dim]⏳ Stratejist: {week_num}. Haftanın günlük paylaşım slotları hesaplanıyor...[/dim]")
             week_plan = week_llm.invoke([HumanMessage(content=week_prompt)])
             weekly_plans.append(week_plan)
             logger.info(f"[STRATEGIST] Hafta {week_num} planı hazır: {week_plan.week_theme}")

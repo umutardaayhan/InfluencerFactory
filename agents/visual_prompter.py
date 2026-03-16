@@ -145,6 +145,9 @@ def visual_prompter_node(state: InfluencerState) -> dict:
     persona_dict = persona.model_dump() if hasattr(persona, 'model_dump') else persona
 
     logger.info("[VISUAL PROMPTER] 🎨 Prompt üretimi başlıyor...")
+    
+    from rich.console import Console
+    console = Console()
 
     # ── Görsel Promptlar ───────────────────────────────────
     visual_slots = _collect_slots(weekly_plans, need_visual=True, need_video=False)
@@ -153,9 +156,14 @@ def visual_prompter_node(state: InfluencerState) -> dict:
     if visual_slots:
         # Batch halinde üret (5'erli gruplar — JSON güvenilirliği için)
         batch_size = 5
+        total_batches = (len(visual_slots) + batch_size - 1) // batch_size
+        
         for i in range(0, len(visual_slots), batch_size):
             batch = visual_slots[i:i + batch_size]
             prompt = _build_visual_prompt(persona_dict, batch)
+            current_batch = (i // batch_size) + 1
+            
+            console.print(f"    [dim]⏳ Görsel Prompter: {len(visual_slots)} görselden {i+1}-{min(i+batch_size, len(visual_slots))} arası hesaplanıyor... (Batch {current_batch}/{total_batches})[/dim]")
 
             for slot in batch:
                 try:
@@ -181,7 +189,8 @@ Generate ONLY the VisualPrompt for this specific slot:
     video_prompts = []
 
     if video_slots:
-        for slot in video_slots:
+        for index, slot in enumerate(video_slots):
+            console.print(f"    [dim]⏳ Video Prompter: {len(video_slots)} videodan {index+1}. ({slot.date} {slot.platform}) yönetmen notları kurgulanıyor...[/dim]")
             try:
                 vid_llm = get_structured_llm("visual_prompter", VideoPrompt)
                 prompt = _build_video_prompt(persona_dict, [slot])

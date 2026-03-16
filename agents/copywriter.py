@@ -85,6 +85,9 @@ def copywriter_node(state: InfluencerState) -> dict:
     persona_dict = persona.model_dump() if hasattr(persona, 'model_dump') else persona
 
     logger.info("[COPYWRITER] ✍️ Caption yazımı başlıyor...")
+    
+    from rich.console import Console
+    console = Console()
 
     # Tüm slotları topla
     all_slots = []
@@ -94,7 +97,8 @@ def copywriter_node(state: InfluencerState) -> dict:
 
     captions = []
     # Batch halinde üret (güvenilirlik için slot slot)
-    for slot in all_slots:
+    for index, slot in enumerate(all_slots):
+        console.print(f"    [dim]⏳ Copywriter: {len(all_slots)} metinden {index+1}. ({slot.date} {slot.platform}) caption yazılıyor...[/dim]")
         try:
             cap_llm = get_structured_llm("copywriter", PostCaption)
             prompt = _build_copywriter_prompt(persona_dict, [slot])
