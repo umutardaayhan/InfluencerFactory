@@ -139,3 +139,12 @@
 ?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
 ??? **Geri Dönüº Ad?mlar?:** `git restore main.py` veya önceki commite dönüº.
 =========================================
+
+=========================================
+?? **Tarih/Saat:** [16.03.2026 - 06:26]
+?? **Sorun:** Kullan?c?lar?n gerçek verileri (ºark?lar, konserler) tek bir master prompt ile h?zl?ca \`custom_data.json\` format?na dönüºtürebilme iste?i.
+?? **?ºlem Özeti:** Ana CLI menüsündeki '?? Özel Veri Yönetimi' seçene?i güncellendi. Dosya oluºturulurken kullan?c?ya '?? AI Üretsin (Master Prompt ile)' seçene?i sunuldu; bu sayede kullan?c?dan ald??? serbest metni (turne veya single detaylar?) \`get_llm\` kullanarak do?rudan JSON veri yap?s?na (core/models ile uyumlu) çeviren sistem entegre edildi.
+?? **Etkilenen Kapsam:** \`main.py\` (CLI etkileºimleri ve LLM entegrasyonu)
+?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
+??? **Geri Dönüº Ad?mlar?:** \`git restore main.py\` ile.
+=========================================

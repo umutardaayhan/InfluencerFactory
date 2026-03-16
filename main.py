@@ -501,13 +501,22 @@ def main():
             elif action == "custom_data":
                 custom_data_path = Path(selected["dir"]) / "custom_data.json"
                 if not custom_data_path.exists():
-                    confirm = inquirer.confirm(
-                        message=f"{selected['name']} için custom_data.json bulunamadı. Şablon oluşturulsun mu?",
-                        default=True,
+                    creation_method = inquirer.select(
+                        message=f"{selected['name']} için custom_data.json bulunamadı. Nasıl oluşturulsun?",
+                        choices=[
+                            {"name": "🤖 AI Üretsin (Master Prompt ile)", "value": "ai"},
+                            {"name": "📝 Boş Şablon Oluştur (Kendim dolduracağım)", "value": "template"},
+                            {"name": "❌ İptal", "value": "cancel"}
+                        ],
+                        pointer="❯",
                         qmark="📝",
                     ).execute()
-                    if confirm:
-                        import json
+                    
+                    if creation_method == "cancel":
+                        continue
+                        
+                    import json
+                    if creation_method == "template":
                         template = {
                             "important_notes": "Buraya yapay zekanın kesinlikle uymasını istediğiniz genel kuralları veya özel durumları yazabilirsiniz.",
                             "upcoming_events": [
@@ -535,12 +544,53 @@ def main():
                         with open(custom_data_path, "w", encoding="utf-8") as f:
                             json.dump(template, f, ensure_ascii=False, indent=4)
                         show_success(f"Şablon oluşturuldu: {custom_data_path}")
-                    else:
-                        continue
+                        
+                    elif creation_method == "ai":
+                        user_prompt = inquirer.text(
+                            message="AI'ye verileri tarif et (Örn: Haftaya İspanya turnesi var, yeni single'ın adı 'Amor'):",
+                            qmark="🤖"
+                        ).execute()
+                        
+                        from core.llm_bridge import get_llm
+                        from langchain_core.messages import HumanMessage
+                        
+                        with Progress(SpinnerColumn(), TextColumn("[cyan]AI verileri yapılandırıyor..."), console=console) as prog:
+                            prog.add_task("", total=None)
+                            
+                            sys_prompt = f"""You are a JSON data generator for an AI Influencer/Artist platform.
+The artist's name is {selected.get('name', 'Unknown')}.
+The user will describe some upcoming events, songs, products, or rules.
+Your job is to structure this into a valid JSON object matching this schema exactly:
+{{
+  "important_notes": "string or array of strings",
+  "upcoming_events": [ {{ "date": "string", "event_name": "string", "location": "string", "details": "string" }} ],
+  "real_songs": [ {{ "title": "string", "theme": "string", "key_lyrics": "string" }} ],
+  "products_or_merch": [ {{ "name": "string", "description": "string" }} ]
+}}
+Only return raw JSON. No markdown formatting, no backticks.
+If a category has no data mentioned by the user, leave it as an empty list [].
+
+USER'S DESCRIPTION:
+{user_prompt}"""
+                            llm = get_llm("custom_data_builder")
+                            try:
+                                response = llm.invoke([HumanMessage(content=sys_prompt)])
+                                generated_json = response.content.strip()
+                                if generated_json.startswith("```json"):
+                                    generated_json = generated_json[7:-3]
+                                elif generated_json.startswith("```"):
+                                    generated_json = generated_json[3:-3]
+                                    
+                                data = json.loads(generated_json.strip())
+                                with open(custom_data_path, "w", encoding="utf-8") as f:
+                                    json.dump(data, f, ensure_ascii=False, indent=4)
+                                show_success(f"AI veriyi oluşturdu ve kaydetti!")
+                            except Exception as e:
+                                show_error(f"Oluşturulurken hata: {e}")
+                                continue
                 
                 # Dosyayı varsayılan düzenleyici ile aç (Windows için)
                 try:
-                    import os
                     os.startfile(custom_data_path)
                     console.print(f"  [dim]Dosya varsayılan metin düzenleyicide açıldı. Düzenleyip kaydedebilirsiniz.[/dim]")
                 except Exception as e:

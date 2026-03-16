@@ -1,0 +1,24 @@
+{
+    "important_notes": "Buraya yapay zekanın kesinlikle uymasını istediğiniz genel kuralları veya özel durumları yazabilirsiniz.",
+    "upcoming_events": [
+        {
+            "date": "2026-05-15",
+            "event_name": "Albüm Lansman Konseri",
+            "location": "Zorlu PSM, İstanbul",
+            "details": "Sahnede devasa kırmızı bir ay dekoru olacak."
+        }
+    ],
+    "real_songs": [
+        {
+            "title": "Kanlı Ay",
+            "theme": "İhanet ve yeniden doğuş",
+            "key_lyrics": "Gökyüzü kızıla boyandığında, saklanacak yerin kalmayacak."
+        }
+    ],
+    "products_or_merch": [
+        {
+            "name": "Karanlık Seri Tişört",
+            "description": "Önünde gotik fontla Kanlı Ay yazan siyah oversize tişört."
+        }
+    ]
+}
