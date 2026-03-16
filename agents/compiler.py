@@ -16,99 +16,111 @@ from core.models import MonthlyPackage
 logger = logging.getLogger(__name__)
 
 
-def _generate_markdown(package: MonthlyPackage) -> str:
-    """MonthlyPackage'dan güzel formatlı Markdown raporu oluşturur."""
-    lines = []
-    lines.append(f"# 🎵 {package.artist_name} — {package.month} İçerik Paketi")
-    lines.append(f"")
-    lines.append(f"> Üretim Tarihi: {package.generated_at}")
-    lines.append(f"> Kalite Puanı: {package.quality_score}/100")
-    lines.append(f"")
-
-    # ── Şarkı Yayım Takvimi ───────────────────────────────
-    lines.append(f"---")
-    lines.append(f"## 📅 Şarkı Yayım Takvimi")
-    lines.append(f"")
-    lines.append(f"**Tema:** {package.release_strategy.theme}")
-    lines.append(f"")
-    lines.append(f"| Tarih | Şarkı/Etkinlik | Tür | Platformlar |")
-    lines.append(f"|-------|----------------|-----|-------------|")
+def _write_package_files(package: MonthlyPackage, output_dir: Path):
+    """MonthlyPackage'dan güzel formatlı Markdown raporlarını klasöre yazar."""
+    
+    # ── 00_Genel_Bakis.md ───────────────────────────────
+    lines_summary = []
+    lines_summary.append(f"# 🎵 {package.artist_name} — {package.month} İçerik Paketi")
+    lines_summary.append(f"")
+    lines_summary.append(f"> Üretim Tarihi: {package.generated_at}")
+    lines_summary.append(f"> Kalite Puanı: {package.quality_score}/100")
+    lines_summary.append(f"")
+    lines_summary.append(f"---")
+    lines_summary.append(f"## 📅 Şarkı Yayım Takvimi")
+    lines_summary.append(f"")
+    lines_summary.append(f"**Tema:** {package.release_strategy.theme}")
+    lines_summary.append(f"")
+    lines_summary.append(f"| Tarih | Şarkı/Etkinlik | Tür | Platformlar |")
+    lines_summary.append(f"|-------|----------------|-----|-------------|")
     for event in package.release_strategy.events:
         platforms = ", ".join(event.platforms)
-        lines.append(f"| {event.date} | {event.title} | {event.event_type} | {platforms} |")
-    lines.append(f"")
+        lines_summary.append(f"| {event.date} | {event.title} | {event.event_type} | {platforms} |")
+    lines_summary.append(f"")
     if package.release_strategy.strategy_notes:
-        lines.append(f"**Strateji Notları:** {package.release_strategy.strategy_notes}")
-        lines.append(f"")
+        lines_summary.append(f"**Strateji Notları:** {package.release_strategy.strategy_notes}")
+        lines_summary.append(f"")
+    lines_summary.append(f"---")
+    lines_summary.append(f"*Bu rapor AI Influencer Otomasyon Fabrikası tarafından otomatik üretilmiştir.*")
+    
+    with open(output_dir / "00_Genel_Bakis.md", "w", encoding="utf-8") as f:
+        f.write("\n".join(lines_summary))
 
-    # ── Haftalık Planlar ───────────────────────────────────
-    for week in package.weekly_plans:
-        lines.append(f"---")
-        lines.append(f"## 📱 Hafta {week.week_number} — {week.week_theme}")
-        lines.append(f"")
-        lines.append(f"| Gün | Tarih | Platform | İçerik Tipi | Görsel | Video | Açıklama |")
-        lines.append(f"|-----|-------|----------|-------------|--------|-------|----------|")
+    # ── Haftalık Planlar (01_Hafta_...md) ───────────────────────────────────
+    for idx, week in enumerate(package.weekly_plans, 1):
+        lines_week = []
+        lines_week.append(f"# 📱 Hafta {week.week_number} — {week.week_theme}")
+        lines_week.append(f"")
+        lines_week.append(f"| Gün | Tarih | Platform | İçerik Tipi | Görsel | Video | Açıklama |")
+        lines_week.append(f"|-----|-------|----------|-------------|--------|-------|----------|")
         for slot in week.slots:
             vis = "✅" if slot.needs_visual else "—"
             vid = f"✅ ({slot.video_duration}s)" if slot.needs_video else "—"
-            lines.append(f"| {slot.day} | {slot.date} | {slot.platform} | {slot.content_type} | {vis} | {vid} | {slot.brief} |")
-        lines.append(f"")
+            lines_week.append(f"| {slot.day} | {slot.date} | {slot.platform} | {slot.content_type} | {vis} | {vid} | {slot.brief} |")
+        lines_week.append(f"")
+        
+        with open(output_dir / f"01_Hafta_{week.week_number}.md", "w", encoding="utf-8") as f:
+            f.write("\n".join(lines_week))
 
     # ── Görsel Prompt Kataloğu ─────────────────────────────
     if package.visual_prompts:
-        lines.append(f"---")
-        lines.append(f"## 🎨 Görsel Prompt Kataloğu ({len(package.visual_prompts)} adet)")
-        lines.append(f"")
+        lines_vis = []
+        lines_vis.append(f"# 🎨 Görsel Prompt Kataloğu ({len(package.visual_prompts)} adet)")
+        lines_vis.append(f"")
         for i, vp in enumerate(package.visual_prompts, 1):
-            lines.append(f"### Görsel #{i} — {vp.slot_ref}")
-            lines.append(f"- **Araç:** {vp.target_tool} | **Oran:** {vp.aspect_ratio}")
-            lines.append(f"- **Stil:** {', '.join(vp.style_tags)}")
-            lines.append(f"")
-            lines.append(f"> {vp.prompt_text}")
+            lines_vis.append(f"## Görsel #{i} — {vp.slot_ref}")
+            lines_vis.append(f"- **Araç:** {vp.target_tool} | **Oran:** {vp.aspect_ratio}")
+            lines_vis.append(f"- **Stil:** {', '.join(vp.style_tags)}")
+            lines_vis.append(f"")
+            lines_vis.append(f"> {vp.prompt_text}")
             if vp.negative_prompt:
-                lines.append(f"")
-                lines.append(f"> **Negative:** {vp.negative_prompt}")
-            lines.append(f"")
+                lines_vis.append(f"")
+                lines_vis.append(f"> **Negative:** {vp.negative_prompt}")
+            lines_vis.append(f"---")
+            lines_vis.append(f"")
+        with open(output_dir / "02_Gorsel_Promptlari.md", "w", encoding="utf-8") as f:
+            f.write("\n".join(lines_vis))
 
     # ── Video Prompt Kataloğu ──────────────────────────────
     if package.video_prompts:
-        lines.append(f"---")
-        lines.append(f"## 🎬 Video Prompt Kataloğu ({len(package.video_prompts)} adet)")
-        lines.append(f"")
+        lines_vid = []
+        lines_vid.append(f"# 🎬 Video Prompt Kataloğu ({len(package.video_prompts)} adet)")
+        lines_vid.append(f"")
         for i, vp in enumerate(package.video_prompts, 1):
-            lines.append(f"### Video #{i} — {vp.slot_ref}")
-            lines.append(f"- **Hedef:** {vp.target_platform} | **Süre:** {vp.duration_seconds}s | **Oran:** {vp.aspect_ratio}")
-            lines.append(f"- **Kamera:** {vp.camera_movement} | **Geçiş:** {vp.transition}")
-            lines.append(f"- **Stil:** {vp.style_reference}")
-            lines.append(f"")
-            lines.append(f"> **Sahne:** {vp.scene_description}")
-            lines.append(f">")
-            lines.append(f"> **Atmosfer:** {vp.mood_lighting}")
+            lines_vid.append(f"## Video #{i} — {vp.slot_ref}")
+            lines_vid.append(f"- **Hedef:** {vp.target_platform} | **Süre:** {vp.duration_seconds}s | **Oran:** {vp.aspect_ratio}")
+            lines_vid.append(f"- **Kamera:** {vp.camera_movement} | **Geçiş:** {vp.transition}")
+            lines_vid.append(f"- **Stil:** {vp.style_reference}")
+            lines_vid.append(f"")
+            lines_vid.append(f"> **Sahne:** {vp.scene_description}")
+            lines_vid.append(f">")
+            lines_vid.append(f"> **Atmosfer:** {vp.mood_lighting}")
             if vp.music_sync_note:
-                lines.append(f">")
-                lines.append(f"> **Müzik Senkron:** {vp.music_sync_note}")
-            lines.append(f"")
+                lines_vid.append(f">")
+                lines_vid.append(f"> **Müzik Senkron:** {vp.music_sync_note}")
+            lines_vid.append(f"---")
+            lines_vid.append(f"")
+        with open(output_dir / "03_Video_Promptlari.md", "w", encoding="utf-8") as f:
+            f.write("\n".join(lines_vid))
 
     # ── Caption Arşivi ─────────────────────────────────────
     if package.captions:
-        lines.append(f"---")
-        lines.append(f"## ✍️ Caption Arşivi ({len(package.captions)} adet)")
-        lines.append(f"")
+        lines_cap = []
+        lines_cap.append(f"# ✍️ Caption Arşivi ({len(package.captions)} adet)")
+        lines_cap.append(f"")
         for i, cap in enumerate(package.captions, 1):
-            lines.append(f"### Caption #{i} — {cap.slot_ref} ({cap.platform})")
-            lines.append(f"")
-            lines.append(f"> {cap.caption_text}")
-            lines.append(f"")
+            lines_cap.append(f"## Caption #{i} — {cap.slot_ref} ({cap.platform})")
+            lines_cap.append(f"")
+            lines_cap.append(f"> {cap.caption_text}")
+            lines_cap.append(f"")
             if cap.hashtags:
-                lines.append(f"**Hashtags:** {' '.join(cap.hashtags)}")
+                lines_cap.append(f"**Hashtags:** {' '.join(cap.hashtags)}")
             if cap.call_to_action:
-                lines.append(f"**CTA:** {cap.call_to_action}")
-            lines.append(f"")
-
-    lines.append(f"---")
-    lines.append(f"*Bu rapor AI Influencer Otomasyon Fabrikası tarafından otomatik üretilmiştir.*")
-
-    return "\n".join(lines)
+                lines_cap.append(f"**CTA:** {cap.call_to_action}")
+            lines_cap.append(f"---")
+            lines_cap.append(f"")
+        with open(output_dir / "04_Caption_Arsivi.md", "w", encoding="utf-8") as f:
+            f.write("\n".join(lines_cap))
 
 
 def compiler_node(state: InfluencerState) -> dict:
@@ -140,19 +152,17 @@ def compiler_node(state: InfluencerState) -> dict:
         generated_at=datetime.now().isoformat(),
     )
 
-    # Markdown rapor oluştur
-    markdown = _generate_markdown(package)
-
-    # Dosyaya yaz
-    output_dir = Path("output")
-    output_dir.mkdir(exist_ok=True)
+    # Klasör oluştur
+    output_base = Path("output")
+    output_base.mkdir(exist_ok=True)
 
     safe_name = artist_name.replace(" ", "_").replace("/", "_")
-    filename = f"{month}_{safe_name}_content_plan.md"
-    output_path = output_dir / filename
+    folder_name = f"{month}_{safe_name}_content_plan"
+    output_dir = output_base / folder_name
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(markdown)
+    # Dosyaları yaz
+    _write_package_files(package, output_dir)
 
     # Promptları Profesyonel JSON olarak dışa aktar
     if visual_prompts or video_prompts:
@@ -167,14 +177,14 @@ def compiler_node(state: InfluencerState) -> dict:
             "visual_prompts": [vp.model_dump() for vp in visual_prompts],
             "video_prompts": [vp.model_dump() for vp in video_prompts]
         }
-        json_filename = f"{month}_{safe_name}_prompts.json"
+        json_filename = "05_prompts.json"
         json_output_path = output_dir / json_filename
         
         with open(json_output_path, "w", encoding="utf-8") as f:
             json.dump(prompts_json_data, f, ensure_ascii=False, indent=4)
         logger.info(f"[COMPILER] ✅ Prompt JSON arşivi kaydedildi: {json_output_path}")
 
-    logger.info(f"[COMPILER] ✅ Rapor kaydedildi: {output_path}")
+    logger.info(f"[COMPILER] ✅ Rapor klasöre kaydedildi: {output_dir}")
     logger.info(f"[COMPILER] 📊 Özet: {len(visual_prompts)} görsel + {len(video_prompts)} video + {len(captions)} caption")
 
     return {"final_package": package}

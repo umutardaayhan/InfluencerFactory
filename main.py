@@ -152,6 +152,7 @@ def show_persona_card(persona: dict):
 def main_menu(has_personas: bool = True) -> str:
     choices = [
         {"name": "🚀 İçerik Paketi Üret  — 1 aylık tam plan (görsel + video + caption)", "value": "generate"},
+        {"name": "🖼️  Tekli Medya Üret    — Sadece tek bir resim veya video oluştur", "value": "single_media"},
         Separator(),
         {"name": "✨ Yeni Persona Oluştur — Sıfırdan sanatçı/influencer profili kur", "value": "wizard"},
         {"name": "👁️  Persona Oluştur    — Fotoğraflardan görsel kimlik analizi", "value": "persona"},
@@ -539,6 +540,100 @@ def main():
 
                 if confirm:
                     run_content_pipeline(selected, month_choice, prompt)
+
+            elif action == "single_media":
+                from core.llm_bridge import get_structured_llm
+                from core.models import VisualPrompt, VideoPrompt
+                from core.image_generator import generate_image
+                from langchain_core.messages import HumanMessage
+                import json
+                
+                media_type = inquirer.select(
+                    message="Ne tür medya üretmek istersin?",
+                    choices=[
+                        {"name": "🖼️ Resim (Pollinations.ai ile indirilir)", "value": "image"},
+                        {"name": "🎬 Video Promptu (Kurgu direktifi üretilir)", "value": "video"},
+                    ],
+                    pointer="❯",
+                ).execute()
+                
+                user_prompt = inquirer.text(
+                    message="İstediğin içerik detayları (Ne görünecek?):",
+                    default="Konserde sahnede harika bir poz",
+                    qmark="💬",
+                ).execute()
+                
+                artist_dir = selected["dir"]
+                cached = selected["has_cache"]
+                
+                if not cached:
+                    show_warning("Bu sanatçı için henüz persona üretilmemiş. Lütfen önce Persona Yenile yapın.")
+                    continue
+                    
+                with open(Path(artist_dir) / "persona.json", "r", encoding="utf-8") as f:
+                    persona_dict = json.load(f)
+                    
+                vi = persona_dict.get("visual_identity", {})
+                master_prompt = vi.get("ai_reference_prompt", "")
+                
+                sys_prompt = f"""You are an Expert Prompt Engineer.
+## ARTIST VISUAL IDENTITY
+- Appearance: {vi.get('appearance', 'N/A')}
+- Fashion: {vi.get('fashion_style', 'N/A')}
+
+## MASTER REFERENCE PROMPT
+{master_prompt}
+
+## USER REQUEST
+{user_prompt}
+
+Based on the above, generate a highly detailed generation prompt."""
+
+                if media_type == "image":
+                    with Progress(SpinnerColumn(), TextColumn("[cyan]Görsel promptu hesaplanıyor..."), console=console) as prog:
+                        prog.add_task("", total=None)
+                        vp_llm = get_structured_llm("single_visual_prompter", VisualPrompt)
+                        try:
+                            vp = vp_llm.invoke([HumanMessage(content=sys_prompt)])
+                            prompt_text = vp.prompt_text
+                        except Exception as e:
+                            show_error(f"LLM Hatası: {e}")
+                            continue
+
+                    console.print(f"\n  [dim]Üretilen Prompt: {prompt_text}[/dim]")
+                    
+                    with Progress(SpinnerColumn(), TextColumn("[cyan]Resim indiriliyor (Pollinations.ai)..."), console=console) as prog:
+                        prog.add_task("", total=None)
+                        safe_name = selected['name'].replace(' ', '_').replace('/', '_')
+                        now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        out_path = f"output/{safe_name}_single_images/{now_str}.jpg"
+                        success = generate_image(prompt_text, out_path)
+                        
+                    if success:
+                        show_success(f"Görsel kaydedildi: {out_path}")
+                    else:
+                        show_error("Görsel indirilemedi.")
+                        
+                else:
+                    with Progress(SpinnerColumn(), TextColumn("[cyan]Video direktifi hesaplanıyor..."), console=console) as prog:
+                        prog.add_task("", total=None)
+                        vid_llm = get_structured_llm("single_video_prompter", VideoPrompt)
+                        try:
+                            vp = vid_llm.invoke([HumanMessage(content=sys_prompt)])
+                        except Exception as e:
+                            show_error(f"LLM Hatası: {e}")
+                            continue
+
+                    console.print()
+                    result_table = Table(box=box.ROUNDED, border_style="magenta", padding=(0, 2))
+                    result_table.add_column("Özellik", style="dim", width=15)
+                    result_table.add_column("Değer", style="white")
+                    result_table.add_row("Sahne", vp.scene_description)
+                    result_table.add_row("Kamera", vp.camera_movement)
+                    result_table.add_row("Geçiş", vp.transition)
+                    result_table.add_row("Atmosfer", vp.mood_lighting)
+                    result_table.add_row("Stil Referansı", vp.style_reference)
+                    console.print(Panel(result_table, title="[bold magenta]🎬 Video Promptu[/bold magenta]", expand=False))
 
             console.print()
 
