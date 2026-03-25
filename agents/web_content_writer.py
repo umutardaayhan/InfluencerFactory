@@ -57,20 +57,30 @@ def _build_persona_context(persona_dir: str) -> dict:
             "Önce menüden '👁️ Persona Oluştur' ile persona oluşturun."
         )
 
+    # Şu an 2026 — prompt üretimi sırasındaki gerçek yıla göre hesapla.
+    # DEPENDENCY WARNING: Bu yıl hesaplaması biography tarih kısıtlamasında kullanılır.
+    current_year = 2026
+    birth_year = current_year - persona.age          # 2026 - 29 = 1997
+    career_start_year = birth_year + 18              # Min: 2015 (18 yaş)
+    career_peak_year = current_year - 1              # Max: 2025 (geçmiş kalısın)
+
     return {
-        "stage_name":        persona.stage_name,
-        "age":               persona.age,
-        "biography_base":    persona.biography,
-        "tone":              persona.personality.tone,
-        "speaking_style":    persona.personality.speaking_style,
-        "catchphrases":      persona.personality.catchphrases,
-        "visual_references": persona.visual_identity.visual_references,
-        "fashion_style":     persona.visual_identity.fashion_style,
-        "color_palette":     ", ".join(persona.visual_identity.color_palette),
-        "music_genre":       persona.music.get("genre", ""),
-        "personality_hints": seed.get("personality_hints", ""),
-        "extra_notes":       seed.get("extra_notes", ""),
-        "content_niche":     seed.get("content", {}).get("niche", ""),
+        "stage_name":         persona.stage_name,
+        "age":                persona.age,
+        "birth_year":         birth_year,
+        "career_start_year":  career_start_year,
+        "career_peak_year":   career_peak_year,
+        "biography_base":     persona.biography,
+        "tone":               persona.personality.tone,
+        "speaking_style":     persona.personality.speaking_style,
+        "catchphrases":       persona.personality.catchphrases,
+        "visual_references":  persona.visual_identity.visual_references,
+        "fashion_style":      persona.visual_identity.fashion_style,
+        "color_palette":      ", ".join(persona.visual_identity.color_palette),
+        "music_genre":        persona.music.get("genre", ""),
+        "personality_hints":  seed.get("personality_hints", ""),
+        "extra_notes":        seed.get("extra_notes", ""),
+        "content_niche":      seed.get("content", {}).get("niche", ""),
     }
 
 
@@ -105,9 +115,16 @@ def _build_biography_prompt(ctx: dict, directive: dict, language: str) -> tuple[
     Her çağrı farklı bir dönem/mekan/ruh hali direktifi alır →
     3 biyografi birbirinden anlamlı şekilde farklılaşır.
 
+    # AI NOTE: Tarih kısıtlaması (career_start_year → career_peak_year) kritiktir.
+    # Olmadan LLM sanatçının doğum öncesi veya çocukluk yıllarına tarih atayabiliyor.
+
     Returns:
         (system_prompt, human_prompt) tuple'ı
     """
+    birth_year       = ctx.get("birth_year", 1997)
+    min_date_year    = ctx.get("career_start_year", birth_year + 18)
+    max_date_year    = ctx.get("career_peak_year", 2025)
+
     system = f"""You are a writer producing content for {ctx['stage_name']}'s website, scarlettnoire.art.
 
 You will generate a DATED SNAPSHOT — a single moment from her life and artistic path.
@@ -123,7 +140,14 @@ PERSONA CONSTRAINTS (strictly enforce):
 - Writing must feel like every word has been chosen deliberately
 - {ctx['extra_notes'][:350] if ctx['extra_notes'] else ''}
 - Language for CONTENT: {language}
-- Language for IMAGE_PROMPT: always English (regardless of content language)"""
+- Language for IMAGE_PROMPT: always English (regardless of content language)
+
+CHRONOLOGY CONSTRAINT — STRICT:
+- {ctx['stage_name']} was born in {birth_year}.
+- She was 18 years old in {min_date_year}. That is the EARLIEST possible date for any career snapshot.
+- The LATEST possible date is {max_date_year} (must remain in the past).
+- ANY date before {min_date_year} is a factual error — she was not yet an adult or active artist.
+- Do NOT generate dates from her childhood or teenage years unless explicitly writing about a childhood memory (which is NOT the case here)."""
 
     human = f"""Generate a dated snapshot with these two parts. Return ONLY valid JSON — no markdown, no backticks.
 
@@ -135,23 +159,27 @@ SCENE DIRECTIVE:
 PERSONA FOUNDATION:
 {ctx['biography_base'][:500]}
 
-For the IMAGE_PROMPT:
-- Describe the environment, light quality, atmosphere, and mood of the scene
-- You may hint at a female figure in dark, gothic-influenced clothing — but DO NOT describe face shape, eye color, freckles, or specific physical features
-- Keep it under 80 words — concise, painterly, precise
-- Always in English
+For the IMAGE_PROMPT (always in English):
+- Start with: "The person in the reference images provided*" followed by their position/presence in the scene
+  (e.g., "...stands at the edge of the light", "...sits with her back to us", "...is seen in silhouette").
+  This marker is required so the user can supply reference photos when generating the image.
+- After the figure reference, describe: the environment, light quality, atmosphere, and mood of the scene.
+- Do NOT describe face shape, eye color, freckles, hair color, or other specific physical features — the references will carry that.
+- Keep the total prompt under 80 words — concise, painterly, precise.
+- Always in English.
 
 For the CONTENT (~120-160 words in {language}):
-- Assign a specific date (a plausible past date that fits the period described)
-- Write where she is, what she notices, what she is thinking or feeling
-- Third person, present tense or close past tense, measured and restrained
-- One concrete sensory detail that grounds the moment
+- The date MUST fall between {min_date_year} and {max_date_year}.
+  She was born in {birth_year} — dates before {min_date_year} are factually incorrect.
+- Write where she is, what she notices, what she is thinking or feeling.
+- Third person, present tense or close past tense, measured and restrained.
+- One concrete sensory detail that grounds the moment.
 - No biography summary. No career explanation. Just the moment itself.
 
 Return exactly this JSON structure:
 {{
   "date": "Month DD, YYYY",
-  "image_prompt": "...",
+  "image_prompt": "The person in the reference images provided* ...",
   "content": "..."
 }}"""
 

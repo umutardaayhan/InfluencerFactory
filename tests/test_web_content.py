@@ -256,7 +256,10 @@ class TestPromptBuilders:
 
     SAMPLE_CTX = {
         "stage_name": "Scarlett Noire",
-        "age": 25,
+        "age": 29,
+        "birth_year": 1997,
+        "career_start_year": 2015,
+        "career_peak_year": 2025,
         "biography_base": "A musician weaving gothic narratives.",
         "tone": "Calm, measured, melancholic but comforting.",
         "speaking_style": "Well-structured, evocative, lyrical.",
@@ -333,6 +336,35 @@ class TestPromptBuilders:
         from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
         sys_p, _ = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[0], "Turkish")
         assert "Turkish" in sys_p
+
+    def test_biography_chronology_constraint_in_system(self):
+        """Biography system prompt'u doğum yılı ve geçerli tarih aralığını içermeli."""
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        sys_p, _ = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
+        assert "1997" in sys_p            # doğum yılı
+        assert "2015" in sys_p            # kariyer başlangıcı (18 yaş)
+        assert "CHRONOLOGY" in sys_p or "born" in sys_p.lower()
+
+    def test_biography_date_range_in_human_prompt(self):
+        """Human prompt'ta geçerli yıl aralığı ve doğum yılı görünmeli."""
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[1], "English")
+        assert "2015" in human_p          # min_date_year
+        assert "2025" in human_p          # max_date_year
+        assert "1997" in human_p          # birth_year
+
+    def test_biography_image_prompt_has_reference_marker(self):
+        """Image prompt talimatı 'reference images provided*' ibaresini içermeli."""
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
+        assert "reference images provided" in human_p.lower()
+
+    def test_biography_image_prompt_example_has_marker(self):
+        """JSON örneğinde image_prompt alanı referans ibaresiyle başlamalı."""
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[2], "English")
+        # JSON şemasindaki örnek değer referans ibaresiyle başlamalı
+        assert '"The person in the reference images provided*' in human_p
 
     def test_biography_forbidden_rules_in_system(self):
         from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
