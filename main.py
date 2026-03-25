@@ -478,12 +478,12 @@ def run_web_content(persona: dict, language: str = "English"):
 
     progress_steps = [
         "📖 Persona bağlamı yükleniyor...",
-        "✍️  Biography — short üretiliyor...",
-        "✍️  Biography — medium üretiliyor...",
-        "✍️  Biography — long üretiliyor...",
-        "🎭 Portrait — cinematic üretiliyor...",
-        "🎭 Portrait — intimate üretiliyor...",
-        "🎭 Portrait — avant-garde üretiliyor...",
+        "📸 Biography — erken dönem enstantesi...",
+        "📸 Biography — kırılma anı enstantesi...",
+        "📸 Biography — sessiz dönem enstantesi...",
+        "📔 Portrait — 'still' günlük girişi...",
+        "📔 Portrait — 'restless' günlük girişi...",
+        "📔 Portrait — 'hollow' günlük girişi...",
         "📦 Paket derleniyor ve dosyaya yazılıyor...",
     ]
     total_steps = len(progress_steps)
@@ -556,16 +556,26 @@ def run_web_content(persona: dict, language: str = "English"):
 
     # ── Snippet önizlemesi ───────────────────────────────────────
     if package.biographies:
-        short_bio = next((b for b in package.biographies if b.variant == "short"), package.biographies[0])
+        bio = package.biographies[0]
         console.print()
         console.print(Panel(
-            f"[dim italic]{short_bio.content[:400]}{'...' if len(short_bio.content) > 400 else ''}[/dim italic]",
-            title=f"[bold bright_cyan]✨ Snippet — Biography (Short)[/bold bright_cyan]",
+            f"[dim]📅 {bio.date}[/dim]\n"
+            f"[bold dim]📸 IMAGE PROMPT:[/bold dim] [dim italic]{bio.image_prompt[:200]}{'...' if len(bio.image_prompt) > 200 else ''}[/dim italic]\n\n"
+            f"[dim italic]{bio.content[:350]}{'...' if len(bio.content) > 350 else ''}[/dim italic]",
+            title=f"[bold bright_cyan]✨ Snippet — Biography {bio.date}[/bold bright_cyan]",
             border_style="bright_cyan",
             padding=(1, 3),
         ))
-
-
+    if package.portraits:
+        portrait = package.portraits[0]
+        console.print()
+        console.print(Panel(
+            f"[dim]📅 {portrait.date} — [{portrait.mood_tag}][/dim]\n\n"
+            f"[dim italic]{portrait.content[:350]}{'...' if len(portrait.content) > 350 else ''}[/dim italic]",
+            title=f"[bold bright_magenta]📔 Snippet — Diary Excerpt[/bold bright_magenta]",
+            border_style="bright_magenta",
+            padding=(1, 3),
+        ))
 
 def main():
     # Verbose mod (argparse yerine basit kontrol)

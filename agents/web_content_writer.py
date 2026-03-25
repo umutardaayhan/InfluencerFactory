@@ -1,14 +1,22 @@
 """
 Influencer Factory — Web Content Writer
 
-scarlettnoire.art sitesi için Biography ve Portrait metinleri üretir.
+scarlettnoire.art sitesi için iki tip içerik üretir:
+
+  BIOGRAPHY: Scarlett'in kariyer/hayat yolculuğundan tarihli enstanteler.
+             Her biri → kompakt bir image prompt (sahne/ışık/atmosfer, minimal fiziksel detay)
+                      + o tarihe ait metin (nerede, ne düşünüyor, nasıl hissediyor)
+
+  PORTRAIT:  Scarlett'in günlüğünden birinci şahıs alıntılar.
+             Her biri → farklı bir tarih ve ruh hali, kısa şiirsel düzyazı.
+
 LangGraph pipeline'ından bağımsızdır; doğrudan persona.json'dan çalışır.
 
 Sistemdeki yeri: main.py tarafından CLI menüden çağrılır.
 Etkilediği dosyalar:
   - core/models.py   → WebBiography, WebPortrait, WebContentPackage modelleri
   - core/config.py   → "web_content_writer" rol tanımı
-  - core/llm_bridge.py → get_structured_llm(), get_llm() üzerinden LLM erişimi
+  - core/llm_bridge.py → get_llm() üzerinden LLM erişimi
   - core/persona_loader.py → load_cached_persona(), load_seed() ile persona verisi
   - output/web_content/<artist>_web_content.json ve .md çıktı dosyaları
 
@@ -19,27 +27,23 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from core.models import WebBiography, WebPortrait, WebContentPackage
 from core.persona_loader import load_cached_persona, load_seed
-from core.llm_bridge import get_structured_llm, get_llm
+from core.llm_bridge import get_llm
 from core.config import AI_MODELS
 
 logger = logging.getLogger(__name__)
 
 
-# ─── Persona Özet Yardımcısı ──────────────────────────────────
+# ─── Persona Bağlam Yükleyici ─────────────────────────────────
 
 def _build_persona_context(persona_dir: str) -> dict:
     """
     Persona.json ve seed.json'dan web içerik üretimine gerekli tüm
     konteksti çeker ve tek bir sözlükte toplar.
-
-    Returns:
-        Persona kontekst sözlüğü — prompts içine gömülmek üzere.
 
     Raises:
         FileNotFoundError: persona.json bulunamazsa
@@ -53,194 +57,190 @@ def _build_persona_context(persona_dir: str) -> dict:
             "Önce menüden '👁️ Persona Oluştur' ile persona oluşturun."
         )
 
-    # Persona.json'dan zenginleştirilmiş veriler
-    ctx = {
-        "stage_name": persona.stage_name,
-        "age": persona.age,
-        "biography_base": persona.biography,
-        "tone": persona.personality.tone,
-        "speaking_style": persona.personality.speaking_style,
-        "catchphrases": persona.personality.catchphrases,
+    return {
+        "stage_name":        persona.stage_name,
+        "age":               persona.age,
+        "biography_base":    persona.biography,
+        "tone":              persona.personality.tone,
+        "speaking_style":    persona.personality.speaking_style,
+        "catchphrases":      persona.personality.catchphrases,
         "visual_references": persona.visual_identity.visual_references,
-        "fashion_style": persona.visual_identity.fashion_style,
-        "appearance": persona.visual_identity.appearance,
-        "color_palette": ", ".join(persona.visual_identity.color_palette),
-        "music_genre": persona.music.get("genre", ""),
-        # seed.json ek notları (yasaklar ve kurallar burada)
+        "fashion_style":     persona.visual_identity.fashion_style,
+        "color_palette":     ", ".join(persona.visual_identity.color_palette),
+        "music_genre":       persona.music.get("genre", ""),
         "personality_hints": seed.get("personality_hints", ""),
-        "extra_notes": seed.get("extra_notes", ""),
-        "content_niche": seed.get("content", {}).get("niche", ""),
+        "extra_notes":       seed.get("extra_notes", ""),
+        "content_niche":     seed.get("content", {}).get("niche", ""),
     }
-    return ctx
 
 
-# ─── Biography Prompt Oluşturucular ───────────────────────────
+# ─── Biography Prompt ─────────────────────────────────────────
 
-# AI NOTE: Her variant için prompt'lar bilinçli olarak farklı yapılandırılmıştır.
-# Aynı persona bağlamı + farklı yönerge = anlamlı içerik çeşitliliği.
+# AI NOTE: Her biography çağrısı iki şey üretir: image_prompt + content.
+# Bunları tek LLM çağrısında JSON olarak üretip parçalıyoruz (2 → 1 çağrı tasarrufu).
+# Farklılık: her enstante için farklı dönem/mekan/ruh hali direktifi verilir.
 
-def _build_biography_prompt(ctx: dict, variant: str, language: str) -> tuple[str, str]:
+_BIO_DIRECTIVES = [
+    {
+        "period":  "early in her creative life — before any audience, before any performance",
+        "setting": "a small, cold room: a rented space, a rehearsal studio, an attic. Night.",
+        "mood":    "the stillness of something beginning",
+    },
+    {
+        "period":  "a turning point — a first performance, a recording session, a decision made alone",
+        "setting": "backstage, a corridor, an empty stage, an unfamiliar city. Dusk or late evening.",
+        "mood":    "the weight of a threshold crossed",
+    },
+    {
+        "period":  "a quieter chapter — after something ended, a creative retreat, a long winter",
+        "setting": "somewhere open or isolated: a train, a fog-covered coast, a library after hours.",
+        "mood":    "the particular clarity of solitude",
+    },
+]
+
+def _build_biography_prompt(ctx: dict, directive: dict, language: str) -> tuple[str, str]:
     """
-    Biyografi varyantı için (system, human) prompt çiftini üretir.
+    Tarihli biography enstantesi için (system, human) prompt çiftini üretir.
 
-    Args:
-        ctx: Persona bağlam sözlüğü
-        variant: 'short' | 'medium' | 'long'
-        language: Hedef dil
+    Her çağrı farklı bir dönem/mekan/ruh hali direktifi alır →
+    3 biyografi birbirinden anlamlı şekilde farklılaşır.
 
     Returns:
         (system_prompt, human_prompt) tuple'ı
     """
-    base_rules = f"""You are an editorial writer crafting official biography text for {ctx['stage_name']}'s website, scarlettnoire.art.
+    system = f"""You are a writer producing content for {ctx['stage_name']}'s website, scarlettnoire.art.
 
-PERSONA RULES (strictly enforce):
-- Tone: {ctx['tone'][:300]}
-- Must preserve her signature catchphrases spirit: {ctx['catchphrases']}
-- Music genre: {ctx['music_genre']}
-- Visual references: {ctx['visual_references'][:200]}
-- FORBIDDEN: romance, sexuality, violence, modern slang, irony, humor, overt emotion, marketing clichés
-- FORBIDDEN phrases: "embark on", "journey", "sonic landscape", "craft her sound", "dedicated to", "passionate"
-- Write as if every word was weighed twice before being placed on the page
-- {ctx['extra_notes'][:400] if ctx['extra_notes'] else ''}
-- Language: {language}"""
+You will generate a DATED SNAPSHOT — a single moment from her life and artistic path.
+Each snapshot has two parts:
+  1. IMAGE_PROMPT: a compact AI image generation prompt for this scene
+  2. CONTENT: the narrative text of this moment
 
-    variant_directives = {
-        "short": {
-            "instruction": """Write a SHORT biography (~75-90 words). 
-Strategy: Open with a single, arresting declarative sentence that defines her essence. 
-Follow with no more than 3 short, precise sentences. 
-No chronology. No origin story. Just presence.
-This will appear as a pull-quote or hero text on the homepage.""",
-            "example_opening": "She does not arrive. She has always been there, in the peripheral silence between songs.",
-        },
-        "medium": {
-            "instruction": """Write a MEDIUM biography (~180-220 words).
-Strategy: Begin in medias res — drop the reader inside her world without preamble.
-Use second person sparingly if it serves the immersive effect.
-Structure: essence → what she creates → why it matters to the listener.
-No chronological biography. No "born in..." constructions.
-This appears on the About page as the primary bio.""",
-            "example_opening": "There is a particular quality to the silence she leaves behind.",
-        },
-        "long": {
-            "instruction": """Write a LONG biography (~380-420 words).
-Strategy: Construct it as if it were liner notes for a collector's edition — authoritative, intimate, earned.
-Open with an observation about her artistic philosophy, not her identity.
-Move through: what her art refuses to do → what it instead chooses → the listener's experience → the deeper cultural positioning.
-Allow one or two precise, evocative image-descriptions of her live presence or compositional process.
-Close with a single line that functions as an invitation, not a conclusion.
-This appears as the full press bio and long-form About text.""",
-            "example_opening": "There are artists who insist on being understood, and then there is Scarlett Noire.",
-        },
-    }
+PERSONA CONSTRAINTS (strictly enforce):
+- Tone: {ctx['tone'][:250]}
+- Music: {ctx['music_genre']}
+- FORBIDDEN topics: romance, sexuality, violence, conflict, modern slang, irony, humor
+- FORBIDDEN words/phrases: "embark", "journey", "passionate", "dedicated", "haunting", "captivating"
+- Writing must feel like every word has been chosen deliberately
+- {ctx['extra_notes'][:350] if ctx['extra_notes'] else ''}
+- Language for CONTENT: {language}
+- Language for IMAGE_PROMPT: always English (regardless of content language)"""
 
-    d = variant_directives[variant]
-    human_prompt = f"""{d['instruction']}
+    human = f"""Generate a dated snapshot with these two parts. Return ONLY valid JSON — no markdown, no backticks.
 
-PERSONA CONTEXT:
-- Core biography foundation: {ctx['biography_base'][:600]}
-- Personality: {ctx['personality_hints'][:300]}
-- Visual world: {ctx['fashion_style'][:200]}
-- Content philosophy: {ctx['content_niche'][:200]}
+SCENE DIRECTIVE:
+- Period: {directive['period']}
+- Setting: {directive['setting']}
+- Mood: {directive['mood']}
 
-EXAMPLE OPENING SPIRIT (do not copy verbatim, only use as tonal reference):
-"{d['example_opening']}"
+PERSONA FOUNDATION:
+{ctx['biography_base'][:500]}
 
-Now write the {variant} biography. Output only the text itself, no labels or meta-commentary."""
+For the IMAGE_PROMPT:
+- Describe the environment, light quality, atmosphere, and mood of the scene
+- You may hint at a female figure in dark, gothic-influenced clothing — but DO NOT describe face shape, eye color, freckles, or specific physical features
+- Keep it under 80 words — concise, painterly, precise
+- Always in English
 
-    return base_rules, human_prompt
+For the CONTENT (~120-160 words in {language}):
+- Assign a specific date (a plausible past date that fits the period described)
+- Write where she is, what she notices, what she is thinking or feeling
+- Third person, present tense or close past tense, measured and restrained
+- One concrete sensory detail that grounds the moment
+- No biography summary. No career explanation. Just the moment itself.
+
+Return exactly this JSON structure:
+{{
+  "date": "Month DD, YYYY",
+  "image_prompt": "...",
+  "content": "..."
+}}"""
+
+    return system, human
 
 
-# ─── Portrait Prompt Oluşturucular ────────────────────────────
+# ─── Portrait / Diary Prompt ──────────────────────────────────
 
-def _build_portrait_prompt(ctx: dict, variant: str, language: str) -> tuple[str, str]:
+# AI NOTE: Her portrait birinci şahısta yazılmış bir günlük girişidir.
+# Farklılık: mood_tag ve günün saati/bağlamı direktif olarak değişir.
+
+_PORTRAIT_DIRECTIVES = [
+    {
+        "mood_tag": "still",
+        "context":  "late evening, after a long day of silence. Nothing happened. Everything felt very clear.",
+        "tone_note": "the quietness that arrives after all external noise has finally stopped",
+    },
+    {
+        "mood_tag": "restless",
+        "context":  "sometime before dawn. Unable to sleep. A thought that won't leave.",
+        "tone_note": "not anxiety — closer to a persistent, slow-burning awareness",
+    },
+    {
+        "mood_tag": "hollow",
+        "context":  "the afternoon after something finished: a recording, a performance, a season.",
+        "tone_note": "the particular emptiness that follows completion — not grief, not relief, just space",
+    },
+]
+
+def _build_portrait_prompt(ctx: dict, directive: dict, language: str) -> tuple[str, str]:
     """
-    Portre metni varyantı için (system, human) prompt çiftini üretir.
-    Her portre farklı yaratıcı formda (cinematic / intimate / avant-garde) yazılır.
-
-    Args:
-        ctx: Persona bağlam sözlüğü
-        variant: 'cinematic' | 'intimate' | 'avant-garde'
-        language: Hedef dil
+    Günlük alıntısı (portrait) için (system, human) prompt çiftini üretir.
 
     Returns:
         (system_prompt, human_prompt) tuple'ı
     """
-    base_rules = f"""You are a literary portrait writer. You are writing an editorial portrait of {ctx['stage_name']} for her website, scarlettnoire.art.
+    system = f"""You are writing fictional diary entries for {ctx['stage_name']} — excerpts from her personal journal that appear on her website, scarlettnoire.art.
 
-A portrait is NOT a biography. It is a single, sustained observation — the written equivalent of a photograph.
-It creates the sensation of seeing someone clearly for the first time.
+These are NOT promotional texts. They are private observations, written in first person as herself.
+The reader should feel they are holding something that was not meant to be read.
 
-ABSOLUTE CONSTRAINTS:
-- Do not summarize her career or history
-- Do not use the phrase "Scarlett Noire is..." as an opening
-- No marketing language. No "unique voice". No "captivating presence". No "haunting melodies".
-- Forbidden themes: romance, sexuality, conflict, modern references, irony
-- Color palette to evoke when relevant: {ctx['color_palette']}
-- Visual world: {ctx['visual_references'][:200]}
+VOICE CONSTRAINTS:
+- First person singular ("I", "my", "me") — always
+- Tone: {ctx['tone'][:250]}
+- Speaking style: {ctx['speaking_style'][:200]}
+- FORBIDDEN: romance, sexuality, violence, irony, self-promotion, marketing language
+- Do not reference audiences, fans, or the music industry directly
+- No abstract philosophizing. Ground every thought in something concrete and observed.
 - {ctx['extra_notes'][:300] if ctx['extra_notes'] else ''}
 - Language: {language}"""
 
-    variant_directives = {
-        "cinematic": {
-            "instruction": """CINEMATIC PORTRAIT (~160-200 words).
-Write this as if it were the opening sequence description of a film — present tense, visual, precise.
-The camera has a perspective. Choose your angle and hold it.
-Use light, texture, movement, or stillness as your primary language.
-One strong central image that accumulates meaning as the portrait unfolds.
-End on a frame that implies continuation, not conclusion.""",
-            "form": "film treatment / director's eye",
-        },
-        "intimate": {
-            "instruction": """INTIMATE PORTRAIT (~160-200 words).
-Write in close third person — as if you have spent one very quiet hour in the same room.
-Observe the specific: the way she holds stillness, a gesture, the quality of her attention.
-Avoid grand statements about her art. Speak of small, precise things that reveal the larger truth.
-The reader should feel like they have been trusted with something private.""",
-            "form": "close observation / personal essay fragment",
-        },
-        "avant-garde": {
-            "instruction": """AVANT-GARDE PORTRAIT (~160-200 words).
-Break conventional sentence structure deliberately and purposefully.
-Use white space as punctuation if needed (line breaks mid-thought).
-Write in fragments, lists, repetitions — but every choice must serve the portrait's purpose.
-This is not chaos; it is controlled form that mirrors how she herself resists easy categorization.
-It should feel like her music rendered as text.""",
-            "form": "fragmented / lyric essay / experimental prose",
-        },
-    }
+    human = f"""Write a short diary entry excerpt with these constraints. Return ONLY valid JSON — no markdown, no backticks.
 
-    d = variant_directives[variant]
-    human_prompt = f"""Form: {d['form']}
+ENTRY DIRECTIVE:
+- Mood: {directive['mood_tag']}
+- Context: {directive['context']}
+- Underlying tone: {directive['tone_note']}
 
-{d['instruction']}
+PERSONA FOUNDATION (for voice reference, do not summarize):
+- Catchphrases (spirit, not literal): {ctx['catchphrases']}
+- Content niche: {ctx['content_niche'][:200]}
+- Color/visual world to reference when relevant: {ctx['color_palette']}
 
-PERSONA CONTEXT:
-- Visual appearance: {ctx['appearance'][:300]}
-- Fashion: {ctx['fashion_style'][:200]}
-- Tone: {ctx['tone'][:200]}
-- Color palette: {ctx['color_palette']}
+For the CONTENT (~90-130 words):
+- Assign a plausible date (past, specific)
+- Write as if mid-thought — not from the beginning of a day, not a complete narrative
+- One or two concrete observations: something seen, something heard, something touched
+- Let the mood arrive through detail, not statement
+- End on an unresolved note — the entry stops, it does not conclude
 
-Write the portrait now. Output only the portrait text itself."""
+Return exactly this JSON structure:
+{{
+  "date": "Month DD, YYYY",
+  "mood_tag": "{directive['mood_tag']}",
+  "content": "..."
+}}"""
 
-    return base_rules, human_prompt
+    return system, human
 
 
 # ─── Tek İçerik Üretici ───────────────────────────────────────
 
-def _generate_single(
-    system_prompt: str,
-    human_prompt: str,
-    model_name: str,
-    temp: float,
-    max_tokens: int,
-) -> str:
+def _generate_json_single(system_prompt: str, human_prompt: str) -> dict:
     """
-    LLM'e tek bir istek gönderir ve ham metin yanıtını döndürür.
+    LLM'e istek gönderir, JSON parse ederek dict döndürür.
     Retry ve key rotation llm_bridge._RetryHandler tarafından yönetilir.
 
-    # AI NOTE: get_llm() yerine doğrudan _build_llm-benzeri pattern kullanmıyoruz —
-    # get_llm() zaten _RetryHandler'ı sarar. Yapıyı bozmadan kullanıyoruz.
+    # AI NOTE: Structured output (with_structured_output) yerine ham JSON parse
+    # kullanıyoruz — image_prompt + content gibi iç içe alanlar için daha esnek.
     """
     llm = get_llm("web_content_writer")
     messages = [
@@ -248,13 +248,23 @@ def _generate_single(
         HumanMessage(content=human_prompt),
     ]
     response = llm.invoke(messages)
-    text = response.content if hasattr(response, "content") else str(response)
-    return text.strip()
+    raw = response.content if hasattr(response, "content") else str(response)
+
+    # Markdown kod bloğu varsa temizle
+    raw = raw.strip()
+    if raw.startswith("```json"):
+        raw = raw[7:]
+    elif raw.startswith("```"):
+        raw = raw[3:]
+    if raw.endswith("```"):
+        raw = raw[:-3]
+
+    return json.loads(raw.strip())
 
 
 # ─── Çıktı Kaydetme ───────────────────────────────────────────
 
-def _save_package(package: WebContentPackage, persona_dir: str) -> tuple[str, str]:
+def _save_package(package: WebContentPackage) -> tuple[str, str]:
     """
     WebContentPackage'ı hem JSON hem Markdown olarak kaydeder.
 
@@ -287,10 +297,12 @@ def _save_package(package: WebContentPackage, persona_dir: str) -> tuple[str, st
         f"",
     ]
 
-    for bio in package.biographies:
+    for i, bio in enumerate(package.biographies, 1):
         md_lines += [
-            f"### [{bio.variant.upper()}] {bio.title}",
-            f"*Tone: {', '.join(bio.tone_tags)}* | *~{bio.word_count} words*",
+            f"### Biography {i} — {bio.date}",
+            f"",
+            f"**Image Prompt:**",
+            f"> {bio.image_prompt}",
             f"",
             bio.content,
             f"",
@@ -298,12 +310,12 @@ def _save_package(package: WebContentPackage, persona_dir: str) -> tuple[str, st
             f"",
         ]
 
-    md_lines += [f"## Portraits", f""]
+    md_lines += [f"## Portraits (Diary Excerpts)", f""]
 
-    for portrait in package.portraits:
+    for i, portrait in enumerate(package.portraits, 1):
         md_lines += [
-            f"### [{portrait.variant.upper()}] {portrait.title}",
-            f"*Approach: {portrait.creative_angle}* | *~{portrait.word_count} words*",
+            f"### Portrait {i} — {portrait.date}",
+            f"*{portrait.mood_tag}* | *~{portrait.word_count} words*",
             f"",
             portrait.content,
             f"",
@@ -329,11 +341,11 @@ def generate_web_content(
     progress_callback=None,
 ) -> tuple[WebContentPackage, str, str]:
     """
-    Scarlett Noire (veya başka bir persona) için web içeriği üretir.
+    Scarlett Noire için web içeriği üretir.
 
     Args:
-        persona_dir: Persona klasör yolu (örn: 'personas/scarlett_noire')
-        language:    Çıktı dili (varsayılan: 'English')
+        persona_dir:       Persona klasör yolu (örn: 'personas/scarlett_noire')
+        language:          Çıktı dili (varsayılan: 'English')
         progress_callback: Opsiyonel (step_label: str) -> None geri çağırma
 
     Returns:
@@ -347,57 +359,42 @@ def generate_web_content(
             progress_callback(label)
         logger.info(f"[WEB_CONTENT] {label}")
 
-    # ── 1. Persona bağlamını çek ──────────────────────────────
-    _progress("📖 Persona bağlamı yükleniyor...")
-    ctx = _build_persona_context(persona_dir)
     model_config = AI_MODELS.get("web_content_writer", {})
     model_name = model_config.get("model", "gemini-2.5-flash")
 
-    # ── 2. Biography üretimi ──────────────────────────────────
+    # ── 1. Persona bağlamını çek ──────────────────────────────
+    _progress("📖 Persona bağlamı yükleniyor...")
+    ctx = _build_persona_context(persona_dir)
+
+    # ── 2. Biography üretimi (3 enstante) ────────────────────
     biographies = []
-    for variant in ["short", "medium", "long"]:
-        _progress(f"✍️  Biography — {variant} üretiliyor...")
-        sys_p, human_p = _build_biography_prompt(ctx, variant, language)
-        text = _generate_single(sys_p, human_p, model_name,
-                                 model_config.get("temp", 0.85),
-                                 model_config.get("max_tokens", 8192))
-        wc = len(text.split())
-        # Başlık için LLM'den ayrı istek yerine metnin ilk 8 kelimesini kullan
-        title_words = text.replace("\n", " ").split()[:6]
-        title = " ".join(title_words).rstrip(".,;:—") + "..."
+    for directive in _BIO_DIRECTIVES:
+        _progress(f"📸 Biography — {directive['mood']} üretiliyor...")
+        sys_p, human_p = _build_biography_prompt(ctx, directive, language)
+        data = _generate_json_single(sys_p, human_p)
+        wc = len(data.get("content", "").split())
         biographies.append(WebBiography(
-            variant=variant,
-            title=title,
-            content=text,
+            date=data.get("date", "Unknown date"),
+            image_prompt=data.get("image_prompt", ""),
+            content=data.get("content", ""),
             word_count=wc,
-            tone_tags=["cinematic", "restrained", "gothic", variant],
         ))
 
-    # ── 3. Portrait üretimi ───────────────────────────────────
+    # ── 3. Portrait üretimi (3 günlük alıntısı) ──────────────
     portraits = []
-    for variant in ["cinematic", "intimate", "avant-garde"]:
-        _progress(f"🎭 Portrait — {variant} üretiliyor...")
-        sys_p, human_p = _build_portrait_prompt(ctx, variant, language)
-        text = _generate_single(sys_p, human_p, model_name,
-                                 model_config.get("temp", 0.85),
-                                 model_config.get("max_tokens", 8192))
-        wc = len(text.split())
-        title_words = text.replace("\n", " ").split()[:5]
-        title = " ".join(title_words).rstrip(".,;:—") + "..."
-        angle_map = {
-            "cinematic": "Film treatment — camera eye, light, and held frame",
-            "intimate": "Close observation — the small, precise, revealing detail",
-            "avant-garde": "Fragmented lyric prose — controlled form mirroring her music",
-        }
+    for directive in _PORTRAIT_DIRECTIVES:
+        _progress(f"📔 Portrait — '{directive['mood_tag']}' üretiliyor...")
+        sys_p, human_p = _build_portrait_prompt(ctx, directive, language)
+        data = _generate_json_single(sys_p, human_p)
+        wc = len(data.get("content", "").split())
         portraits.append(WebPortrait(
-            variant=variant,
-            title=title,
-            content=text,
+            date=data.get("date", "Unknown date"),
+            mood_tag=data.get("mood_tag", directive["mood_tag"]),
+            content=data.get("content", ""),
             word_count=wc,
-            creative_angle=angle_map[variant],
         ))
 
-    # ── 4. Paketi derle ───────────────────────────────────────
+    # ── 4. Paketi derle ve kaydet ─────────────────────────────
     _progress("📦 Paket derleniyor ve dosyaya yazılıyor...")
     package = WebContentPackage(
         artist_name=ctx["stage_name"],
@@ -408,5 +405,5 @@ def generate_web_content(
         model_used=model_name,
     )
 
-    json_path, md_path = _save_package(package, persona_dir)
+    json_path, md_path = _save_package(package)
     return package, json_path, md_path

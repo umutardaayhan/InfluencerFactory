@@ -166,38 +166,58 @@ class MonthlyPackage(BaseModel):
 
 class WebBiography(BaseModel):
     """
-    Web sitesi About/Bio sayfası için biyografi metni.
+    Scarlett Noire kariyer/hayat yolculuğundan tarihli bir enstante.
+    Her biyografi kalemi:
+      1) Sahneye uygun, kompakt bir image prompt (fiziksel detay minimum)
+      2) O tarihe ait bir metin: nerede, ne düşünüyor, nasıl hissediyor
 
     Sistemdeki yeri: agents/web_content_writer.py tarafından üretilir.
     LangGraph pipeline'ından bağımsızdır.
     """
-    variant: str = Field(
-        description="Biyografi varyantı: 'short' (~80 kelime), 'medium' (~200 kelime), 'long' (~400 kelime)"
+    date: str = Field(
+        description="Enstantenin tarihi — yazılı format (örn: 'November 14, 2022')"
     )
-    title: str = Field(description="Kısa başlık veya açılış etiketi (ör: 'The Architect of Shadows')")
-    content: str = Field(description="Biyografi metni — sanatçının sesini ve dünyasını yansıtan")
+    image_prompt: str = Field(
+        description=(
+            "Bu sahne için kompakt AI görsel üretim promptu. "
+            "Sahne, ortam, ışık ve atmosferi betimler. "
+            "Scarlett'in fiziksel özelliklerini aşırı detaylandırmaz — "
+            "referans görseller zaten sağlanacak."
+        )
+    )
+    content: str = Field(
+        description=(
+            "O tarihteki enstante metni — nerede olduğu, ne düşündüğü, "
+            "nasıl hissettiği. Kariyer/hayat yolculuğundan bir kesit. "
+            "Üçüncü şahıs, kısa, sinematik anlatım."
+        )
+    )
     word_count: int = Field(description="Tahmini kelime sayısı")
-    tone_tags: List[str] = Field(
-        description="Tonu özetleyen etiketler (ör: ['cinematic', 'restrained', 'gothic'])"
-    )
 
 
 class WebPortrait(BaseModel):
     """
-    Persona odaklı editoryal portre metni — görsel betimleme hissi taşır.
+    Scarlett Noire'ın günlüğünden birinci şahıs alıntılar.
+    Her portre; belirli bir tarihte, belirli bir ruh halinde yazılmış
+    sahici bir günlük girişi gibi hissettirir.
 
     Sistemdeki yeri: agents/web_content_writer.py tarafından üretilir.
     LangGraph pipeline'ından bağımsızdır.
     """
-    variant: str = Field(
-        description="Portre yaklaşımı: 'cinematic' | 'intimate' | 'avant-garde'"
+    date: str = Field(
+        description="Günlük girişinin tarihi — yazılı format (örn: 'October 3, 2023')"
     )
-    title: str = Field(description="Portre başlığı")
+    mood_tag: str = Field(
+        description="Bu girişin ruh hali etiketi (örn: 'still', 'restless', 'hollow')"
+    )
     content: str = Field(
-        description="Editoryal portre metni — sanatçıyı farklı bir yaratıcı açıdan tasvir eder"
+        description=(
+            "Birinci şahıs günlük girişi — Scarlett'in sesinde, "
+            "kendi iç dünyasından bir kesit. "
+            "Uzun, detaylı anlatım değil; kısa, katmanlı, şiirsel düzyazı."
+        )
     )
     word_count: int = Field(description="Tahmini kelime sayısı")
-    creative_angle: str = Field(description="Kullanılan yaratıcı yaklaşımın tek cümlelik özeti")
 
 
 class WebContentPackage(BaseModel):
