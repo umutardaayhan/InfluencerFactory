@@ -286,3 +286,11 @@
 ?? **Etkilenen Kapsam:** main.py
 ?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET (git restore)
 =========================================
+
+=========================================
+?? **Tarih/Saat:** 26.03.2026 - 02:52
+?? **Sorun/?htiyaç:** CLI üzerindeki 'Sanatç? Profili' görünümünün tüm personalar? müzisyen farz edip diskografi ve tür ibaresini zorunlu k?lmas?.
+?? **?ºlem Özeti:** main.py içerisindeki _load_personas ve show_persona_card fonksiyonlar? revize edildi. Müzisyen (music_domain) için 'Tür', 'Diskografi' ve 'Yaklaºan' sat?rlar? gösterilirken, ?çerik Üreticileri (content_domain) için 'Niº Alan?' ve '?çerik Tarz?' sat?rlar? gösterilmesi sa?land?.
+?? **Etkilenen Kapsam:** main.py
+?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET (git restore)
+=========================================

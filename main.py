@@ -103,11 +103,15 @@ def discover_personas() -> list[dict]:
 
             has_cache = (entry / "persona.json").exists()
 
+            music_dict = seed.get("music") or {}
+            content_dict = seed.get("content") or {}
+            genre = music_dict.get("genre") or content_dict.get("niche") or seed.get("profession", "Bilinmiyor")
+            
             results.append({
                 "dir": str(entry),
                 "folder_name": entry.name,
                 "name": seed.get("stage_name", seed.get("name", entry.name)),
-                "genre": seed.get("music", {}).get("genre", "Bilinmiyor"),
+                "genre": genre,
                 "image_count": image_count,
                 "has_cache": has_cache,
                 "seed": seed,
@@ -119,26 +123,37 @@ def discover_personas() -> list[dict]:
 def show_persona_card(persona: dict):
     """Seçili persona'nın bilgi kartını gösterir."""
     seed = persona["seed"]
-    music = seed.get("music", {})
+    music = seed.get("music") or {}
+    content = seed.get("content") or {}
 
     table = Table(box=box.ROUNDED, border_style="bright_magenta", padding=(0, 2))
     table.add_column("", style="dim", width=18)
     table.add_column("", style="white")
 
     table.add_row("🎤 Sahne Adı", f"[bold bright_cyan]{persona['name']}[/bold bright_cyan]")
-    table.add_row("🎵 Tür", persona["genre"])
+    
+    # Dinamik Unvan/Grup Formatı (Müzik vs Content)
+    domain_label = "🎵 Tür" if music else ("🎯 Niş Alanı" if content else "🏷️ Meslek")
+    table.add_row(domain_label, persona["genre"])
+    
     table.add_row("🖼️  Görseller", f"{persona['image_count']} adet")
     table.add_row("💾 Persona Cache", "[green]Mevcut ✓[/green]" if persona["has_cache"] else "[yellow]Henüz oluşturulmadı[/yellow]")
 
-    discography = music.get("discography", [])
-    if discography:
-        titles = ", ".join([d.get("title", "?") for d in discography[:3]])
-        table.add_row("📀 Diskografi", titles)
+    if music:
+        discography = music.get("discography", [])
+        if discography:
+            titles = ", ".join([d.get("title", "?") for d in discography[:3]])
+            table.add_row("📀 Diskografi", titles)
 
-    upcoming = music.get("upcoming_releases", [])
-    if upcoming:
-        titles = ", ".join([u.get("title", "?") for u in upcoming])
-        table.add_row("🚀 Yaklaşan", f"[bright_yellow]{titles}[/bright_yellow]")
+        upcoming = music.get("upcoming_releases", [])
+        if upcoming:
+            titles = ", ".join([u.get("title", "?") for u in upcoming])
+            table.add_row("🚀 Yaklaşan", f"[bright_yellow]{titles}[/bright_yellow]")
+            
+    if content:
+        style = content.get("style")
+        if style:
+            table.add_row("📝 İçerik Tarzı", style)
 
     console.print()
     console.print(Panel(table, title="[bold bright_magenta]🎭 Sanatçı Profili[/bold bright_magenta]",
