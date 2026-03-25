@@ -989,7 +989,7 @@ You must heavily detail the image:
                     console.print(Panel(syntax, title="[bold magenta]🎬 Video Directive Data (JSON)[/bold magenta]", border_style="magenta"))
                     
                 else:
-                    from core.models import Caption
+                    from core.models import PostCaption
                     with Progress(SpinnerColumn(), TextColumn("[cyan]Metin/Caption JSON olarak yazılıyor..."), console=console) as prog:
                         prog.add_task("", total=None)
                         if not user_prompt.strip():
@@ -1004,7 +1004,7 @@ You must heavily detail the image:
 - Personality: {persona_dict.get('personality_hints', '')}
 
 {cap_instruction}"""
-                        cap_llm = get_structured_llm("single_text_prompter", Caption)
+                        cap_llm = get_structured_llm("single_text_prompter", PostCaption)
                         try:
                             cap = cap_llm.invoke([HumanMessage(content=sys_prompt_text)])
                         except Exception as e:
