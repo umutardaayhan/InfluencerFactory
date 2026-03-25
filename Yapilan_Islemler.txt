@@ -296,9 +296,9 @@
 =========================================
 
 =========================================
-🕒 Tarih/Saat: [26.03.2026 - 02:57]
-⚠️ Sorun/İhtiyaç: main.py içinde tekil medya (metin) üretilirken 'cannot import name Caption from core.models' hatası alınması.
-🎯 İşlem Özeti: Import hatasına neden olan 'Caption' objesi, core.models.py içerisindeki doğru karşılığı olan 'PostCaption' ile değiştirildi.
-📁 Etkilenen Kapsam: main.py
-🔄 Geri Dönüş: SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET (git restore)
+?? **Tarih/Saat:** 26.03.2026 - 02:57
+?? **Sorun/?htiya�:** main.py içinde tekil medya (metin) üretilirken 'cannot import name Caption from core.models' hatası alınması.
+?? **İ�?lem �?zeti:** Import hatasına neden olan 'Caption' objesi, core.models.py içerisindeki do�?ru kar�?ılı�?ı olan 'PostCaption' ile de�?i�?tirildi.
+?? **Etkilenen Kapsam:** main.py
+?? **SADECE G?T ?LE D�N�LEB?L?R M??:** EVET (git restore)
 =========================================
