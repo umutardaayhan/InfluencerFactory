@@ -189,7 +189,7 @@ class WebBiography(BaseModel):
         description=(
             "O tarihteki enstante metni — nerede olduğu, ne düşündüğü, "
             "nasıl hissettiği. Kariyer/hayat yolculuğundan bir kesit. "
-            "Üçüncü şahıs, kısa, sinematik anlatım."
+            "Birinci şahıs, ölçülü ve sinematik."
         )
     )
     word_count: int = Field(description="Tahmini kelime sayısı")
@@ -210,12 +210,40 @@ class WebPortrait(BaseModel):
     mood_tag: str = Field(
         description="Bu girişin ruh hali etiketi (örn: 'still', 'restless', 'hollow')"
     )
+    image_prompt: str = Field(
+        description=(
+            "Bu portre sahnesine özel kompakt AI görsel üretim promptu. "
+            "'The person in the reference images provided*' ile başlar. "
+            "Kıyafet serbest, fiziksel detay yasak, okunabilir yazı yasak."
+        )
+    )
     content: str = Field(
         description=(
             "Birinci şahıs günlük girişi — Scarlett'in sesinde, "
             "kendi iç dünyasından bir kesit. "
-            "Uzun, detaylı anlatım değil; kısa, katmanlı, şiirsel düzyazı."
+            "Kısa, katmanlı, şiirsel düzyazı."
         )
+    )
+    word_count: int = Field(description="Tahmini kelime sayısı")
+
+
+class WebNote(BaseModel):
+    """
+    Scarlett Noire'in günlüğünden kısa, vurucu not parçaları.
+    Her not 1-2 cümle; birisi is_pinned=True olarak işaretli
+    (en çarpıcı olan, sitede sabitlenmiş not olarak görünücek).
+
+    Sistemdeki yeri: agents/web_content_writer.py tarafinden üretilir.
+    LangGraph pipeline'ından bağımsızdır.
+    """
+    content: str = Field(
+        description=(
+            "1-2 cümlelik vurucu günlük notu. "
+            "Scarlett'in sesinde, şiirsel ve öz."
+        )
+    )
+    is_pinned: bool = Field(
+        description="True ise bu not sitede 'sabitlenmiş not' olarak öne çıkar."
     )
     word_count: int = Field(description="Tahmini kelime sayısı")
 
@@ -227,8 +255,10 @@ class WebContentPackage(BaseModel):
     Sistemdeki yeri: agents/web_content_writer.py → output/web_content/ altına kaydedilir.
     """
     artist_name: str
-    biographies: List[WebBiography] = Field(description="3 adet biyografi varyantı")
-    portraits: List[WebPortrait] = Field(description="3 adet portre metni varyantı")
+    biographies: List[WebBiography] = Field(description="3 adet tarihl biyografi enstantesi")
+    portraits: List[WebPortrait] = Field(description="3 adet günlük portre (image_prompt dahil)")
+    notes: List[WebNote] = Field(description="3 adet kısa not, birisi is_pinned=True")
     language: str = Field(default="English", description="İçerik dili")
     generated_at: str = Field(description="Üretim zamanı (ISO format)")
     model_used: str = Field(description="Kullanılan Gemini modeli")
+

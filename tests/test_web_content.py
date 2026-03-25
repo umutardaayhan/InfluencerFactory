@@ -1,10 +1,12 @@
 """
-Influencer Factory — Web Content Writer Testleri (v2)
+Influencer Factory — Web Content Writer Testleri (v3)
 
 agents/web_content_writer.py modülü için birim testleri.
-Yeni model yapısına göre güncellenmiştir:
+Güncel model yapısı:
   - WebBiography: date, image_prompt, content, word_count
-  - WebPortrait: date, mood_tag, content, word_count
+  - WebPortrait:  date, mood_tag, image_prompt, content, word_count
+  - WebNote:      content, is_pinned, word_count
+  - WebContentPackage: biographies, portraits, notes
 
 LLM API çağrısı olmadan çalışır.
 
@@ -19,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import pytest
 from datetime import datetime
 
-from core.models import WebBiography, WebPortrait, WebContentPackage
+from core.models import WebBiography, WebPortrait, WebNote, WebContentPackage
 
 
 # ─── WebBiography Model Tests ─────────────────────────────────
@@ -30,49 +32,37 @@ class TestWebBiographyModel:
     def test_valid_biography_snapshot(self):
         bio = WebBiography(
             date="November 14, 2022",
-            image_prompt="A cold, sparse rehearsal room. A single standing lamp casts amber light on sheet music. Winter dark outside the window.",
-            content="She sat at the piano for two hours without playing a single note. The sheet music had been there for three weeks. She turned it face-down.",
-            word_count=30,
+            image_prompt="A cold, sparse rehearsal room. A single standing lamp casts amber light. Winter dark outside.",
+            content="I sat at the piano for two hours without playing a single note. The sheet music had been there for three weeks.",
+            word_count=24,
         )
         assert bio.date == "November 14, 2022"
         assert "lamp" in bio.image_prompt
-        assert bio.word_count == 30
+        assert bio.word_count == 24
 
     def test_image_prompt_present(self):
-        """image_prompt boş olmamalı."""
         bio = WebBiography(
             date="March 3, 2021",
-            image_prompt="Candlelight. An empty corner table. The sound of rain.",
-            content="She ordered a coffee she did not drink.",
+            image_prompt="Candlelight. An empty corner table. Rain.",
+            content="I ordered a coffee I did not drink.",
             word_count=8,
         )
         assert len(bio.image_prompt) > 0
 
     def test_biography_requires_date(self):
-        """date eksikliğinde hata fırlatılmalı."""
         with pytest.raises(Exception):
-            WebBiography(
-                image_prompt="A room.",
-                content="She waited.",
-                word_count=2,
-            )
+            WebBiography(image_prompt="A room.", content="I waited.", word_count=2)
 
     def test_biography_requires_content(self):
-        """content eksikliğinde hata fırlatılmalı."""
         with pytest.raises(Exception):
-            WebBiography(
-                date="January 1, 2023",
-                image_prompt="A hallway.",
-                word_count=0,
-            )
+            WebBiography(date="January 1, 2023", image_prompt="A hallway.", word_count=0)
 
     def test_no_variant_field(self):
-        """Eski 'variant' alanı artık modelde olmamalı (yeni yapı)."""
         bio = WebBiography(
             date="July 7, 2022",
             image_prompt="Fog over water at dusk.",
-            content="She had been on the train for four hours and still had not opened her notebook.",
-            word_count=18,
+            content="I had been on the train for four hours.",
+            word_count=10,
         )
         assert not hasattr(bio, "variant")
         assert not hasattr(bio, "tone_tags")
@@ -81,56 +71,96 @@ class TestWebBiographyModel:
 # ─── WebPortrait Model Tests ───────────────────────────────────
 
 class TestWebPortraitModel:
-    """WebPortrait (günlük alıntısı) model doğrulama testleri."""
+    """WebPortrait (günlük alıntısı + image_prompt) model testleri."""
 
-    def test_valid_diary_entry(self):
-        portrait = WebPortrait(
+    def _make_portrait(self, mood="still"):
+        return WebPortrait(
             date="October 3, 2023",
-            mood_tag="still",
-            content="I left the window open all afternoon. The curtain moved, but nothing came in. I watched it for a long time.",
-            word_count=22,
+            mood_tag=mood,
+            image_prompt="The person in the reference images provided* sits near a dark window, a long coat draped over her shoulders.",
+            content="I left the window open all afternoon. The curtain moved, but nothing came in.",
+            word_count=16,
         )
+
+    def test_valid_diary_entry_with_image_prompt(self):
+        portrait = self._make_portrait()
         assert portrait.mood_tag == "still"
-        assert "I" in portrait.content  # birinci şahıs
+        assert "I" in portrait.content
+        assert "reference images provided" in portrait.image_prompt
         assert portrait.date == "October 3, 2023"
 
-    def test_restless_mood(self):
-        portrait = WebPortrait(
-            date="February 17, 2024",
-            mood_tag="restless",
-            content="I made tea and forgot it on the counter. Three times. The same thought keeps arriving and I keep putting it down elsewhere.",
-            word_count=27,
-        )
-        assert portrait.mood_tag == "restless"
-
-    def test_hollow_mood(self):
-        portrait = WebPortrait(
-            date="August 29, 2022",
-            mood_tag="hollow",
-            content="The session ended at 4. I sat in the parking lot for a while. It was finished. That's all.",
-            word_count=20,
-        )
-        assert portrait.mood_tag == "hollow"
+    def test_portrait_has_image_prompt_field(self):
+        """image_prompt alanı artık WebPortrait'te mevcut olmalı."""
+        portrait = self._make_portrait("restless")
+        assert hasattr(portrait, "image_prompt")
+        assert len(portrait.image_prompt) > 0
 
     def test_portrait_requires_mood_tag(self):
-        """mood_tag eksikliğinde hata fırlatılmalı."""
         with pytest.raises(Exception):
             WebPortrait(
                 date="January 1, 2023",
+                image_prompt="A room.",
+                content="I sat by the window.",
+                word_count=5,
+            )
+
+    def test_portrait_requires_image_prompt(self):
+        with pytest.raises(Exception):
+            WebPortrait(
+                date="January 1, 2023",
+                mood_tag="still",
                 content="I sat by the window.",
                 word_count=5,
             )
 
     def test_no_creative_angle_field(self):
-        """Eski 'creative_angle' alanı artık modelde olmamalı."""
-        portrait = WebPortrait(
-            date="May 10, 2023",
-            mood_tag="still",
-            content="The day passed without event.",
-            word_count=5,
-        )
+        portrait = self._make_portrait()
         assert not hasattr(portrait, "creative_angle")
         assert not hasattr(portrait, "variant")
+
+    def test_all_mood_tags(self):
+        for mood in ["still", "restless", "hollow"]:
+            portrait = self._make_portrait(mood)
+            assert portrait.mood_tag == mood
+
+
+# ─── WebNote Model Tests ───────────────────────────────────────
+
+class TestWebNoteModel:
+    """WebNote (kısa vurucu günlük notu) model testleri."""
+
+    def test_valid_pinned_note(self):
+        note = WebNote(
+            content="The cold does not arrive. It simply becomes apparent.",
+            is_pinned=True,
+            word_count=9,
+        )
+        assert note.is_pinned is True
+        assert len(note.content) > 0
+
+    def test_valid_unpinned_note(self):
+        note = WebNote(
+            content="I left the door slightly open. No one came through.",
+            is_pinned=False,
+            word_count=11,
+        )
+        assert note.is_pinned is False
+
+    def test_note_requires_content(self):
+        with pytest.raises(Exception):
+            WebNote(is_pinned=True, word_count=0)
+
+    def test_note_requires_is_pinned(self):
+        with pytest.raises(Exception):
+            WebNote(content="A note.", word_count=2)
+
+    def test_note_word_count(self):
+        note = WebNote(content="One. Two. Three.", is_pinned=False, word_count=3)
+        assert note.word_count == 3
+
+    def test_pinned_note_bool_type(self):
+        note = WebNote(content="Something.", is_pinned=True, word_count=1)
+        assert isinstance(note.is_pinned, bool)
 
 
 # ─── WebContentPackage Tests ───────────────────────────────────
@@ -143,7 +173,7 @@ class TestWebContentPackageModel:
             WebBiography(
                 date=f"Month {i}, 202{i}",
                 image_prompt=f"A dark room. Scene {i}.",
-                content=f"A moment from period {i}.",
+                content=f"I was there. Moment {i}.",
                 word_count=5,
             )
             for i in range(1, 4)
@@ -155,10 +185,18 @@ class TestWebContentPackageModel:
             WebPortrait(
                 date=f"Month {i}, 202{i}",
                 mood_tag=moods[i - 1],
+                image_prompt=f"The person in the reference images provided* stands in scene {i}.",
                 content=f"I was here. Moment {i}.",
                 word_count=5,
             )
             for i in range(1, 4)
+        ]
+
+    def _make_notes(self):
+        return [
+            WebNote(content="A quiet observation.", is_pinned=False, word_count=3),
+            WebNote(content="The most striking one — heavier.", is_pinned=True, word_count=6),
+            WebNote(content="Another understated note.", is_pinned=False, word_count=3),
         ]
 
     def test_full_package_creation(self):
@@ -166,6 +204,7 @@ class TestWebContentPackageModel:
             artist_name="Scarlett Noire",
             biographies=self._make_biographies(),
             portraits=self._make_portraits(),
+            notes=self._make_notes(),
             language="English",
             generated_at=datetime.now().isoformat(),
             model_used="gemini-2.5-flash",
@@ -173,40 +212,55 @@ class TestWebContentPackageModel:
         assert package.artist_name == "Scarlett Noire"
         assert len(package.biographies) == 3
         assert len(package.portraits) == 3
+        assert len(package.notes) == 3
 
-    def test_package_default_language(self):
+    def test_package_requires_notes(self):
+        """notes alanı zorunlu olmalı."""
+        with pytest.raises(Exception):
+            WebContentPackage(
+                artist_name="Scarlett Noire",
+                biographies=self._make_biographies(),
+                portraits=self._make_portraits(),
+                generated_at=datetime.now().isoformat(),
+                model_used="gemini-2.5-flash",
+            )
+
+    def test_exactly_one_pinned_note(self):
         package = WebContentPackage(
             artist_name="Scarlett Noire",
             biographies=self._make_biographies(),
             portraits=self._make_portraits(),
+            notes=self._make_notes(),
             generated_at=datetime.now().isoformat(),
             model_used="gemini-2.5-flash",
         )
-        assert package.language == "English"
+        pinned = [n for n in package.notes if n.is_pinned]
+        assert len(pinned) == 1
 
     def test_package_serialization(self):
         package = WebContentPackage(
             artist_name="Scarlett Noire",
             biographies=self._make_biographies(),
             portraits=self._make_portraits(),
+            notes=self._make_notes(),
             generated_at=datetime.now().isoformat(),
             model_used="gemini-2.5-flash",
         )
         data = package.model_dump()
-        assert isinstance(data, dict)
-        assert "biographies" in data and "portraits" in data
-        assert len(data["biographies"]) == 3
-        # Yeni alanlar mevcut
-        assert "date" in data["biographies"][0]
-        assert "image_prompt" in data["biographies"][0]
-        assert "mood_tag" in data["portraits"][0]
+        assert "biographies" in data
+        assert "portraits" in data
+        assert "notes" in data
+        # Portrait'te image_prompt olmalı
+        assert "image_prompt" in data["portraits"][0]
+        # Note'ta is_pinned olmalı
+        assert "is_pinned" in data["notes"][0]
 
     def test_biography_has_no_variant_in_serialized(self):
-        """Serileştirilmiş JSON'da eski 'variant' alanı olmamalı."""
         package = WebContentPackage(
             artist_name="Scarlett Noire",
             biographies=self._make_biographies(),
             portraits=self._make_portraits(),
+            notes=self._make_notes(),
             generated_at=datetime.now().isoformat(),
             model_used="gemini-2.5-flash",
         )
@@ -252,7 +306,7 @@ class TestPersonaLoading:
 # ─── Prompt Builder Tests ──────────────────────────────────────
 
 class TestPromptBuilders:
-    """Biography ve portrait prompt oluşturucuların doğruluğunu test eder."""
+    """Biography, portrait ve notes prompt oluşturucuların testleri."""
 
     SAMPLE_CTX = {
         "stage_name": "Scarlett Noire",
@@ -273,6 +327,8 @@ class TestPromptBuilders:
         "content_niche": "Quiet observation, memory.",
     }
 
+    # ── Biography ────────────────────────────────────────────────
+
     def test_biography_prompt_returns_tuple(self):
         from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
         sys_p, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
@@ -285,24 +341,66 @@ class TestPromptBuilders:
         assert "Scarlett Noire" in sys_p
 
     def test_biography_prompt_asks_for_json(self):
-        """Biography prompt'u JSON döndürmesini talep etmeli."""
         from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
         _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[1], "English")
         assert "json" in human_p.lower() or "JSON" in human_p
 
     def test_biography_prompt_forbids_physical_detail(self):
-        """Image prompt'un aşırı fiziksel betimleme yapmayacağına dair yönerge olmalı."""
         from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
         _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
         assert "physical" in human_p.lower() or "face" in human_p.lower() or "eye color" in human_p.lower()
 
-    def test_biography_prompt_has_three_directives(self):
-        """3 farklı direktif mevcut olmalı."""
+    def test_biography_has_three_directives(self):
         from agents.web_content_writer import _BIO_DIRECTIVES
         assert len(_BIO_DIRECTIVES) == 3
         moods = [d["mood"] for d in _BIO_DIRECTIVES]
-        # Hepsi farklı olmalı
         assert len(set(moods)) == 3
+
+    def test_biography_chronology_constraint_in_system(self):
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        sys_p, _ = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
+        assert "1997" in sys_p
+        assert "2015" in sys_p
+        assert "CHRONOLOGY" in sys_p or "born" in sys_p.lower()
+
+    def test_biography_date_range_in_human_prompt(self):
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[1], "English")
+        assert "2015" in human_p
+        assert "2025" in human_p
+        assert "1997" in human_p
+
+    def test_biography_image_prompt_has_reference_marker(self):
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
+        assert "reference images provided" in human_p.lower()
+
+    def test_biography_content_is_first_person(self):
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
+        assert "FIRST PERSON" in human_p or "first person" in human_p.lower()
+
+    def test_biography_image_prompt_clothing_rule(self):
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[1], "English")
+        assert "CLOTHING" in human_p or "clothing" in human_p.lower()
+
+    def test_biography_image_prompt_no_visible_text_rule(self):
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[2], "English")
+        assert "TEXT" in human_p or "legible" in human_p.lower() or "readable" in human_p.lower()
+
+    def test_biography_forbidden_rules_in_system(self):
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        sys_p, _ = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
+        assert "FORBIDDEN" in sys_p
+
+    def test_language_passed_to_biography_system(self):
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        sys_p, _ = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "Turkish")
+        assert "Turkish" in sys_p
+
+    # ── Portrait ─────────────────────────────────────────────────
 
     def test_portrait_prompt_returns_tuple(self):
         from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
@@ -311,7 +409,6 @@ class TestPromptBuilders:
         assert isinstance(human_p, str) and len(human_p) > 50
 
     def test_portrait_prompt_asks_for_first_person(self):
-        """Portrait prompt'u birinci şahıs talep etmeli."""
         from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
         sys_p, _ = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[0], "English")
         assert "First person" in sys_p or "first person" in sys_p
@@ -321,80 +418,88 @@ class TestPromptBuilders:
         _, human_p = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[1], "English")
         assert "json" in human_p.lower() or "JSON" in human_p
 
+    def test_portrait_prompt_has_image_prompt_section(self):
+        """Portrait prompt artık IMAGE_PROMPT talep etmeli."""
+        from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
+        _, human_p = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[0], "English")
+        assert "IMAGE_PROMPT" in human_p or "image_prompt" in human_p.lower()
+
+    def test_portrait_image_prompt_reference_marker(self):
+        """Portrait image prompt da referans ibaresi içermeli."""
+        from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
+        _, human_p = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[0], "English")
+        assert "reference images provided" in human_p.lower()
+
+    def test_portrait_image_prompt_clothing_rule(self):
+        from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
+        _, human_p = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[1], "English")
+        assert "CLOTHING" in human_p or "clothing" in human_p.lower()
+
+    def test_portrait_image_prompt_no_visible_text_rule(self):
+        from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
+        _, human_p = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[2], "English")
+        assert "TEXT" in human_p or "legible" in human_p.lower() or "readable" in human_p.lower()
+
+    def test_portrait_json_schema_has_image_prompt(self):
+        """Portrait JSON örneğinde image_prompt alanı olmalı."""
+        from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
+        _, human_p = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[0], "English")
+        assert '"image_prompt"' in human_p
+
     def test_portrait_has_three_directives(self):
         from agents.web_content_writer import _PORTRAIT_DIRECTIVES
         assert len(_PORTRAIT_DIRECTIVES) == 3
         mood_tags = [d["mood_tag"] for d in _PORTRAIT_DIRECTIVES]
         assert set(mood_tags) == {"still", "restless", "hollow"}
 
-    def test_language_passed_to_biography_system(self):
-        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
-        sys_p, _ = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "Turkish")
-        assert "Turkish" in sys_p
-
     def test_language_passed_to_portrait_system(self):
         from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
         sys_p, _ = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[0], "Turkish")
         assert "Turkish" in sys_p
 
-    def test_biography_chronology_constraint_in_system(self):
-        """Biography system prompt'u doğum yılı ve geçerli tarih aralığını içermeli."""
-        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
-        sys_p, _ = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
-        assert "1997" in sys_p            # doğum yılı
-        assert "2015" in sys_p            # kariyer başlangıcı (18 yaş)
-        assert "CHRONOLOGY" in sys_p or "born" in sys_p.lower()
-
-    def test_biography_date_range_in_human_prompt(self):
-        """Human prompt'ta geçerli yıl aralığı ve doğum yılı görünmeli."""
-        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
-        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[1], "English")
-        assert "2015" in human_p          # min_date_year
-        assert "2025" in human_p          # max_date_year
-        assert "1997" in human_p          # birth_year
-
-    def test_biography_image_prompt_has_reference_marker(self):
-        """Image prompt talimatı 'reference images provided*' ibaresini içermeli."""
-        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
-        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
-        assert "reference images provided" in human_p.lower()
-
-    def test_biography_image_prompt_example_has_marker(self):
-        """JSON örneğinde image_prompt alanı referans ibaresiyle başlamalı."""
-        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
-        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[2], "English")
-        # JSON şemasindaki örnek değer referans ibaresiyle başlamalı
-        assert '"The person in the reference images provided*' in human_p
-
-    def test_biography_content_is_first_person(self):
-        """Content talimatı birinci şahsda yazma direktifi içermeli."""
-        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
-        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
-        assert "FIRST PERSON" in human_p or "first person" in human_p.lower()
-        assert '"I"' in human_p or "\"I\"" in human_p
-
-    def test_biography_image_prompt_clothing_rule(self):
-        """Image prompt kıyafet betimlemesine izin veren direktif içermeli."""
-        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
-        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[1], "English")
-        assert "CLOTHING" in human_p or "clothing" in human_p.lower()
-
-    def test_biography_image_prompt_no_visible_text_rule(self):
-        """Image prompt, AI görsellerinde okunan yazı üretilmemesi kuralını içermeli."""
-        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
-        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[2], "English")
-        assert "TEXT" in human_p or "legible" in human_p.lower() or "readable" in human_p.lower()
-        assert '"The person in the reference images provided*' in human_p
-
-    def test_biography_forbidden_rules_in_system(self):
-        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
-        sys_p, _ = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
-        assert "FORBIDDEN" in sys_p
-
     def test_portrait_forbidden_rules_in_system(self):
         from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
         sys_p, _ = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[0], "English")
         assert "FORBIDDEN" in sys_p
+
+    # ── Notes ────────────────────────────────────────────────────
+
+    def test_notes_prompt_returns_tuple(self):
+        from agents.web_content_writer import _build_notes_prompt
+        sys_p, human_p = _build_notes_prompt(self.SAMPLE_CTX, "English")
+        assert isinstance(sys_p, str) and len(sys_p) > 50
+        assert isinstance(human_p, str) and len(human_p) > 50
+
+    def test_notes_prompt_asks_for_json(self):
+        from agents.web_content_writer import _build_notes_prompt
+        _, human_p = _build_notes_prompt(self.SAMPLE_CTX, "English")
+        assert "json" in human_p.lower() or "JSON" in human_p
+
+    def test_notes_prompt_requests_exactly_3_notes(self):
+        from agents.web_content_writer import _build_notes_prompt
+        _, human_p = _build_notes_prompt(self.SAMPLE_CTX, "English")
+        assert "3" in human_p or "three" in human_p.lower()
+
+    def test_notes_prompt_requires_one_pinned(self):
+        from agents.web_content_writer import _build_notes_prompt
+        _, human_p = _build_notes_prompt(self.SAMPLE_CTX, "English")
+        assert "is_pinned" in human_p
+        assert "ONE" in human_p or "one" in human_p.lower()
+
+    def test_notes_prompt_forbidden_rules_in_system(self):
+        from agents.web_content_writer import _build_notes_prompt
+        sys_p, _ = _build_notes_prompt(self.SAMPLE_CTX, "English")
+        assert "FORBIDDEN" in sys_p
+
+    def test_notes_language_passed_to_system(self):
+        from agents.web_content_writer import _build_notes_prompt
+        sys_p, _ = _build_notes_prompt(self.SAMPLE_CTX, "Turkish")
+        assert "Turkish" in sys_p
+
+    def test_notes_json_schema_has_notes_array(self):
+        from agents.web_content_writer import _build_notes_prompt
+        _, human_p = _build_notes_prompt(self.SAMPLE_CTX, "English")
+        assert '"notes"' in human_p
 
 
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ from pathlib import Path
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from core.models import WebBiography, WebPortrait, WebContentPackage
+from core.models import WebBiography, WebPortrait, WebNote, WebContentPackage
 from core.persona_loader import load_cached_persona, load_seed
 from core.llm_bridge import get_llm
 from core.config import AI_MODELS
@@ -220,40 +220,53 @@ _PORTRAIT_DIRECTIVES = [
 def _build_portrait_prompt(ctx: dict, directive: dict, language: str) -> tuple[str, str]:
     """
     Günlük alıntısı (portrait) için (system, human) prompt çiftini üretir.
+    Artık image_prompt da döndürür — biography ile aynı görsel kurallar.
 
     Returns:
         (system_prompt, human_prompt) tuple'ı
     """
-    system = f"""You are writing fictional diary entries for {ctx['stage_name']} — excerpts from her personal journal that appear on her website, scarlettnoire.art.
+    system = f"""You are writing fictional diary entries and scene images for {ctx['stage_name']} — published on her website, scarlettnoire.art.
 
-These are NOT promotional texts. They are private observations, written in first person as herself.
-The reader should feel they are holding something that was not meant to be read.
+You will generate TWO things per entry:
+  1. IMAGE_PROMPT: a compact AI image generation prompt for the scene of this diary entry
+  2. CONTENT: the diary entry text
 
-VOICE CONSTRAINTS:
-- First person singular ("I", "my", "me") — always
+VOICE & IMAGE CONSTRAINTS:
+- Diary content: First person singular ("I", "my", "me") — always
 - Tone: {ctx['tone'][:250]}
 - Speaking style: {ctx['speaking_style'][:200]}
-- FORBIDDEN: romance, sexuality, violence, irony, self-promotion, marketing language
+- FORBIDDEN in content: romance, sexuality, violence, irony, self-promotion, marketing language
 - Do not reference audiences, fans, or the music industry directly
 - No abstract philosophizing. Ground every thought in something concrete and observed.
 - {ctx['extra_notes'][:300] if ctx['extra_notes'] else ''}
-- Language: {language}"""
+- Language for CONTENT: {language}
+- Language for IMAGE_PROMPT: always English"""
 
-    human = f"""Write a short diary entry excerpt with these constraints. Return ONLY valid JSON — no markdown, no backticks.
+    human = f"""Generate a portrait entry with an image prompt and diary text. Return ONLY valid JSON — no markdown, no backticks.
 
 ENTRY DIRECTIVE:
 - Mood: {directive['mood_tag']}
 - Context: {directive['context']}
 - Underlying tone: {directive['tone_note']}
 
-PERSONA FOUNDATION (for voice reference, do not summarize):
+PERSONA FOUNDATION (voice reference, do not summarize):
 - Catchphrases (spirit, not literal): {ctx['catchphrases']}
 - Content niche: {ctx['content_niche'][:200]}
 - Color/visual world to reference when relevant: {ctx['color_palette']}
 
-For the CONTENT (~90-130 words):
+For the IMAGE_PROMPT (always in English):
+- Start with: "The person in the reference images provided*" followed by their position/presence
+  (e.g., "...sits at the edge of a dim pool of light", "...stands facing away").
+- CLOTHING: choose atmosphere-appropriate attire (e.g., "a long dark robe", "a plain oversized sweater").
+  Do NOT feel bound by the reference images' clothing.
+- Do NOT describe face shape, eye color, freckles, hair color — the references carry that.
+- TEXT IN THE SCENE: if writing appears (notebooks, labels), ensure it is NOT readable —
+  closed, angled away, in shadow. Never cause legible text in the generated image.
+- Keep total under 90 words — concise, painterly, precise.
+
+For the CONTENT (~90-130 words in {language}):
 - Assign a plausible date (past, specific)
-- Write as if mid-thought — not from the beginning of a day, not a complete narrative
+- Write as if mid-thought — not from beginning of a day, not a complete narrative
 - One or two concrete observations: something seen, something heard, something touched
 - Let the mood arrive through detail, not statement
 - End on an unresolved note — the entry stops, it does not conclude
@@ -262,7 +275,60 @@ Return exactly this JSON structure:
 {{
   "date": "Month DD, YYYY",
   "mood_tag": "{directive['mood_tag']}",
+  "image_prompt": "The person in the reference images provided* ...",
   "content": "..."
+}}"""
+
+    return system, human
+
+
+# ─── Notes Prompt ─────────────────────────────────────────────
+
+# AI NOTE: 3 notu tek LLM çağrısında üretiyoruz (verimlilik).
+# LLM tam olarak 1 is_pinned:true döndürmelidir; prompt bunu açıkça talep eder.
+
+def _build_notes_prompt(ctx: dict, language: str) -> tuple[str, str]:
+    """
+    3 kısa, vurucu günlük notu için (system, human) prompt çifti.
+    Tek LLM çağrısında tüm notları JSON array olarak üretir.
+    Birisi is_pinned:true — en çarpıcı, sabitlenmiş not.
+
+    Returns:
+        (system_prompt, human_prompt) tuple'ı
+    """
+    system = f"""You are writing short, striking notes from {ctx['stage_name']}'s personal journal for her website, scarlettnoire.art.
+
+These are NOT diary entries and NOT captions. They are single, crystalline observations —
+the kind written on a loose page and left somewhere.
+Each note is 1-2 sentences. Every word must earn its place.
+
+CONSTRAINTS:
+- First person singular — always
+- Tone: {ctx['tone'][:200]}
+- FORBIDDEN: romance, sexuality, violence, irony, marketing, self-reference as an artist
+- No metaphors that feel generic. Ground each note in something physical: a sound, a texture, a light.
+- {ctx['extra_notes'][:250] if ctx['extra_notes'] else ''}
+- Language: {language}"""
+
+    human = f"""Generate exactly 3 notes. Return ONLY valid JSON — no markdown, no backticks.
+
+RULES:
+- Notes must feel meaningfully different from each other (different image, different register)
+- Exactly ONE note must have is_pinned: true — choose the most striking, most memorable one
+- The pinned note should feel heavier, more irreducible than the others
+- The other two are strong but more understated
+
+VOICE REFERENCE (spirit, not literal copy):
+- Catchphrases: {ctx['catchphrases']}
+- Content niche: {ctx['content_niche'][:200]}
+
+Return exactly this JSON structure:
+{{
+  "notes": [
+    {{ "content": "...", "is_pinned": false }},
+    {{ "content": "...", "is_pinned": true }},
+    {{ "content": "...", "is_pinned": false }}
+  ]
 }}"""
 
     return system, human
@@ -353,9 +419,21 @@ def _save_package(package: WebContentPackage) -> tuple[str, str]:
             f"### Portrait {i} — {portrait.date}",
             f"*{portrait.mood_tag}* | *~{portrait.word_count} words*",
             f"",
+            f"**Image Prompt:**",
+            f"> {portrait.image_prompt}",
+            f"",
             portrait.content,
             f"",
             f"---",
+            f"",
+        ]
+
+    md_lines += [f"## Notes", f""]
+
+    for note in package.notes:
+        pin_marker = "📌 **[PINNED]** " if note.is_pinned else "— "
+        md_lines += [
+            f"{pin_marker}{note.content}",
             f"",
         ]
 
@@ -416,7 +494,7 @@ def generate_web_content(
             word_count=wc,
         ))
 
-    # ── 3. Portrait üretimi (3 günlük alıntısı) ──────────────
+    # ── 3. Portrait üretimi (3 günlük alıntısı + image_prompt) ──
     portraits = []
     for directive in _PORTRAIT_DIRECTIVES:
         _progress(f"📔 Portrait — '{directive['mood_tag']}' üretiliyor...")
@@ -426,16 +504,31 @@ def generate_web_content(
         portraits.append(WebPortrait(
             date=data.get("date", "Unknown date"),
             mood_tag=data.get("mood_tag", directive["mood_tag"]),
+            image_prompt=data.get("image_prompt", ""),
             content=data.get("content", ""),
             word_count=wc,
         ))
 
-    # ── 4. Paketi derle ve kaydet ─────────────────────────────
+    # ── 4. Notlar üretimi (3 kısa vurucu not, 1 pinned) ──────
+    _progress("📝 Notlar üretiliyor...")
+    sys_p, human_p = _build_notes_prompt(ctx, language)
+    notes_data = _generate_json_single(sys_p, human_p)
+    notes = []
+    for n in notes_data.get("notes", []):
+        wc = len(n.get("content", "").split())
+        notes.append(WebNote(
+            content=n.get("content", ""),
+            is_pinned=n.get("is_pinned", False),
+            word_count=wc,
+        ))
+
+    # ── 5. Paketi derle ve kaydet ─────────────────────────────
     _progress("📦 Paket derleniyor ve dosyaya yazılıyor...")
     package = WebContentPackage(
         artist_name=ctx["stage_name"],
         biographies=biographies,
         portraits=portraits,
+        notes=notes,
         language=language,
         generated_at=datetime.now().isoformat(),
         model_used=model_name,

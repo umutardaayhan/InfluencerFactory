@@ -181,3 +181,11 @@
 ?? **Geri Dönüº:** EVET - SADECE G?T ?LE DÖNÜLEB?L?R
   git revert HEAD  veya  git reset --hard HEAD~1
 =========================================
+
+=========================================
+?? **Tarih/Saat:** 25.03.2026 - 15:08
+?? **Sorun/?htiyaç:** Portrait'e image_prompt eklenmesi; yeni 'Notlar' içerik tipi
+?? **?ºlem Özeti:** WebPortrait modeline image_prompt alan??? eklendi (biography ile ayn? kurallar). Yeni WebNote modeli (content, is_pinned, word_count) ve WebContentPackage.notes listesi eklendi. _build_notes_prompt() fonksiyonu yaz?ld? ? 3 k?sa vurucu not, 1 sabitlenmiº (pinned). portrait image_prompt ve notes Markdown ç?kt?s?na eklendi. CLI progress ve snippet güncellendi.
+?? **Etkilenen Kapsam:** core/models.py, agents/web_content_writer.py, main.py, tests/test_web_content.py
+?? **Geri Dönüº:** EVET ? sadece Git ile dönülebilir
+=========================================

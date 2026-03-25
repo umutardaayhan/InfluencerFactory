@@ -484,6 +484,7 @@ def run_web_content(persona: dict, language: str = "English"):
         "📔 Portrait — 'still' günlük girişi...",
         "📔 Portrait — 'restless' günlük girişi...",
         "📔 Portrait — 'hollow' günlük girişi...",
+        "📝 Notlar üretiliyor...",
         "📦 Paket derleniyor ve dosyaya yazılıyor...",
     ]
     total_steps = len(progress_steps)
@@ -530,6 +531,8 @@ def run_web_content(persona: dict, language: str = "English"):
 
     bio_count = len(package.biographies)
     portrait_count = len(package.portraits)
+    notes_count = len(package.notes)
+    pinned_note = next((n for n in package.notes if n.is_pinned), None)
 
     result_table = Table(box=box.ROUNDED, border_style="green", padding=(0, 2))
     result_table.add_column("Metrik", style="dim", width=24)
@@ -539,8 +542,9 @@ def run_web_content(persona: dict, language: str = "English"):
     result_table.add_row("🌐 Site", "scarlettnoire.art")
     result_table.add_row("🗣️  Dil", package.language)
     result_table.add_row("🤖 Model", package.model_used)
-    result_table.add_row("📖 Biography", f"[bright_cyan]{bio_count}[/bright_cyan] adet (short · medium · long)")
-    result_table.add_row("🎭 Portrait", f"[bright_magenta]{portrait_count}[/bright_magenta] adet (cinematic · intimate · avant-garde)")
+    result_table.add_row("📖 Biography", f"[bright_cyan]{bio_count}[/bright_cyan] adet enstante")
+    result_table.add_row("📔 Portrait", f"[bright_magenta]{portrait_count}[/bright_magenta] adet günlük")
+    result_table.add_row("📝 Notlar", f"[bright_yellow]{notes_count}[/bright_yellow] adet (1 sabitlenmiş)")
     result_table.add_row("🪙 Token", str(tokens))
     result_table.add_row("📄 JSON", f"[underline]{json_path}[/underline]")
     result_table.add_row("📝 Markdown", f"[underline]{md_path}[/underline]")
@@ -570,10 +574,19 @@ def run_web_content(persona: dict, language: str = "English"):
         portrait = package.portraits[0]
         console.print()
         console.print(Panel(
-            f"[dim]📅 {portrait.date} — [{portrait.mood_tag}][/dim]\n\n"
-            f"[dim italic]{portrait.content[:350]}{'...' if len(portrait.content) > 350 else ''}[/dim italic]",
+            f"[dim]📅 {portrait.date} — [{portrait.mood_tag}][/dim]\n"
+            f"[bold dim]📸 IMAGE PROMPT:[/bold dim] [dim italic]{portrait.image_prompt[:200]}{'...' if len(portrait.image_prompt) > 200 else ''}[/dim italic]\n\n"
+            f"[dim italic]{portrait.content[:300]}{'...' if len(portrait.content) > 300 else ''}[/dim italic]",
             title=f"[bold bright_magenta]📔 Snippet — Diary Excerpt[/bold bright_magenta]",
             border_style="bright_magenta",
+            padding=(1, 3),
+        ))
+    if pinned_note:
+        console.print()
+        console.print(Panel(
+            f"[bold bright_yellow]{pinned_note.content}[/bold bright_yellow]",
+            title="[bold bright_yellow]📌 Sabitlenmiş Not[/bold bright_yellow]",
+            border_style="bright_yellow",
             padding=(1, 3),
         ))
 
