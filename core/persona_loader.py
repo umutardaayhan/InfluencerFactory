@@ -43,7 +43,7 @@ def load_seed(persona_dir: str) -> dict:
         seed = json.load(f)
 
     # Zorunlu alan kontrolü
-    required_fields = ["name", "biography", "music"]
+    required_fields = ["name", "biography"]
     missing = [f for f in required_fields if f not in seed]
     if missing:
         raise ValueError(f"seed.json'da eksik zorunlu alanlar: {missing}")
@@ -131,6 +131,7 @@ def save_persona(persona_dir: str, persona: PersonaProfile):
     persona_path = Path(persona_dir) / "persona.json"
 
     with open(persona_path, "w", encoding="utf-8") as f:
-        json.dump(persona.model_dump(), f, ensure_ascii=False, indent=2)
+        json.dump(persona.model_dump(exclude_none=True), f, ensure_ascii=False, indent=2)
 
     logger.info(f"[PERSONA] Kaydedildi: {persona_path}")
+

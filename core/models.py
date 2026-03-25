@@ -47,8 +47,9 @@ class PersonaProfile(BaseModel):
     biography: str = Field(description="Zenginleştirilmiş biyografi")
     personality: Personality
     visual_identity: VisualIdentity
-    music: dict = Field(description="seed.json'dan kopyalanan müzik bilgileri")
-    social_media: dict = Field(description="seed.json'dan kopyalanan sosyal medya bilgileri")
+    music: Optional[dict] = Field(default=None, description="seed.json'dan kopyalanan müzik bilgileri")
+    content: Optional[dict] = Field(default=None, description="seed.json'dan kopyalanan içerik bilgileri")
+    social_media: Optional[dict] = Field(default=None, description="seed.json'dan kopyalanan sosyal medya bilgileri")
 
 
 # ─── Stratejist Çıktıları ─────────────────────────────────────

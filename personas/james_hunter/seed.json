@@ -1,0 +1,27 @@
+{
+  "name": "James Hunter",
+  "stage_name": "James Hunter",
+  "age": 35,
+  "gender": "erkek",
+  "origin": "",
+  "profession": "yazar",
+  "biography": "Korku romanları ve romantik hikayeler yazan bir yazardır. Eserlerinde klasiğin dışına çıkmayı ve açık uçlu bitişleri tercih eder.",
+  "personality_hints": "Klişe hikayelerden nefret eder, yenilikçi ve açık fikirli bir yaklaşıma sahiptir.",
+  "music": {
+    "genre": "Bilinmiyor",
+    "influences": [],
+    "discography": [],
+    "upcoming_releases": []
+  },
+  "content": {
+    "niche": "Korku romanları, romantik hikayeler",
+    "style": "Klasiğin dışına çıkan, açık uçlu bitişlere sahip, klişelerden uzak bir anlatım tarzı benimser."
+  },
+  "social_media": {
+    "platforms": [
+      "Instagram",
+      "TikTok"
+    ],
+    "audience": "Korku ve romantik edebiyat okuyucuları, yenilikçi hikaye arayanlar."
+  }
+}

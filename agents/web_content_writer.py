@@ -54,7 +54,7 @@ def _build_persona_context(persona_dir: str) -> dict:
     if persona is None:
         raise FileNotFoundError(
             f"persona.json bulunamadı: {persona_dir}\n"
-            "Önce menüden '👁️ Persona Oluştur' ile persona oluşturun."
+            "Önce menüden '🔄 Persona Yenile' veya içerik üreterek persona yükleyin."
         )
 
     # Şu an 2026 — prompt üretimi sırasındaki gerçek yıla göre hesapla.

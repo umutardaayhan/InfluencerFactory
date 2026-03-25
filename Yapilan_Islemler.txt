@@ -205,3 +205,60 @@
 ?? **Etkilenen Kapsam:** agents/web_content_writer.py
 ?? **Geri Dönüº:** EVET â?? sadece Git ile dÃ¶nÃ¼lebilir
 =========================================
+
+=========================================
+?? **Tarih/Saat:** 26.03.2026 - 00:08
+?? **Sorun/?htiyaç:** CLI kullanÄ±labilirliÄ?ini artÄ±rmak, Persona modelini esnekleÅ?tirmek ve yeni sihirbaz Ã¶zelliklerini entegre etmek.
+?? **?ºlem Özeti:** Persona modeli esnetildi (music opsiyonel oldu), CLI yaÅ? validasyonu yazÄ±ldÄ±, resimlerden rastgele profil Ã¼retimi (AI) eklendi, iptal onayÄ± esnekleÅ?tirildi ve pagination eklendi.
+?? **Etkilenen Kapsam:** core/models.py, core/persona_loader.py, agents/context_builder.py, cli_wizard.py, main.py
+?? **SADECE GÄ°T Ä°LE DÃ?NÃ?LEBÄ°LÄ°R MÄ°?:** EVET
+?? **Geri DÃ¶nÃ¼Å? AdÄ±mlarÄ±:** git restore core/models.py core/persona_loader.py agents/context_builder.py cli_wizard.py main.py
+=========================================
+
+=========================================
+?? **Tarih/Saat:** 26.03.2026 - 00:24
+?? **Sorun/?htiyaç:** Yeni persona butonu Panel hatasÄ± ve unutulan eski mesajlar
+?? **?ºlem Özeti:** cli_wizard.py içindeki UnboundLocalError (Panel de?iºken gölgelemesi) düzeltildi. Arayüzde kalan eski menü ad? uyar?lar? güncellendi.
+?? **Etkilenen Kapsam:** cli_wizard.py, main.py, agents/web_content_writer.py
+?? **SADECE GÄ°T Ä°LE DÃ?NÃ?LEBÄ°LÄ°R MÄ°?:** EVET
+=========================================
+
+=========================================
+?? **Tarih/Saat:** 26.03.2026 - 00:34
+?? **Sorun/?htiyaç:** Master Prompt alanÄ± iÃ§in 5000 karakterlik yapÄ±Å?tÄ±rma iÅ?lemlerini destekleyen, arkaplanlÄ± tam ekran UI kutusu isteÄ?i.
+?? **?ºlem Özeti:** prompt_toolkit kullanÄ±larak _ask_master_prompt_fullscreen arayÃ¼z bileÅ?eni geliÅ?tirildi. Hem manuel giriÅ?te hem de yapay zeka taslak Ã¼retiminin ardÄ±ndan dÃ¼zenleme amaÃ§lÄ± olarak kullanÄ±labilir kÄ±lÄ±ndÄ±.
+?? **Etkilenen Kapsam:** cli_wizard.py
+?? **SADECE GÄ°T Ä°LE DÃ?NÃ?LEBÄ°LÄ°R MÄ°?:** EVET
+=========================================
+
+=========================================
+?? **Tarih/Saat:** 26.03.2026 - 00:39
+?? **Sorun/?htiyaç:** custom_data menüsünde de Master Prompt giriºinin eski stil kalmas?.
+?? **?ºlem Özeti:** _ask_master_prompt_fullscreen fonksiyonu title ve header_text parametresi alacak ºekilde esnetildi. main.py içindeki custom_data menüsü de yeni tam ekran kutulu metin arayüzüne taº?nd?.
+?? **Etkilenen Kapsam:** cli_wizard.py, main.py
+?? **SADECE GÄ°T Ä°LE DÃ?NÃ?LEBÄ°LÄ°R MÄ°?:** EVET
+=========================================
+
+=========================================
+?? **Tarih/Saat:** 26.03.2026 - 00:48
+?? **Sorun/?htiyaç:** custom_data oluÅ?turulurken yazar/Ã§izer gibi mÃ¼zisyen olmayan personalarda da 'real_songs' Å?ablonu/Å?emasÄ± dayatÄ±lmasÄ± hatasÄ±.
+?? **?ºlem Özeti:** main.py iÃ§erisindeki custom_data menÃ¼sÃ¼ revize edildi. PersonanÄ±n seed objesinden 'profession' bilgisi okundu. MÃ¼zisyen ise 'real_songs', deÄ?ilse 'recent_works' nesnelerinin template ve AI prompt Å?emalarÄ±na eklenmesi saÄ?landÄ±.
+?? **Etkilenen Kapsam:** main.py, Yapilan_Islemler.txt
+?? **SADECE GÄ°T Ä°LE DÃ?NÃ?LEBÄ°LÄ°R MÄ°?:** EVET
+=========================================
+
+=========================================
+?? **Tarih/Saat:** 26.03.2026 - 01:03
+?? **Sorun/?htiyaç:** Persona Bilgisi (info) menüsü yazdÄ±rÄ±lÄ±rken Unicode karakter kÄ±rÄ±lmasÄ± ve Windows pager sorunu (more.com hatalarÄ±).
+?? **Ä°Å?lem Ã?zeti:** main.py iÃ§indeki _show_detailed_persona_info fonksiyonunda yer alan with console.pager(styles=True): kod bloÄ?u kaldÄ±rÄ±ldÄ±. Windows Ã¼zerinde terminalin yerleÅ?ik scrollbar yapÄ±sÄ±nÄ±n kullanÄ±lmasÄ± zorunlu kÄ±lÄ±ndÄ± (console.print).
+?? **Etkilenen Kapsam:** main.py
+?? **SADECE GÄ°T Ä°LE DÃ?NÃ?LEBÄ°LÄ°R MÄ°?:** EVET
+=========================================
+
+=========================================
+?? **Tarih/Saat:** 26.03.2026 - 01:25
+?? **Sorun/?htiyaç:** Persona veri yapÄ±landÄ±rmasÄ±nda (seed, persona, custom_data) belirli mesleklere uygun olmayan alanlarÄ±n JSON'da yer almasÄ± ve sÄ±zÄ±ntÄ± yaÅ?anmasÄ±.
+?? **Ä°Å?lem Ã?zeti:** TÃ¼r bazlÄ± (music_domain vs content_domain) whitelist ve null-stripping uygulandÄ±.
+?? **Etkilenen Kapsam:** cli_wizard.py, main.py, core/persona_loader.py
+?? **SADECE GÄ°T Ä°LE DÃ?NÃ?LEBÄ°LÄ°R MÄ°?:** EVET (git restore)
+=========================================

@@ -145,6 +145,40 @@ def show_persona_card(persona: dict):
                         border_style="bright_magenta", padding=(1, 2), expand=False))
 
 
+def _show_detailed_persona_info(persona: dict):
+    from rich.markdown import Markdown
+    import json
+    
+    artist_dir = persona["dir"]
+    
+    seed_path = Path(artist_dir) / "seed.json"
+    persona_path = Path(artist_dir) / "persona.json"
+    custom_data_path = Path(artist_dir) / "custom_data.json"
+    
+    content = f"# 🎭 {persona['name']} — Persona Bilgileri\n\n"
+    
+    if seed_path.exists():
+        content += "## 📁 seed.json (Temel Girdiler)\n"
+        with open(seed_path, "r", encoding="utf-8") as f:
+            seed_data = json.dumps(json.load(f), indent=2, ensure_ascii=False)
+        content += f"```json\n{seed_data}\n```\n\n"
+        
+    if persona_path.exists():
+        content += "## 🧠 persona.json (AI Görsel/Kişilik Analizi)\n"
+        with open(persona_path, "r", encoding="utf-8") as f:
+            persona_data = json.dumps(json.load(f), indent=2, ensure_ascii=False)
+        content += f"```json\n{persona_data}\n```\n\n"
+        
+    if custom_data_path.exists():
+        content += "## 📝 custom_data.json (Özel Veriler & Etkinlikler)\n"
+        with open(custom_data_path, "r", encoding="utf-8") as f:
+            custom_data = json.dumps(json.load(f), indent=2, ensure_ascii=False)
+        content += f"```json\n{custom_data}\n```\n\n"
+        
+    md = Markdown(content)
+    console.print(md)
+    console.print("\n[dim]Okumak için terminali yukarı kaydırabilirsiniz.[/dim]\n")
+
 # ═══════════════════════════════════════════════════════════════
 # ─────────────── MAIN MENU ────────────────────────────────────
 # ═══════════════════════════════════════════════════════════════
@@ -156,7 +190,6 @@ def main_menu(has_personas: bool = True) -> str:
         {"name": "🌐 Web İçerik Üret    — Biography + Portrait metinleri (scarlettnoire.art)", "value": "web_content"},
         Separator(),
         {"name": "✨ Yeni Persona Oluştur — Sıfırdan sanatçı/influencer profili kur", "value": "wizard"},
-        {"name": "👁️  Persona Oluştur    — Fotoğraflardan görsel kimlik analizi", "value": "persona"},
         {"name": "🔄 Persona Yenile      — Mevcut persona'yı sil ve tekrar oluştur", "value": "rebuild"},
         {"name": "📋 Persona Bilgisi     — Seçili sanatçının detaylarını göster", "value": "info"},
         {"name": "📝 Özel Veri Yönetimi  — Gerçek verileri (şarkı, etkinlik) ekle/düzenle", "value": "custom_data"},
@@ -460,7 +493,7 @@ def run_web_content(persona: dict, language: str = "English"):
     artist_dir = persona["dir"]
 
     if not persona["has_cache"]:
-        show_warning("Bu sanatçı için persona oluşturulmamış. Önce '👁️ Persona Oluştur' ile persona oluşturun.")
+        show_warning("Bu sanatçı için persona oluşturulmamış. Önce '🔄 Persona Yenile' veya üretim seçenekleriyle persona yükleyin.")
         return
 
     console.print()
@@ -643,6 +676,7 @@ def main():
             show_persona_card(selected)
 
             if action == "info":
+                _show_detailed_persona_info(selected)
                 continue
 
             elif action == "custom_data":
@@ -663,40 +697,59 @@ def main():
                         continue
                         
                     import json
+                    profession = selected.get("seed", {}).get("profession", "").lower().strip()
+                    is_musician = profession in ["müzisyen", "rapper", "dj_prodüktör", "şarkıcı", "şarkıcı/müzisyen"]
+                    
                     if creation_method == "template":
                         template = {
                             "important_notes": "Buraya yapay zekanın kesinlikle uymasını istediğiniz genel kuralları veya özel durumları yazabilirsiniz.",
                             "upcoming_events": [
                                 {
                                     "date": "2026-05-15",
-                                    "event_name": "Albüm Lansman Konseri",
-                                    "location": "Zorlu PSM, İstanbul",
-                                    "details": "Sahnede devasa kırmızı bir ay dekoru olacak."
-                                }
-                            ],
-                            "real_songs": [
-                                {
-                                    "title": "Kanlı Ay",
-                                    "theme": "İhanet ve yeniden doğuş",
-                                    "key_lyrics": "Gökyüzü kızıla boyandığında, saklanacak yerin kalmayacak."
+                                    "event_name": "Etkinlik / Organizasyon Adı",
+                                    "location": "İstanbul",
+                                    "details": "Etkinlik detayı..."
                                 }
                             ],
                             "products_or_merch": [
                                 {
-                                    "name": "Karanlık Seri Tişört",
-                                    "description": "Önünde gotik fontla Kanlı Ay yazan siyah oversize tişört."
+                                    "name": "Özel Ürün Adı",
+                                    "description": "Ürün açıklaması..."
                                 }
                             ]
                         }
+                        
+                        if is_musician:
+                            template["real_songs"] = [
+                                {
+                                    "title": "Örnek Şarkı",
+                                    "theme": "Aşk ve isyan",
+                                    "key_lyrics": "Nakarat sözleri buraya..."
+                                }
+                            ]
+                        else:
+                            template["recent_works"] = [
+                                {
+                                    "title": "Örnek Eser / Proje",
+                                    "theme": "Ana Tema",
+                                    "description": "Eserin detayı..."
+                                }
+                            ]
+                            
                         with open(custom_data_path, "w", encoding="utf-8") as f:
                             json.dump(template, f, ensure_ascii=False, indent=4)
                         show_success(f"Şablon oluşturuldu: {custom_data_path}")
                         
                     elif creation_method == "ai":
-                        user_prompt = inquirer.text(
-                            message="AI'ye verileri tarif et (Örn: Haftaya İspanya turnesi var, yeni single'ın adı 'Amor'):",
-                            qmark="🤖"
-                        ).execute()
+                        from cli_wizard import _ask_master_prompt_fullscreen
+                        user_prompt = _ask_master_prompt_fullscreen(
+                            initial_text="",
+                            title=f"📝 {selected['name']} — Özel Veri (Custom Data) Ekle",
+                            header_text=" 🤖 AI'ye verileri tarif et (Örn: Haftaya İspanya turnesi var / Yeni kitap çıkıyor) | Kaydet & Çık: ESC ardından ENTER"
+                        )
+                        if not user_prompt.strip():
+                            show_warning("Herhangi bir veri girilmedi, iptal ediliyor.")
+                            continue
                         
                         from core.llm_bridge import get_llm
                         from langchain_core.messages import HumanMessage
@@ -704,14 +757,20 @@ def main():
                         with Progress(SpinnerColumn(), TextColumn("[cyan]AI verileri yapılandırıyor..."), console=console) as prog:
                             prog.add_task("", total=None)
                             
+                            work_schema = ""
+                            if is_musician:
+                                work_schema = '"real_songs": [ { "title": "string", "theme": "string", "key_lyrics": "string" } ],'
+                            else:
+                                work_schema = '"recent_works": [ { "title": "string", "theme": "string", "description": "string" } ],'
+                            
                             sys_prompt = f"""You are a JSON data generator for an AI Influencer/Artist platform.
 The artist's name is {selected.get('name', 'Unknown')}.
-The user will describe some upcoming events, songs, products, or rules.
+The user will describe some upcoming events, works/songs, products, or rules.
 Your job is to structure this into a valid JSON object matching this schema exactly:
 {{
   "important_notes": "string or array of strings",
   "upcoming_events": [ {{ "date": "string", "event_name": "string", "location": "string", "details": "string" }} ],
-  "real_songs": [ {{ "title": "string", "theme": "string", "key_lyrics": "string" }} ],
+  {work_schema}
   "products_or_merch": [ {{ "name": "string", "description": "string" }} ]
 }}
 Only return raw JSON. No markdown formatting, no backticks.
@@ -729,6 +788,14 @@ USER'S DESCRIPTION:
                                     generated_json = generated_json[3:-3]
                                     
                                 data = json.loads(generated_json.strip())
+                                
+                                # Domain Separation enforcing
+                                data = {k: v for k, v in data.items() if v is not None}
+                                if is_musician and "recent_works" in data:
+                                    del data["recent_works"]
+                                elif not is_musician and "real_songs" in data:
+                                    del data["real_songs"]
+                                
                                 with open(custom_data_path, "w", encoding="utf-8") as f:
                                     json.dump(data, f, ensure_ascii=False, indent=4)
                                 show_success(f"AI veriyi oluşturdu ve kaydetti!")
@@ -743,10 +810,6 @@ USER'S DESCRIPTION:
                 except Exception as e:
                     show_error(f"Dosya otomatik açılamadı. Lütfen şu dosyayı manuel düzenleyin: {custom_data_path}")
                 continue
-
-            elif action == "persona":
-                run_persona_build(selected)
-                personas = discover_personas()
 
             elif action == "rebuild":
                 confirm = inquirer.confirm(

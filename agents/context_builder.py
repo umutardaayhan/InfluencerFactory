@@ -221,8 +221,9 @@ def context_builder_node(state: InfluencerState) -> dict:
             visual_references=visual_analysis.get("visual_references", ""),
             ai_reference_prompt=visual_analysis.get("ai_reference_prompt", ""),
         ),
-        music=seed.get("music", {}),
-        social_media=seed.get("social_media", {}),
+        music=seed.get("music"),
+        content=seed.get("content"),
+        social_media=seed.get("social_media"),
     )
 
     # Cache'e kaydet
