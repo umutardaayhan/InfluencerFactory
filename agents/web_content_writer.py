@@ -274,9 +274,10 @@ For the IMAGE_PROMPT (always in English):
   closed, angled away, in shadow. Never cause legible text in the generated image.
 - Keep total under 90 words — concise, painterly, precise.
 
-For the CONTENT (~90-130 words in {language}):
+For the CONTENT (MAXIMUM 3 sentences, in {language}):
 - The date MUST fall between {min_date_year} and {max_date_year}.
   She was born in {birth_year} — dates before {min_date_year} are factually incorrect.
+- LENGTH: Exactly 1 to 3 sentences maximum. Keep it brief, fragmented, and to the point.
 - Write as if mid-thought — not from beginning of a day, not a complete narrative
 - One or two concrete observations: something seen, something heard, something touched
 - Let the mood arrive through detail, not statement

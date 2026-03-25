@@ -191,9 +191,17 @@
 =========================================
 
 =========================================
-🕒 Tarih/Saat: 25.03.2026 - 15:23
-⚠️ Sorun/İhtiyaç: Portrait (günlük) üretimlerinde mantıka sığmayan tarihlerin çıkması (sanatçı doğmadan öncesi vb.)
-🎯 İşlem Özeti: Biography için geçerli olan '18 yaş sonrası (career_start_year) ve mevcut yıla kadar' şeklindeki kronoloji sınırlandırmaları (CHRONOLOGY CONSTRAINT) portrait (günlük) üretim promptuna da eklendi. tests/test_web_content.py güncellenerek 61/61 test status güvence altına alındı.
-📁 Etkilenen Kapsam: agents/web_content_writer.py, tests/test_web_content.py
-🔄 Geri Dönüş: EVET — sadece Git ile dönülebilir
+?? **Tarih/Saat:** 25.03.2026 - 15:23
+?? **Sorun/?htiya�:** Portrait (günlük) üretimlerinde mantıka sı�?mayan tarihlerin çıkması (sanatçı do�?madan öncesi vb.)
+?? **?�lem �zeti:** Biography için geçerli olan '18 ya�? sonrası (career_start_year) ve mevcut yıla kadar' �?eklindeki kronoloji sınırlandırmaları (CHRONOLOGY CONSTRAINT) portrait (günlük) üretim promptuna da eklendi. tests/test_web_content.py güncellenerek 61/61 test status güvence altına alındı.
+?? **Etkilenen Kapsam:** agents/web_content_writer.py, tests/test_web_content.py
+?? **Geri D�n��:** EVET �?? sadece Git ile dönülebilir
+=========================================
+
+=========================================
+?? **Tarih/Saat:** 25.03.2026 - 23:08
+?? **Sorun/?htiya�:** Portrait içeriklerinin çok uzun olması.
+?? **?�lem �zeti:** Portrait promptuna içerik uzunlu�?unu en fazla 3 cümle ile sınırlandıran (LENGTH: Exactly 1 to 3 sentences maximum) kural eklendi. Testler (61/61) ba�?arıyla geçti.
+?? **Etkilenen Kapsam:** agents/web_content_writer.py
+?? **Geri D�n��:** EVET �?? sadece Git ile dönülebilir
 =========================================
