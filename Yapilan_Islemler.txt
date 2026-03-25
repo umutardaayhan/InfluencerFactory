@@ -262,3 +262,11 @@
 ?? **Etkilenen Kapsam:** cli_wizard.py, main.py, core/persona_loader.py
 ?? **SADECE GÄ°T Ä°LE DÃ?NÃ?LEBÄ°LÄ°R MÄ°?:** EVET (git restore)
 =========================================
+
+=========================================
+?? **Tarih/Saat:** 26.03.2026 - 01:49
+?? **Sorun/?htiyaç:** GÃ¶rselsiz (images boÅ? olan) personalar oluÅ?turulduÄ?unda gÃ¶rsel prompt (ai_reference_prompt) bÃ¶lÃ¼mÃ¼nÃ¼n eksik kalmasÄ± veya hata vermesi.
+?? **Ä°Å?lem Ã?zeti:** context_builder.py iÃ§erisindeki _build_vision_prompt gÃ¼ncellendi. EÄ?er gÃ¶rsel yoksa, LLM\'e 'GÃ¶rsel verilmedi, kiÅ?inin biyografisine ve tarzÄ±na (niche/genre) uygun bir gÃ¶rsel kimliÄ?i baÅ?tan hayal edip uydur' talimatÄ± (Invent & Imagine) eklendi. AyrÄ±ca opsiyonel objelerden (music vs content) veri okurken yaÅ?anabilecek NoneType hatalarÄ±na karÅ?Ä± dict gÃ¼venlikleri saÄ?landÄ±.
+?? **Etkilenen Kapsam:** agents/context_builder.py
+?? **SADECE GÄ°T Ä°LE DÃ?NÃ?LEBÄ°LÄ°R MÄ°?:** EVET (git restore)
+=========================================

@@ -28,9 +28,19 @@ MAX_IMAGES = 10
 
 def _build_vision_prompt(seed: dict, image_count: int) -> str:
     """Multimodal LLM'e gönderilecek analiz promptunu oluşturur."""
+    
+    if image_count > 0:
+        intro = f"I'm showing you {image_count} photographs of a music artist. Analyze these images carefully and extract:"
+    else:
+        intro = "I am NOT providing any photographs. Since this persona lacks visual references, your job is to completely INVENT and IMAGINE a unique, highly detailed, and creative visual identity from scratch that perfectly matches this person's background, genre, and personality described below."
+
+    music_data = seed.get('music') or {}
+    content_data = seed.get('content') or {}
+    niche = music_data.get('genre') or content_data.get('niche') or 'Unknown'
+
     return f"""You are an expert visual identity analyst for music artists and influencers.
 
-I'm showing you {image_count} photographs of a music artist. Analyze these images carefully and extract:
+{intro}
 
 1. **APPEARANCE**: Detailed physical description (face shape, skin tone, hair color/style, 
    body type, distinguishing features). Be specific enough that an AI image generator 
@@ -52,7 +62,7 @@ I'm showing you {image_count} photographs of a music artist. Analyze these image
 
 Here is the artist's background info:
 - Name: {seed.get('name', 'Unknown')}
-- Genre: {seed.get('music', {}).get('genre', 'Unknown')}
+- Niche/Genre: {niche}
 - Personality hints: {seed.get('personality_hints', 'Not provided')}
 
 Respond in a valid JSON format with these exact keys:
@@ -68,6 +78,11 @@ Respond in a valid JSON format with these exact keys:
 
 def _build_personality_prompt(seed: dict, visual_analysis: dict) -> str:
     """Kişilik detaylarını çıkaran prompt."""
+    music_data = seed.get('music') or {}
+    content_data = seed.get('content') or {}
+    niche = music_data.get('genre') or content_data.get('niche') or 'Unknown'
+    influences = music_data.get('influences', [])
+    
     return f"""You are an expert at creating digital personas for music artists.
 
 Based on the following information, create a detailed digital personality profile:
@@ -78,8 +93,8 @@ Based on the following information, create a detailed digital personality profil
 - Age: {seed.get('age', 'Unknown')}
 - Gender: {seed.get('gender', 'Unknown')}
 - Biography: {seed.get('biography', '')}
-- Genre: {seed.get('music', {}).get('genre', 'Unknown')}
-- Influences: {seed.get('music', {}).get('influences', [])}
+- Niche/Genre: {niche}
+- Influences: {influences}
 - Personality Hints: {seed.get('personality_hints', '')}
 
 **Visual Identity (from photo analysis):**
