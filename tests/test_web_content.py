@@ -452,6 +452,20 @@ class TestPromptBuilders:
         mood_tags = [d["mood_tag"] for d in _PORTRAIT_DIRECTIVES]
         assert set(mood_tags) == {"still", "restless", "hollow"}
 
+    def test_portrait_chronology_constraint_in_system(self):
+        from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
+        sys_p, _ = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[0], "English")
+        assert "1997" in sys_p
+        assert "2015" in sys_p
+        assert "CHRONOLOGY" in sys_p or "born" in sys_p.lower()
+
+    def test_portrait_date_range_in_human_prompt(self):
+        from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
+        _, human_p = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[1], "English")
+        assert "2015" in human_p
+        assert "2025" in human_p
+        assert "1997" in human_p
+
     def test_language_passed_to_portrait_system(self):
         from agents.web_content_writer import _build_portrait_prompt, _PORTRAIT_DIRECTIVES
         sys_p, _ = _build_portrait_prompt(self.SAMPLE_CTX, _PORTRAIT_DIRECTIVES[0], "Turkish")

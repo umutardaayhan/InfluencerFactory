@@ -189,3 +189,11 @@
 ?? **Etkilenen Kapsam:** core/models.py, agents/web_content_writer.py, main.py, tests/test_web_content.py
 ?? **Geri D�n��:** EVET ? sadece Git ile d�n�lebilir
 =========================================
+
+=========================================
+🕒 Tarih/Saat: 25.03.2026 - 15:23
+⚠️ Sorun/İhtiyaç: Portrait (günlük) üretimlerinde mantıka sığmayan tarihlerin çıkması (sanatçı doğmadan öncesi vb.)
+🎯 İşlem Özeti: Biography için geçerli olan '18 yaş sonrası (career_start_year) ve mevcut yıla kadar' şeklindeki kronoloji sınırlandırmaları (CHRONOLOGY CONSTRAINT) portrait (günlük) üretim promptuna da eklendi. tests/test_web_content.py güncellenerek 61/61 test status güvence altına alındı.
+📁 Etkilenen Kapsam: agents/web_content_writer.py, tests/test_web_content.py
+🔄 Geri Dönüş: EVET — sadece Git ile dönülebilir
+=========================================

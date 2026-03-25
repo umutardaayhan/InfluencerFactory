@@ -225,6 +225,10 @@ def _build_portrait_prompt(ctx: dict, directive: dict, language: str) -> tuple[s
     Returns:
         (system_prompt, human_prompt) tuple'ı
     """
+    birth_year       = ctx.get("birth_year", 1997)
+    min_date_year    = ctx.get("career_start_year", birth_year + 18)
+    max_date_year    = ctx.get("career_peak_year", 2025)
+
     system = f"""You are writing fictional diary entries and scene images for {ctx['stage_name']} — published on her website, scarlettnoire.art.
 
 You will generate TWO things per entry:
@@ -240,7 +244,13 @@ VOICE & IMAGE CONSTRAINTS:
 - No abstract philosophizing. Ground every thought in something concrete and observed.
 - {ctx['extra_notes'][:300] if ctx['extra_notes'] else ''}
 - Language for CONTENT: {language}
-- Language for IMAGE_PROMPT: always English"""
+- Language for IMAGE_PROMPT: always English
+
+CHRONOLOGY CONSTRAINT — STRICT:
+- {ctx['stage_name']} was born in {birth_year}.
+- She was 18 years old in {min_date_year}. That is the EARLIEST possible date for any diary entry.
+- The LATEST possible date is {max_date_year} (must remain in the past).
+- ANY date before {min_date_year} is a factual error."""
 
     human = f"""Generate a portrait entry with an image prompt and diary text. Return ONLY valid JSON — no markdown, no backticks.
 
@@ -265,7 +275,8 @@ For the IMAGE_PROMPT (always in English):
 - Keep total under 90 words — concise, painterly, precise.
 
 For the CONTENT (~90-130 words in {language}):
-- Assign a plausible date (past, specific)
+- The date MUST fall between {min_date_year} and {max_date_year}.
+  She was born in {birth_year} — dates before {min_date_year} are factually incorrect.
 - Write as if mid-thought — not from beginning of a day, not a complete narrative
 - One or two concrete observations: something seen, something heard, something touched
 - Let the mood arrive through detail, not statement
