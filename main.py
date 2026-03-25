@@ -153,6 +153,7 @@ def main_menu(has_personas: bool = True) -> str:
     choices = [
         {"name": "🚀 İçerik Paketi Üret  — 1 aylık tam plan (görsel + video + caption)", "value": "generate"},
         {"name": "🖼️  Tekli Medya Üret    — Sadece tek bir resim veya video oluştur", "value": "single_media"},
+        {"name": "🌐 Web İçerik Üret    — Biography + Portrait metinleri (scarlettnoire.art)", "value": "web_content"},
         Separator(),
         {"name": "✨ Yeni Persona Oluştur — Sıfırdan sanatçı/influencer profili kur", "value": "wizard"},
         {"name": "👁️  Persona Oluştur    — Fotoğraflardan görsel kimlik analizi", "value": "persona"},
@@ -440,8 +441,131 @@ def run_content_pipeline(persona: dict, month: str, prompt: str):
 
 
 # ═══════════════════════════════════════════════════════════════
-# ─────────────── ENTRY POINT ─────────────────────────────────
+# ─────────────── WEB CONTENT PRODUCTION ──────────────────────
 # ═══════════════════════════════════════════════════════════════
+
+def run_web_content(persona: dict, language: str = "English"):
+    """
+    scarlettnoire.art için Biography + Portrait metinleri üretir.
+
+    Biography varyantları: short / medium / long
+    Portrait varyantları:  cinematic / intimate / avant-garde
+
+    Sistemdeki yeri: main.py CLI menüsünден çağrılır.
+    Etkilediği dosyalar: agents/web_content_writer.py (üretim), output/web_content/ (çıktı)
+    """
+    from agents.web_content_writer import generate_web_content
+    from core.llm_bridge import get_total_tokens, reset_token_counter
+
+    artist_dir = persona["dir"]
+
+    if not persona["has_cache"]:
+        show_warning("Bu sanatçı için persona oluşturulmamış. Önce '👁️ Persona Oluştur' ile persona oluşturun.")
+        return
+
+    console.print()
+    console.print(Panel(
+        f"[bright_cyan]🎤 {persona['name']}[/bright_cyan]  ·  "
+        f"[bright_yellow]🌐 scarlettnoire.art Web İçeriği[/bright_yellow]  ·  "
+        f"[dim]Dil: {language}[/dim]\n\n"
+        f"[white]📋 3 Biography (short / medium / long) + 3 Portrait (cinematic / intimate / avant-garde)[/white]",
+        title="[bold bright_magenta]🌐 Web İçerik Üretimi Başlıyor[/bold bright_magenta]",
+        border_style="bright_magenta",
+        padding=(1, 3),
+    ))
+
+    reset_token_counter()
+
+    progress_steps = [
+        "📖 Persona bağlamı yükleniyor...",
+        "✍️  Biography — short üretiliyor...",
+        "✍️  Biography — medium üretiliyor...",
+        "✍️  Biography — long üretiliyor...",
+        "🎭 Portrait — cinematic üretiliyor...",
+        "🎭 Portrait — intimate üretiliyor...",
+        "🎭 Portrait — avant-garde üretiliyor...",
+        "📦 Paket derleniyor ve dosyaya yazılıyor...",
+    ]
+    total_steps = len(progress_steps)
+    current_step = {"count": 0}  # mutable closure
+
+    with Progress(
+        SpinnerColumn("dots", style="bright_magenta"),
+        TextColumn("[bright_cyan]{task.description}"),
+        BarColumn(bar_width=28, style="dim", complete_style="bright_magenta"),
+        TextColumn("[dim]{task.percentage:>3.0f}%[/dim]"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Başlatılıyor...", total=total_steps)
+
+        def on_progress(label: str):
+            current_step["count"] += 1
+            progress.console.print(
+                f"  [bold green]✓[/bold green] [dim]{label.replace('...', '').strip()} tamamlandı.[/dim]"
+            )
+            next_idx = current_step["count"]
+            next_desc = progress_steps[next_idx] if next_idx < len(progress_steps) else "✅ Tamamlandı!"
+            progress.update(task, description=next_desc, completed=current_step["count"])
+
+        try:
+            package, json_path, md_path = generate_web_content(
+                persona_dir=artist_dir,
+                language=language,
+                progress_callback=on_progress,
+            )
+        except FileNotFoundError as e:
+            show_error(str(e))
+            return
+        except Exception as e:
+            show_error(f"Üretim sırasında hata: {e}")
+            if "--verbose" in sys.argv or "-v" in sys.argv:
+                console.print_exception()
+            return
+
+        progress.update(task, description="✅ Tüm içerikler üretildi!", completed=total_steps)
+
+    # ── Sonuç Raporu ────────────────────────────────────────────
+    from core.llm_bridge import get_total_tokens
+    tokens = get_total_tokens()
+
+    bio_count = len(package.biographies)
+    portrait_count = len(package.portraits)
+
+    result_table = Table(box=box.ROUNDED, border_style="green", padding=(0, 2))
+    result_table.add_column("Metrik", style="dim", width=24)
+    result_table.add_column("Değer", style="bold white")
+
+    result_table.add_row("🎤 Sanatçı", package.artist_name)
+    result_table.add_row("🌐 Site", "scarlettnoire.art")
+    result_table.add_row("🗣️  Dil", package.language)
+    result_table.add_row("🤖 Model", package.model_used)
+    result_table.add_row("📖 Biography", f"[bright_cyan]{bio_count}[/bright_cyan] adet (short · medium · long)")
+    result_table.add_row("🎭 Portrait", f"[bright_magenta]{portrait_count}[/bright_magenta] adet (cinematic · intimate · avant-garde)")
+    result_table.add_row("🪙 Token", str(tokens))
+    result_table.add_row("📄 JSON", f"[underline]{json_path}[/underline]")
+    result_table.add_row("📝 Markdown", f"[underline]{md_path}[/underline]")
+
+    console.print()
+    console.print(Align.center(Panel(
+        result_table,
+        title="[bold green]🏁 WEB İÇERİĞİ TAMAMLANDI[/bold green]",
+        border_style="green",
+        padding=(1, 4),
+        expand=False
+    )))
+
+    # ── Snippet önizlemesi ───────────────────────────────────────
+    if package.biographies:
+        short_bio = next((b for b in package.biographies if b.variant == "short"), package.biographies[0])
+        console.print()
+        console.print(Panel(
+            f"[dim italic]{short_bio.content[:400]}{'...' if len(short_bio.content) > 400 else ''}[/dim italic]",
+            title=f"[bold bright_cyan]✨ Snippet — Biography (Short)[/bold bright_cyan]",
+            border_style="bright_cyan",
+            padding=(1, 3),
+        ))
+
+
 
 def main():
     # Verbose mod (argparse yerine basit kontrol)
@@ -758,6 +882,34 @@ INSTEAD, you MUST heavily detail the REST of the image:
                     json_str = json.dumps(cap.model_dump(), indent=4, ensure_ascii=False)
                     syntax = Syntax(json_str, "json", theme="monokai", padding=1, word_wrap=True)
                     console.print(Panel(syntax, title="[bold green]✍️ Text/Caption Data (JSON)[/bold green]", border_style="green"))
+
+            elif action == "web_content":
+                # Dil seçimi (varsayılan İngilizce)
+                lang_choice = inquirer.select(
+                    message="Çıktı dili:",
+                    choices=[
+                        {"name": "🇬🇧 English (varsayılan)", "value": "English"},
+                        {"name": "🇹🇷 Türkçe", "value": "Turkish"},
+                        {"name": "🇩🇪 Deutsch", "value": "German"},
+                        {"name": "🇫🇷 Français", "value": "French"},
+                        {"name": "🇪🇸 Español", "value": "Spanish"},
+                    ],
+                    default="English",
+                    pointer="❯",
+                    qmark="🌐",
+                    amark="✦",
+                ).execute()
+
+                # Onay
+                console.print()
+                confirm = inquirer.confirm(
+                    message=f"3 biography + 3 portrait üretilecek ({lang_choice}). Başlansın mı?",
+                    default=True,
+                    qmark="🌐",
+                ).execute()
+
+                if confirm:
+                    run_web_content(selected, language=lang_choice)
 
             console.print()
 

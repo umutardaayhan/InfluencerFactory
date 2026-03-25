@@ -166,3 +166,18 @@
 ?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET
 ??? **Geri Dönüº Ad?mlar?:** git checkout HEAD -- docs/notebook_lm_master_prompt_sarki.md
 =========================================
+
+=========================================
+?? **Tarih/Saat:** 25.03.2026 - 13:55
+?? **Sorun/?htiyaç:** Scarlett Noire için scarlettnoire.art web sitesine özel içerik üretimi eksikti.
+?? **?ºlem Özeti:** Yeni '?? Web ?çerik Üret' komutu eklendi. Tek menü seçimiyle persona.json'dan 3 biography (short/medium/long) + 3 portrait (cinematic/intimate/avant-garde) üretiliyor, output/web_content/ alt?na JSON+Markdown olarak kaydediliyor.
+?? **Etkilenen Kapsam:**
+  - core/models.py ? WebBiography, WebPortrait, WebContentPackage modelleri eklendi
+  - core/config.py ? 'web_content_writer' LLM rolü eklendi (gemini-2.5-flash, temp:0.85)
+  - agents/web_content_writer.py ? [YEN?] Tam üretim modülü (~260 sat?r)
+  - main.py ? Menü seçene?i, run_web_content() fonksiyonu, action handler ve dil seçici eklendi
+  - tests/test_web_content.py ? [YEN?] 29 adet API'siz birim test (29/29 geçer)
+  - README.md ? Web içerik üretimi dokümantasyonu eklendi
+?? **Geri Dönüº:** EVET - SADECE G?T ?LE DÖNÜLEB?L?R
+  git revert HEAD  veya  git reset --hard HEAD~1
+=========================================

@@ -160,3 +160,55 @@ class MonthlyPackage(BaseModel):
     captions: List[PostCaption]
     quality_score: int
     generated_at: str = Field(description="Üretim zamanı (ISO format)")
+
+
+# ─── Web İçerik Modelleri (scarlettnoire.art) ────────────────
+
+class WebBiography(BaseModel):
+    """
+    Web sitesi About/Bio sayfası için biyografi metni.
+
+    Sistemdeki yeri: agents/web_content_writer.py tarafından üretilir.
+    LangGraph pipeline'ından bağımsızdır.
+    """
+    variant: str = Field(
+        description="Biyografi varyantı: 'short' (~80 kelime), 'medium' (~200 kelime), 'long' (~400 kelime)"
+    )
+    title: str = Field(description="Kısa başlık veya açılış etiketi (ör: 'The Architect of Shadows')")
+    content: str = Field(description="Biyografi metni — sanatçının sesini ve dünyasını yansıtan")
+    word_count: int = Field(description="Tahmini kelime sayısı")
+    tone_tags: List[str] = Field(
+        description="Tonu özetleyen etiketler (ör: ['cinematic', 'restrained', 'gothic'])"
+    )
+
+
+class WebPortrait(BaseModel):
+    """
+    Persona odaklı editoryal portre metni — görsel betimleme hissi taşır.
+
+    Sistemdeki yeri: agents/web_content_writer.py tarafından üretilir.
+    LangGraph pipeline'ından bağımsızdır.
+    """
+    variant: str = Field(
+        description="Portre yaklaşımı: 'cinematic' | 'intimate' | 'avant-garde'"
+    )
+    title: str = Field(description="Portre başlığı")
+    content: str = Field(
+        description="Editoryal portre metni — sanatçıyı farklı bir yaratıcı açıdan tasvir eder"
+    )
+    word_count: int = Field(description="Tahmini kelime sayısı")
+    creative_angle: str = Field(description="Kullanılan yaratıcı yaklaşımın tek cümlelik özeti")
+
+
+class WebContentPackage(BaseModel):
+    """
+    Tek bir üretim oturumunun tüm web içeriklerini tutan paket.
+
+    Sistemdeki yeri: agents/web_content_writer.py → output/web_content/ altına kaydedilir.
+    """
+    artist_name: str
+    biographies: List[WebBiography] = Field(description="3 adet biyografi varyantı")
+    portraits: List[WebPortrait] = Field(description="3 adet portre metni varyantı")
+    language: str = Field(default="English", description="İçerik dili")
+    generated_at: str = Field(description="Üretim zamanı (ISO format)")
+    model_used: str = Field(description="Kullanılan Gemini modeli")

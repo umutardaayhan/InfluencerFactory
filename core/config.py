@@ -11,5 +11,10 @@ AI_MODELS = {
     "visual_prompter":     {"model": "gemini-2.5-flash",       "temp": 0.8, "max_tokens": 8192},
     "copywriter":          {"model": "gemini-2.5-flash",       "temp": 0.9, "max_tokens": 4096},
     "quality_controller":  {"model": "gemini-2.5-flash-lite",  "temp": 0.1, "max_tokens": 2048},
-    "compiler":            {"model": "gemini-2.5-flash-lite",  "temp": 0.3, "max_tokens": 8192}
+    "compiler":            {"model": "gemini-2.5-flash-lite",  "temp": 0.3, "max_tokens": 8192},
+
+    # ── 🌐 Web İçerik Üretimi (scarlettnoire.art) ──
+    # DEPENDENCY WARNING: agents/web_content_writer.py bu rolü kullanır.
+    # Yüksek temperature (0.85) → 6 ayrı LLM çağrısının birbirinden farklı çıkması için zorunlu.
+    "web_content_writer":  {"model": "gemini-2.5-flash",       "temp": 0.85, "max_tokens": 8192},
 }
