@@ -875,6 +875,14 @@ USER'S DESCRIPTION:
                     ],
                     pointer="❯",
                 ).execute()
+
+                use_reference = False
+                if media_type in ["image", "video"]:
+                    use_reference = inquirer.confirm(
+                        message="Üretimde referans görsel (ControlNet/LoRA vb.) kullanacak mısınız?",
+                        default=True,
+                        qmark="🖼️",
+                    ).execute()
                 
                 user_prompt = inquirer.text(
                     message="İstediğin içerik detayları (Otonom rastgele üretim için BOŞ BIRAK):",
@@ -900,21 +908,40 @@ USER'S DESCRIPTION:
                 else:
                     prompt_instruction = f"## USER REQUEST\n{user_prompt}\n\nBased on the above, generate a highly detailed, scene-focused prompt."
 
-                sys_prompt = f"""You are an Expert Prompt Engineer for AI Image/Video Generation.
-## ARTIST VISUAL IDENTITY TO KEEP IN MIND
-- Master Reference: {master_prompt}
-- Fashion Style: {vi.get('fashion_style', 'N/A')}
-
-## CRITICAL INSTRUCTION
+                if media_type in ["image", "video"]:
+                    if use_reference:
+                        ref_logic = """## CRITICAL INSTRUCTION
 We already use an image/face reference (LoRA/ControlNet) for the character's exact appearance. 
 DO NOT overly describe the character's physical facial features (e.g., eye shape, face shape, freckles).
+Use the phrase "The person in the reference" to refer to the character.
 INSTEAD, you MUST heavily detail the REST of the image:
 1. The Environment & Background (location, architecture, nature, textures).
 2. The Lighting & Atmosphere (time of day, light sources, shadows, mood).
 3. The Camera Angle & Composition (lens type, framing, depth of field).
-4. The Action & Pose (what the character is doing, posture, expression context).
+4. The Action & Pose (what the character is doing, posture, expression context)."""
+                    else:
+                        ref_logic = f"""## CRITICAL INSTRUCTION
+We do NOT have a reference image. You MUST heavily and explicitly describe the character's physical appearance in extreme detail based on the Master Reference and Appearance block provided below. Describe their face, hair, body type, and style explicitly so the AI image generator can recreate them consistently.
+- Appearance: {vi.get("appearance", "Unknown")}
+- Master Reference Details: {master_prompt}
+
+You must heavily detail the image:
+1. The Character Appearance (face, ethnicity, features, hair, body, clothing).
+2. The Environment & Background (location, architecture, nature, textures).
+3. The Lighting & Atmosphere (time of day, light sources, shadows, mood).
+4. The Camera Angle & Composition (lens type, framing, depth of field).
+5. The Action & Pose (what the character is doing, posture, expression context)."""
+
+                    sys_prompt = f"""You are an Expert Prompt Engineer for AI Image/Video Generation.
+## ARTIST VISUAL IDENTITY TO KEEP IN MIND
+- Master Reference: {master_prompt}
+- Fashion Style: {vi.get('fashion_style', 'N/A')}
+
+{ref_logic}
 
 {prompt_instruction}"""
+                else:
+                    sys_prompt = ""
 
                 if media_type == "image":
                     with Progress(SpinnerColumn(), TextColumn("[cyan]Görsel promptu JSON/XML olarak tasarlanıyor..."), console=console) as prog:

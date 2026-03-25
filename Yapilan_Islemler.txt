@@ -276,5 +276,13 @@
 ?? **Sorun/?htiyaç:** main.py\'de gÃ¶rselsiz persona Ã¼retilirken kullanÄ±cÄ±ya 'Persona sÄ±nÄ±rlÄ± kalacak' mesajÄ±nÄ±n gÃ¶sterilmesi.
 ?? **Ä°Å?lem Ã?zeti:** main.py gÃ¼ncellendi, gÃ¶rselsiz (Invent) durumda kullanÄ±cÄ±ya otonom gÃ¶rsel kimlik Ã¼retileceÄ?i bilgisini gÃ¶steren UI task mesajÄ± eklendi.
 ?? **Etkilenen Kapsam:** main.py
-?? **SADECE GÄ°T Ä°LE DÃ?NÃ?LEBÄ°LÄ°R MÄ°?:** EVET (git restore)
+?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET (git restore)
+=========================================
+
+=========================================
+?? **Tarih/Saat:** 26.03.2026 - 02:19
+?? **Sorun/?htiyaç:** Tekli görsel üretilirken AI'?n referans görsel varm?º gibi davran?p karakter d?º görünüºünü prompta dahil etmemesi.
+?? **?ºlem Özeti:** main.py'deki single_media fonksiyonuna 'Üretimde referans görsel (ControlNet/LoRA vb.) kullanacak m?s?n?z?' sorusu eklendi. 'Hay?r' denilirse persona.json içerisindeki 'Appearance' blo?unun tüm detayyla ana prompt içerisine dinamik olarak bas?lmas? sa?land?.
+?? **Etkilenen Kapsam:** main.py
+?? **SADECE G?T ?LE DÖNÜLEB?L?R M??:** EVET (git restore)
 =========================================
