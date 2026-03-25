@@ -286,7 +286,7 @@ def run_persona_build(persona: dict, rebuild: bool = False):
     images = discover_images(artist_dir)
 
     if not images:
-        show_warning("images/ klasöründe görsel bulunamadı! Persona sınırlı kalacak.")
+        show_warning("images/ klasöründe görsel bulunamadı! AI otonom bir dış görünüş ve stil hayal edecek (Invent).")
 
     reset_token_counter()
     show_status(f"Persona oluşturuluyor: {persona['name']}...", "bold bright_magenta")
@@ -296,7 +296,12 @@ def run_persona_build(persona: dict, rebuild: bool = False):
         TextColumn("[bright_cyan]{task.description}"),
         console=console,
     ) as progress:
-        task = progress.add_task("🧠 Fotoğraflar analiz ediliyor, görsel kimlik çıkarılıyor...", total=None)
+        if not images:
+            task_msg = "🧠 Görsel bulunamadı, AI otonom görsel kimlik yaratıyor..."
+        else:
+            task_msg = "🧠 Fotoğraflar analiz ediliyor, görsel kimlik çıkarılıyor..."
+            
+        task = progress.add_task(task_msg, total=None)
 
         from agents.context_builder import context_builder_node
         state = {

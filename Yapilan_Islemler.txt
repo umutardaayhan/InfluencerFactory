@@ -270,3 +270,11 @@
 ?? **Etkilenen Kapsam:** agents/context_builder.py
 ?? **SADECE GİT İLE D�?N�?LEBİLİR Mİ?:** EVET (git restore)
 =========================================
+
+=========================================
+?? **Tarih/Saat:** 26.03.2026 - 01:54
+?? **Sorun/?htiya�:** main.py\'de görselsiz persona üretilirken kullanıcıya 'Persona sınırlı kalacak' mesajının gösterilmesi.
+?? **İ�?lem �?zeti:** main.py güncellendi, görselsiz (Invent) durumda kullanıcıya otonom görsel kimlik üretilece�?i bilgisini gösteren UI task mesajı eklendi.
+?? **Etkilenen Kapsam:** main.py
+?? **SADECE GİT İLE D�?N�?LEBİLİR Mİ?:** EVET (git restore)
+=========================================

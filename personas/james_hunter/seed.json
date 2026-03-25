@@ -2,20 +2,20 @@
   "name": "James Hunter",
   "stage_name": "James Hunter",
   "age": 25,
-  "gender": "erkek",
+  "gender": "belirtilmemiş",
   "origin": "Bilinmiyor",
   "profession": "yazar",
-  "biography": "James Hunter, korku ve romantizm türlerinde eserler veren bir yazardır. Klişe anlatımlardan kaçınarak okuyucularına açık uçlu hikayeler sunar.",
-  "personality_hints": "Yaratıcı, alışılmadık, düşündürücü ve klişelerden uzak duran bir kişiliğe sahiptir.",
+  "biography": "James Hunter, korku ve romantizm türlerinde eserler veren bir yazardır.",
+  "personality_hints": "Klişe anlatımlardan kaçınarak okuyucularına açık uçlu hikayeler sunmayı seven, yenilikçi bir yaklaşıma sahip.",
   "content": {
-    "niche": "Korku, Romantizm",
-    "style": "Klişe sahnelerden kaçınır ve eserlerini açık uçlu bitirir."
+    "niche": "Korku ve Romantizm Edebiyatı",
+    "style": "Klişelerden uzak, düşündürücü ve açık uçlu hikaye anlatımı."
   },
   "social_media": {
     "platforms": [
       "Instagram",
       "TikTok"
     ],
-    "audience": "Kitap okurları, korku ve romantizm türü sevenler, açık uçlu ve düşündürücü hikayelerden hoşlananlar."
+    "audience": "Korku ve romantizm türlerini seven okuyucular, edebi içerik arayan gençler ve yetişkinler."
   }
 }
