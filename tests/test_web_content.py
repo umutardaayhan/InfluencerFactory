@@ -366,6 +366,26 @@ class TestPromptBuilders:
         # JSON şemasindaki örnek değer referans ibaresiyle başlamalı
         assert '"The person in the reference images provided*' in human_p
 
+    def test_biography_content_is_first_person(self):
+        """Content talimatı birinci şahsda yazma direktifi içermeli."""
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")
+        assert "FIRST PERSON" in human_p or "first person" in human_p.lower()
+        assert '"I"' in human_p or "\"I\"" in human_p
+
+    def test_biography_image_prompt_clothing_rule(self):
+        """Image prompt kıyafet betimlemesine izin veren direktif içermeli."""
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[1], "English")
+        assert "CLOTHING" in human_p or "clothing" in human_p.lower()
+
+    def test_biography_image_prompt_no_visible_text_rule(self):
+        """Image prompt, AI görsellerinde okunan yazı üretilmemesi kuralını içermeli."""
+        from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
+        _, human_p = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[2], "English")
+        assert "TEXT" in human_p or "legible" in human_p.lower() or "readable" in human_p.lower()
+        assert '"The person in the reference images provided*' in human_p
+
     def test_biography_forbidden_rules_in_system(self):
         from agents.web_content_writer import _build_biography_prompt, _BIO_DIRECTIVES
         sys_p, _ = _build_biography_prompt(self.SAMPLE_CTX, _BIO_DIRECTIVES[0], "English")

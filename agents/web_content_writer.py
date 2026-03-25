@@ -164,15 +164,23 @@ For the IMAGE_PROMPT (always in English):
   (e.g., "...stands at the edge of the light", "...sits with her back to us", "...is seen in silhouette").
   This marker is required so the user can supply reference photos when generating the image.
 - After the figure reference, describe: the environment, light quality, atmosphere, and mood of the scene.
-- Do NOT describe face shape, eye color, freckles, hair color, or other specific physical features — the references will carry that.
-- Keep the total prompt under 80 words — concise, painterly, precise.
+- CLOTHING: You MAY and SHOULD describe her clothing to match the scene's atmosphere.
+  Choose appropriate, atmosphere-fitting attire (e.g., "a heavy dark wool coat", "a worn rehearsal dress",
+  "a plain black sweater, sleeves pushed up"). Do NOT feel bound by the reference images' clothing.
+- Do NOT describe face shape, eye color, freckles, or hair color — the reference images carry that.
+- TEXT IN THE SCENE: If any writing appears (notebooks, signs, labels, sheet music with visible text),
+  ensure it is NOT readable to the camera — either close it, angle it away, show it in shadow/blur,
+  or describe it as "a notebook, its pages unseen". Never generate prompts that would cause an AI
+  image generator to produce visible, legible text.
+- Keep the total prompt under 90 words — concise, painterly, precise.
 - Always in English.
 
 For the CONTENT (~120-160 words in {language}):
 - The date MUST fall between {min_date_year} and {max_date_year}.
   She was born in {birth_year} — dates before {min_date_year} are factually incorrect.
+- Write in FIRST PERSON ("I", "my", "me") — this is a personal recollection in her own voice.
 - Write where she is, what she notices, what she is thinking or feeling.
-- Third person, present tense or close past tense, measured and restrained.
+- Present tense or close past tense ("I was", "I noticed"), measured and restrained.
 - One concrete sensory detail that grounds the moment.
 - No biography summary. No career explanation. Just the moment itself.
 
