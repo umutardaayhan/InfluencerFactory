@@ -320,3 +320,12 @@
 🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
 🛠️ Geri Dönüş Adımları: git restore personas/scarlett_noire/custom_data.json
 =========================================
+
+=========================================
+🕒 Tarih/Saat: [29.03.2026 - 01:38]
+⚠️ Sorun: Şarkıların promosyon planlamalarındaki JSON yapısının (upcoming_events) kısıtlayıcı olması.
+🎯 İşlem Özeti: Notebook LM master prompt şablonu (notebook_lm_master_prompt_sarki.md) yenilendi. Katı array yapıları yerine yapay zekanın doğrudan yapay zekaya hitap ettiği "Agentic JSON / Master Directive" formatına geçildi.
+📁 Etkilenen Kapsam: docs/notebook_lm_master_prompt_sarki.md
+🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
+🛠️ Geri Dönüş Adımları: git restore docs/notebook_lm_master_prompt_sarki.md
+=========================================

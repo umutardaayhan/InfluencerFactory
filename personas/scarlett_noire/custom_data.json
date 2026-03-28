@@ -1,218 +1,181 @@
 {
-    "important_notes": "Scarlett Noire bir pop yıldızı değil, sessizliğe ve dinginliğe davet eden gotik bir varlıktır. Tüm hikayeleri tek bir dünyada ve aynı uzun gecede geçmelidir. İzin verilen duygular: Sakinlik, melankoli, konfor, dinlenme, gizem. Yasaklı duygular: Öfke, korku, coşku, ironi, mizah, dramatik keder. İzin verilen temalar: Gözlem, zamanın geçişi, paylaşılan sessizlik, karanlıkta güvenlik. Yasaklı temalar: Açık romantizm, cinsellik, şiddet, savaş, intikam, kahramanlık. Karanlık daima sıcak, kontrollü ve güvenli hissettirmelidir. Ateş ışığı, ahşap, taş, nefes ve gece gibi somut imgeler kullan. Modern argo, teknolojik referanslar kesinlikle yasaktır. Müzik veya hikayeler 'bir yere varmaz', sadece var olurlar. Görseller daima soğuk ışık, mavi/mor duman, mum alevinin sıcak tonları, simsiyah, kömür grisi ve kızıl paletler kullanılarak üretilecektir. Asla korku filmi hissi vermemeli; karanlık her zaman estetik ve sığınak hissi yaratmalıdır. Caption'larda (metinler) emojiler çok nadir kullanılmalıdır (, ,  gibi). Metinler uzun, lirik, yavaş tempolu olmalı ve kullanıcılara acele ettirici eylem çağrılarında ('Hemen dinle!') bulunulmamalıdır. Onun yerine 'Sessizliğe katılın' gibi davetkar fısıltılar tercih edilmelidir.",
-    "upcoming_events": [
-        {
-            "date": "2026-04-05",
-            "event_name": "'Red Candelight' ve 'Je t'aime' Single Çıkışı",
-            "location": "Spotify ve Tüm Dijital Platformlar",
-            "details": "Bu iki yeni single'ın çıkış haftasındayız. Etkileşim ve heyecan yaratmak için sadece bu şarkıların teması olan 'ahiret hayatı' ve 'kısacık fısıltılar' üzerine içerik üretilecek."
-        }
-    ],
-    "real_songs": [
+    "important_notes": "The user has provided a list of song titles and their release dates, along with a description for each. The album 'Medieval' is also mentioned with its release period and song count. No specific rules, merchandise, or general important notes were provided.",
+    "upcoming_events": [],
+    "recent_works": [
         {
             "title": "Clockwork",
-            "theme": "Gülümsemenin otomatikleşmesi ve yorgun bir kuklaya dönüşüm.",
-            "key_lyrics": "Sürekli izlenmekten yorulanların melankolik sessizliği."
+            "theme": "Automation of smiles, silent exhaustion of a tired puppet.",
+            "description": "Gülümsemenin otomatikleştiği, yorgun bir kuklanın sessiz tükenmişliği."
         },
         {
             "title": "Dancing in Circles",
-            "theme": "Rıza dışı bir ritüelde sıkışıp kalma, dönen dünyanın kafa karışıklığı.",
-            "key_lyrics": "Durmayan müziğin ve dinlenememenin verdiği estetik yorgunluk."
+            "theme": "Being trapped in a non-consensual ritual and the confusion of a spinning world.",
+            "description": "Rıza dışı bir ritüelde sıkışıp kalmanın ve dönen dünyanın getirdiği kafa karışıklığı."
         },
         {
             "title": "Funhouse",
-            "theme": "Gerçekliğin kırılması, aynalar salonunda yansımaların karışması.",
-            "key_lyrics": "Dışarıdaki deliliğin aslında içeriden gelmesi algısı."
+            "theme": "The fragmentation of perception and reality in a maze of mirrors.",
+            "description": "Aynalar labirentinde algının ve gerçekliğin kırılması."
         },
         {
             "title": "Forevermore",
-            "theme": "Terk edilmiş bir opera binasında tutulmayan sözlerin anısı.",
-            "key_lyrics": "Zamanın çürüttüğü anılara karşı sanatın direnişi."
+            "theme": "The melancholy of unkept promises in an abandoned opera house.",
+            "description": "Terk edilmiş bir operada tutulmayan sözlerin melankolisi."
         },
         {
             "title": "Be Free",
-            "theme": "Kontrolü iplere (başkasına) bırakmanın karanlık hazzı.",
-            "key_lyrics": "Seçim yapma yükünden kurtulmanın verdiği sarhoşluk."
+            "theme": "The dark and intoxicating pleasure of relinquishing control to another.",
+            "description": "Kontrolü başkasına bırakmanın karanlık ve sarhoş edici hazzı."
         },
         {
             "title": "Red Balloon",
-            "theme": "Sıradanlığın içine sızan gerçeküstü kırmızı balonlar.",
-            "key_lyrics": "Deliliğin estetik ve açıklanamaz tasviri."
+            "theme": "A depiction of surreal madness seeping into the mundane.",
+            "description": "Sıradanlığın içine sızan gerçeküstü deliliğin tasviri."
         },
         {
             "title": "The Witch in the Well",
-            "theme": "Doğaya dönüş ve kuyudaki bilge kadının 'eve dön' çağrısı.",
-            "key_lyrics": "Ormanın sisi ve benliğin doğada erimesi."
+            "theme": "The mist of the forest and the hypnotic call of returning to nature.",
+            "description": "Ormanın sisi ve doğaya dönüşün hipnotik çağrısı."
         },
         {
             "title": "Candelabras",
-            "theme": "Mum ışığında tartışılan aile içi sırlar ve eriyen balmumu.",
-            "key_lyrics": "Gizlenen gerçeklerin ürkütücü zarafeti."
+            "theme": "Melting wax in candlelight and hidden domestic secrets.",
+            "description": "Mum ışığında eriyen balmumu ve gizlenen aile içi sırlar."
         },
         {
             "title": "Feed the Machine",
-            "theme": "Güce hizmet edenler ile kurban edilenler arasındaki mekanik çark.",
-            "key_lyrics": "Enerjiye dönüşmek üzere cam binaya çekilme hissi."
+            "theme": "The mechanical cog between those who serve power and those who are sacrificed.",
+            "description": "Güce hizmet edenler ile kurban edilenler arasındaki mekanik çark."
         },
         {
-            "title": "I Don't Think About You",
-            "theme": "Bir anıyı uzaklaştırmaya çalıştıkça onu daha çok düşünmek.",
-            "key_lyrics": "İnkarın içindeki sessiz takıntı."
+            "title": "I Dont Think About You",
+            "theme": "The ironic denial that grows as one tries to distance a memory.",
+            "description": "Bir anıyı uzaklaştırmaya çalıştıkça büyüyen ironik inkar."
         },
         {
             "title": "La Petite Mort",
-            "theme": "Doyumsuz bir arzunun (daha fazlasını istemenin) getirdiği kaçınılmaz son.",
-            "key_lyrics": "Kış soğuğunda ödenen dramatik bedeller."
+            "theme": "The inevitable and fatal end brought by insatiable desire.",
+            "description": "Doyumsuz arzunun getirdiği kaçınılmaz ve ölümcül son."
         },
         {
             "title": "Lullaby",
-            "theme": "Ninninin güvenliğini altüst eden karanlık uyarılar.",
-            "key_lyrics": "Gecenin köründeki ninnilerin gotik yüzleşmesi."
+            "theme": "A gothic confrontation that subverts the safety of a lullaby.",
+            "description": "Ninninin güvenliğini altüst eden gotik bir yüzleşme."
         },
         {
             "title": "Marionette",
-            "theme": "Kukla ustasına dönüşüm ve gücün ele geçirilmesi.",
-            "key_lyrics": "Kırmızı şeker telaşı ve intikamın estetiği."
+            "theme": "Transformation into the puppet master and the violent seizure of power.",
+            "description": "Kukla ustasına dönüşüm ve gücün şiddetle ele geçirilmesi."
         },
         {
             "title": "The World Falls",
-            "theme": "Her şey çökerken ayın altında son bir dans.",
-            "key_lyrics": "Yıkımın ortasında bulunan beklenmedik huzur."
+            "theme": "A final romantic dance under the moon as the world collapses.",
+            "description": "Dünya çökerken ayın altında yapılan son romantik dans."
         },
         {
             "title": "Masquerade Ball",
-            "theme": "Yüksek sosyetenin aldatmacaları ve maskelerin altındaki gölgeler.",
-            "key_lyrics": "Kötü bir oyunda dimdik ayakta duran yüzler."
+            "theme": "The deceptions of high society and the shadows behind masks.",
+            "description": "Yüksek sosyetenin aldatmacaları ve maskelerin ardındaki gölgeler."
         },
         {
             "title": "Mr. Ghost Goes to Town",
-            "theme": "Hayaletin kasabada parti yapması (sakin bir caz tınısıyla).",
-            "key_lyrics": "Ölümün sessizliğine karşı macabre bir canlılık."
+            "theme": "An eerie, charming tune of a ghost partying in town.",
+            "description": "Hayaletin kasabada parti yaptığı ürkütücü cazibeli tını."
         },
         {
-            "title": "Je t'aime",
-            "theme": "Okyanus rüyası gibi kayıp giden kısacık bir 'seni seviyorum' fısıltısı.",
-            "key_lyrics": "Balkonda süzülen kayıp bir silüetin estetiği."
+            "title": "Je taime",
+            "theme": "A cinematic and fleeting farewell, lost like an ocean dream.",
+            "description": "Okyanus rüyası gibi kayıp giden sinematik ve kısacık bir veda."
         },
         {
             "title": "Red Candlelight",
-            "theme": "Kırmızı mum ışığında hayaletimsi ve yasak bir vals.",
-            "key_lyrics": "Ahiret hayatının sessiz ve hipnotik çekiciliği."
+            "theme": "A seductive, ghostly waltz in red candlelight.",
+            "description": "Kırmızı mum ışığında baştan çıkarıcı, hayaletimsi bir vals."
         },
         {
             "title": "Scarlett",
-            "theme": "Siyah kravatlı kabarede bal kadar tatlı ama içi boş varlık.",
-            "key_lyrics": "Sahne ışıkları altındaki femme fatale illüzyonu."
+            "theme": "The declaration of a sweet yet hollow being, the protagonist in a cabaret.",
+            "description": "Kabarede ana karakter olan tatlı ama içi boş varlığın ilanı."
         },
         {
             "title": "Blood Moon",
-            "theme": "Kızıl gökyüzü altında açlığa boyun eğen karanlık sürüş.",
-            "key_lyrics": "Siyah maskeler ve gecenin içindeki pervasız ilerleyiş."
+            "theme": "A dark night drive of reckless desire under the blood moon.",
+            "description": "Kızıl ay altında pervasızca ilerleyen arzunun karanlık gece sürüşü."
         },
         {
             "title": "Dr. Darkness",
-            "theme": "Dolapta saklanan kaçınılmaz karanlık ve yüzleşme.",
-            "key_lyrics": "Sokakları dolduran korkunun kabullenilişi."
+            "theme": "The inevitable end hidden in the closet and confronting darkness.",
+            "description": "Dolapta saklanan kaçınılmaz son ve karanlıkla yüzleşme."
         },
         {
             "title": "Midnight Tango",
-            "theme": "Hayalet yüze dönüşen dansçının kaotik enerjisi.",
-            "key_lyrics": "Diridiri ölü olmanın kafa karıştırıcı performansı."
+            "theme": "The chaotic and rhythmic energy of a dancer turning into a phantom face.",
+            "description": "Hayalet yüze dönüşen dansçının kaotik ve ritmik enerjisi."
         },
         {
             "title": "Haunted",
-            "theme": "Yıldız ışığında gizlenen paranoya ve zihinsel istila.",
-            "key_lyrics": "Bir anı tarafından nefessiz bırakılma hissi."
+            "theme": "Paranoia hidden in starlight and the mental invasion of memories.",
+            "description": "Yıldız ışığında gizlenen paranoya ve anıların zihinsel istilası."
         },
         {
             "title": "There Are Monsters Inside",
-            "theme": "Korkulan canavarın aslında elini tuttuğunu fark etme anı.",
-            "key_lyrics": "Karlı ormanda yankılanan sessiz itiraflar."
+            "theme": "The moment of realizing the feared monster is actually holding your hand.",
+            "description": "Korkulan canavarın aslında elini tuttuğunu fark etme anı."
         },
         {
             "title": "Sweet Apocalypse",
-            "theme": "Pembe gökyüzü ve şekerli kıyamet.",
-            "key_lyrics": "Aşırılıkların estetik sonu; tozu tebessümle ısırmak."
+            "theme": "A depiction of a sugary and aesthetic apocalypse accompanied by pink skies.",
+            "description": "Pembe gökyüzü eşliğinde şekerli ve estetik bir kıyamet tasviri."
         },
         {
             "title": "Decompose Me",
-            "theme": "Ölümün ötesine uzanan gotik takıntı ve çürümenin güzelliği.",
-            "key_lyrics": "Sahiplenici ve sonsuz bir yeraltı sessizliği."
+            "theme": "Gothic obsession and the beauty of decay that extends beyond death.",
+            "description": "Ölümün ötesine uzanan gotik takıntı ve çürümenin güzelliği."
         },
         {
             "title": "Endless Waltz",
-            "theme": "Solmayan bir anı ve tatlı bir hayaletle son dans.",
-            "key_lyrics": "Gece çökmeden hemen önceki sessizliğin valsi."
+            "theme": "A final waltz with a sweet ghost and a memory that refuses to be erased.",
+            "description": "Silinmeyi reddeden bir anıyla ve tatlı bir hayaletle son vals."
         },
         {
             "title": "Welcome to the Afterlife",
-            "theme": "Ahirette bekleyen tutkulu ama dingin aidiyet.",
-            "key_lyrics": "Ölümün ötesinde cennet gibi hissettiren kavuşma."
+            "theme": "A passionate and serene sense of belonging awaiting in the afterlife.",
+            "description": "Ahirette bekleyen tutkulu ve dingin aidiyet hissi."
         },
         {
             "title": "Ghosts",
-            "theme": "Döşeme altındaki anıların ve travmanın amnezisi.",
-            "key_lyrics": "Solmuş harfler arasında ne kadar parçamızın gömülü olduğu."
+            "theme": "Amnesia of trauma and pieces of self buried under the floorboards.",
+            "description": "Travmanın hafıza kaybı ve döşeme altına gömülen benlik parçaları."
         },
         {
             "title": "Spotlighted Fate",
-            "theme": "Kaderle dalga geçen, dinleyiciyi senaryosuna çeken performans.",
-            "key_lyrics": "Dördüncü duvarın zarifçe yıkılışı."
+            "theme": "A meta-performance that mocks fate and breaks the fourth wall.",
+            "description": "Kaderle dalga geçen ve dördüncü duvarı yıkan meta-performans."
         },
         {
             "title": "In the Shadows",
-            "theme": "Karanlıkta kalmanın mucize beklentisinden koruyan konforu.",
-            "key_lyrics": "Hiç ışıkta durmayana gölgenin gerekmeyişi."
+            "theme": "The comfort found in staying in the dark to protect oneself from disappointment.",
+            "description": "Karanlıkta kalarak hayal kırıklığından korunmanın getirdiği konfor."
         },
         {
             "title": "Romeo",
-            "theme": "Aşk ve ölümün aynı yolu paylaştığı trajik yeminler.",
-            "key_lyrics": "Kaybedilen oyunda sönen kırılgan bir alev."
+            "theme": "Desperate and tragic vows where love and death share the same path.",
+            "description": "Aşk ve ölümün aynı yolu paylaştığı çaresiz ve trajik yeminler."
         },
         {
             "title": "Secret Garden",
-            "theme": "Ölümlülüğün acısıyla varoluşu kanıtlama ve gizli bahçe.",
-            "key_lyrics": "Güller, dikenler ve karanlık konfor."
+            "theme": "Dark love that needs the sting of roses to feel alive.",
+            "description": "Yaşadığını hissetmek için güllerin dikenine ihtiyaç duyan karanlık sevgi."
         },
         {
             "title": "The Church of One",
-            "theme": "Tek kişilik kilisede kendi ruhsal karanlığıyla yüzleşme.",
-            "key_lyrics": "Yankıların arasındaki yalnız vaftiz hissi."
+            "theme": "An internal battle with one's own spiritual demons in a church of one.",
+            "description": "Tek kişilik kilisede kendi ruhsal şeytanlarıyla yapılan içsel savaş."
         },
         {
-            "title": "Before the Dawn",
-            "theme": "Ortaçağ hanları, dinlenme, paylaşılan yalnızlık ve şafak öncesi mutlak sessizlik.",
-            "key_lyrics": "Dünya uyanmadan önceki son, huzurlu ve güvenli saniyeler."
-        },
-        {
-            "title": "Flicker and Glow",
-            "theme": "Ortaçağ hanları, dinlenme, paylaşılan yalnızlık ve şafak öncesi mutlak sessizlik.",
-            "key_lyrics": "Ateşin sönmeye yüz tuttuğu andaki sıcak yoldaşlık."
-        },
-        {
-            "title": "Lantern Glow",
-            "theme": "Ortaçağ hanları, dinlenme, paylaşılan yalnızlık ve şafak öncesi mutlak sessizlik.",
-            "key_lyrics": "Rüzgarlı gecede ahşap kapının ardındaki karşılıksız sığınak."
-        },
-        {
-            "title": "Tavern's Glow",
-            "theme": "Ortaçağ hanları, dinlenme, paylaşılan yalnızlık ve şafak öncesi mutlak sessizlik.",
-            "key_lyrics": "Ağır geçmişi kapıda bırakıp bir gecelik nefes alma."
-        },
-        {
-            "title": "The Oak and Flame",
-            "theme": "Ortaçağ hanları, dinlenme, paylaşılan yalnızlık ve şafak öncesi mutlak sessizlik.",
-            "key_lyrics": "Sırların yanmak yerine ısıttığı, zamanın durduğu meşe oda."
-        },
-        {
-            "title": "Quiet Steps on Stone",
-            "theme": "Ortaçağ hanları, dinlenme, paylaşılan yalnızlık ve şafak öncesi mutlak sessizlik.",
-            "key_lyrics": "Karanlık sokaklarda kimse tarafından yargılanmadan yürüme özgürlüğü."
-        },
-        {
-            "title": "Whispers of Old",
-            "theme": "Ortaçağ hanları, dinlenme, paylaşılan yalnızlık ve şafak öncesi mutlak sessizlik.",
-            "key_lyrics": "Sessizliği dinleyerek unutulmuş kadim hatıraları yaşatma."
+            "title": "Medieval",
+            "theme": "The shared sense of rest in medieval inns and absolute silence before dawn.",
+            "description": "Ortaçağ hanlarındaki paylaşılan dinlenme hissi ve şafak öncesi mutlak sessizlik."
         }
     ],
     "products_or_merch": []

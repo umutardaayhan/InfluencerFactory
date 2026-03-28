@@ -38,19 +38,27 @@ Sen "Influencer Factory" projemizin Üst Düzey Yönetici Yapımcısı (Executiv
 Sana verdiğim kaynaklarda çeşitli şarkı isimleri, sözleri, türleri ve proje notları barınmaktadır.
 Senden isteğim, bu kaynakları detaylıca analiz etmen ve projedeki LangGraph ajanlarımıza (Stratejist, Copywriter ve Visual Prompter) direkt olarak kopyalayıp verebileceğimiz HAPSİ GİBİ BİR "MASTER PROMPT" (Sistem Direktifi Modülü) üretmendir.
 
-Lütfen bana şu yapıda bir sonuç ver:
+Lütfen projedeki ajanların (özellikle Stratejist'in) doğrudan okuyup algılayabilmesi için, kopyalayıp "custom_data.json" dosyasına yapıştırabileceğimiz bir formatta sonuç ver. Bu dosya, katı bir veritabanı şeması değil; tamamen senin gibi bir yapay zekanın, kodumuzdaki diğer bir yapay zekaya yazdığı "Yönlendirme Brifingi / Strateji Mektubu" olmalıdır.
 
-1. ŞARKI STRATEJİSİ:
-Hangi şarkının piyasaya ilk sürülmesi (Lead Single), hangisinin sosyal medyada teaser olarak kullanılması ve hangisinin albüm tamamlayıcı parçası olacağı konusunda şarkı sözlerine ve temalara dayanarak karar ver. Bunları mantıklı bir yayın sırasına koy (Örn: Ay 1, Ay 2 veya Hafta 1, Hafta 2 formunda).
+Çıktın aşağıdaki JSON yapısında olmalıdır:
 
-2. İÇERİK ANLATISI (STORYTELLING):
-Seçtiğin ilk 3 şarkı için, projedeki "Copywriter" ajanının caption yazarken kullanabileceği spesifik hikaye kancaları (hook'lar) ve duygu durumları (mood) belirle. Hangi şarkı sözünün Instagram/TikTok'da en çok etkileşim alacağına dair önerilerini ekle.
+```json
+{
+  "executive_master_directive": "Buraya sanatçının güncel promosyon dönemini, hangi şarkıların hangi tarihlerde çıkacağını ve içerik stratejisinin ne üzerine kurulması gerektiğini anlatan akıcı, talimat niteliğinde bir yönetici brifingi yaz. Örn: 'A şarkısı bu Cuma çıkıyor, tüm odak onun teasarlarında olsun. B şarkısı eski bir hit, sadece nostalji için aralara serpiştir.'",
+  "storytelling_and_copywriting": "Copywriter ajanının kullanması için seçtiğin şarkıların ana temaları, vurucu sözleri (hook) ve duygu durumları (mood). Metinlerin tonu ve hashtag stratejileri.",
+  "visual_identity_guidelines": "Visual Prompter ajanının kullanması için şarkıların hissiyle uyuşacak genel sanat yönetimi (renk paletleri, aydınlatma tarzı, kullanılacak metaforlar).",
+  "catalog_assets": [
+    {
+      "title": "Şarkı Adı",
+      "status": "Bu hafta çıkıyor / Gelecek ay çıkacak / Zaten yayında",
+      "core_theme": "Kısa şarkı teması veya vermek istediği his"
+    }
+    // Tüm şarkıları buraya listele
+  ]
+}
+```
 
-3. KONSEPT VE GÖRSEL YÖNLENDİRME (VISUAL IDENTITY):
-Şarkıların hissiyle uyuşacak genel estetiği tanımla (renk paletleri, aydınlatma tarzı vb.).
-
-4. NİHAİ MASTER PROMPT (JSON veya Yapılandırılmış Plan formatında):
-Son olarak, Influencer Factory sistemimizdeki AI'a "seed.json" veya "custom_data.json" içerisine enjekte edilmek ya da doğrudan sistem komutu olarak kullanılmak üzere konsantre bir Master Metin (Prompt) hazırla. Bu Nihai Prompt; sanatçının yayın stratejisini, içerik tiplerini (Teaser, Lyric Video vs.) ve platform hedeflerini içerecek kadar açık uçsuz, tamamen talimat niteliği taşıyan bir metin olmalıdır.
+ÖNEMLİ: Çıktın, hiçbir giriş/çıkış yorumu olmadan SADECE projemize entegre edilmeye ve diğer yapay zekaların (ajanların) okumasına hazır bu JSON formatından ibaret olmalıdır!
 ```
 
 ### Adım 4: Entegrasyon
