@@ -97,7 +97,8 @@ class InfluencerState(TypedDict):
     seed_data: dict                         # seed.json içeriği
     image_paths: List[str]                  # Sanatçı fotoğraf dosya yolları
     user_prompt: str                        # Kullanıcı istemi
-    month_target: str                       # Hedef ay (YYYY-MM)
+    month_target: str                       # Hedef ay (YYYY-MM) veya başlangıç tarihi
+    plan_period: Optional[str]              # Üretim periyodu (daily, weekly, monthly)
     persona_dir: str                        # Persona klasör yolu
     custom_data: Optional[dict]             # Kullanıcı tanımlı gerçek/özel veriler (custom_data.json)
 
@@ -178,3 +179,4 @@ compiler → END
 |-------|-----------|-------------------|
 | 15.03.2026 | İlk dokümantasyon oluşturuldu | Tümü |
 | 16.03.2026 | custom_data.json desteği eklendi | core/state.py, core/persona_loader.py, main.py, agents |
+| 29.03.2026 | Günlük ve haftalık içerik planı desteği eklendi (plan_period eklendi) | core/state.py, agents/strategist.py, main.py |
