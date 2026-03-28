@@ -1,182 +1,181 @@
 {
-    "important_notes": "The user has provided a list of song titles and their release dates, along with a description for each. The album 'Medieval' is also mentioned with its release period and song count. No specific rules, merchandise, or general important notes were provided.",
-    "upcoming_events": [],
-    "recent_works": [
+    "artist": "Scarlett Noire",
+    "release_strategy": {
+        "type": "album",
+        "name": "Medieval",
+        "release_window": "12 Haziran 2026 - 24 Temmuz 2026",
+        "description": "Ortaçağ hanlarındaki paylaşılan dinlenme hissi ve şafak öncesi mutlak sessizlik."
+    },
+    "songs": [
         {
             "title": "Clockwork",
-            "theme": "Automation of smiles, silent exhaustion of a tired puppet.",
-            "description": "Gülümsemenin otomatikleştiği, yorgun bir kuklanın sessiz tükenmişliği."
+            "release_date": "30 Aralık 2025",
+            "description": "Gülümsemenin otomatikleştiği, yorgun bir kuklanın sessiz tükenmişliği"
         },
         {
             "title": "Dancing in Circles",
-            "theme": "Being trapped in a non-consensual ritual and the confusion of a spinning world.",
-            "description": "Rıza dışı bir ritüelde sıkışıp kalmanın ve dönen dünyanın getirdiği kafa karışıklığı."
+            "release_date": "16 Ocak 2026",
+            "description": "Rıza dışı bir ritüelde sıkışıp kalmanın ve dönen dünyanın getirdiği kafa karışıklığı"
         },
         {
             "title": "Funhouse",
-            "theme": "The fragmentation of perception and reality in a maze of mirrors.",
-            "description": "Aynalar labirentinde algının ve gerçekliğin kırılması."
+            "release_date": "30 Ocak 2026",
+            "description": "Aynalar labirentinde algının ve gerçekliğin kırılması"
         },
         {
             "title": "Forevermore",
-            "theme": "The melancholy of unkept promises in an abandoned opera house.",
-            "description": "Terk edilmiş bir operada tutulmayan sözlerin melankolisi."
+            "release_date": "13 Şubat 2026",
+            "description": "Terk edilmiş bir operada tutulmayan sözlerin melankolisi"
         },
         {
             "title": "Be Free",
-            "theme": "The dark and intoxicating pleasure of relinquishing control to another.",
-            "description": "Kontrolü başkasına bırakmanın karanlık ve sarhoş edici hazzı."
-        },
-        {
-            "title": "Red Balloon",
-            "theme": "A depiction of surreal madness seeping into the mundane.",
-            "description": "Sıradanlığın içine sızan gerçeküstü deliliğin tasviri."
+            "release_status": "Yayınlanmadı",
+            "description": "Kontrolü başkasına bırakmanın karanlık ve sarhoş edici hazzı"
         },
         {
             "title": "The Witch in the Well",
-            "theme": "The mist of the forest and the hypnotic call of returning to nature.",
-            "description": "Ormanın sisi ve doğaya dönüşün hipnotik çağrısı."
+            "release_date": "27 Şubat 2026",
+            "description": "Ormanın sisi ve doğaya dönüşün hipnotik çağrısı"
         },
         {
             "title": "Candelabras",
-            "theme": "Melting wax in candlelight and hidden domestic secrets.",
-            "description": "Mum ışığında eriyen balmumu ve gizlenen aile içi sırlar."
+            "release_date": "27 Şubat 2026",
+            "description": "Mum ışığında eriyen balmumu ve gizlenen aile içi sırlar"
         },
         {
             "title": "Feed the Machine",
-            "theme": "The mechanical cog between those who serve power and those who are sacrificed.",
-            "description": "Güce hizmet edenler ile kurban edilenler arasındaki mekanik çark."
+            "release_date": "05 Mart 2026",
+            "description": "Güce hizmet edenler ile kurban edilenler arasındaki mekanik çark"
         },
         {
             "title": "I Dont Think About You",
-            "theme": "The ironic denial that grows as one tries to distance a memory.",
-            "description": "Bir anıyı uzaklaştırmaya çalıştıkça büyüyen ironik inkar."
+            "release_date": "06 Mart 2026",
+            "description": "Bir anıyı uzaklaştırmaya çalıştıkça büyüyen ironik inkar"
         },
         {
             "title": "La Petite Mort",
-            "theme": "The inevitable and fatal end brought by insatiable desire.",
-            "description": "Doyumsuz arzunun getirdiği kaçınılmaz ve ölümcül son."
+            "release_date": "12 Mart 2026",
+            "description": "Doyumsuz arzunun getirdiği kaçınılmaz ve ölümcül son"
         },
         {
             "title": "Lullaby",
-            "theme": "A gothic confrontation that subverts the safety of a lullaby.",
-            "description": "Ninninin güvenliğini altüst eden gotik bir yüzleşme."
+            "release_date": "12 Mart 2026",
+            "description": "Ninninin güvenliğini altüst eden gotik bir yüzleşme"
+        },
+        {
+            "title": "Red Balloon",
+            "release_date": "13 Mart 2026",
+            "description": "Sıradanlığın içine sızan gerçeküstü deliliğin tasviri"
         },
         {
             "title": "Marionette",
-            "theme": "Transformation into the puppet master and the violent seizure of power.",
-            "description": "Kukla ustasına dönüşüm ve gücün şiddetle ele geçirilmesi."
+            "release_date": "20 Mart 2026",
+            "description": "Kukla ustasına dönüşüm ve gücün şiddetle ele geçirilmesi"
         },
         {
             "title": "The World Falls",
-            "theme": "A final romantic dance under the moon as the world collapses.",
-            "description": "Dünya çökerken ayın altında yapılan son romantik dans."
+            "release_date": "20 Mart 2026",
+            "description": "Dünya çökerken ayın altında yapılan son romantik dans"
         },
         {
             "title": "Masquerade Ball",
-            "theme": "The deceptions of high society and the shadows behind masks.",
-            "description": "Yüksek sosyetenin aldatmacaları ve maskelerin ardındaki gölgeler."
+            "release_date": "27 Mart 2026",
+            "description": "Yüksek sosyetenin aldatmacaları ve maskelerin ardındaki gölgeler"
         },
         {
             "title": "Mr. Ghost Goes to Town",
-            "theme": "An eerie, charming tune of a ghost partying in town.",
-            "description": "Hayaletin kasabada parti yaptığı ürkütücü cazibeli tını."
+            "release_date": "27 Mart 2026",
+            "description": "Hayaletin kasabada parti yaptığı ürkütücü cazibeli tını"
         },
         {
             "title": "Je taime",
-            "theme": "A cinematic and fleeting farewell, lost like an ocean dream.",
-            "description": "Okyanus rüyası gibi kayıp giden sinematik ve kısacık bir veda."
+            "release_date": "03 Nisan 2026",
+            "description": "Okyanus rüyası gibi kayıp giden sinematik ve kısacık bir veda"
         },
         {
             "title": "Red Candlelight",
-            "theme": "A seductive, ghostly waltz in red candlelight.",
-            "description": "Kırmızı mum ışığında baştan çıkarıcı, hayaletimsi bir vals."
+            "release_date": "03 Nisan 2026",
+            "description": "Kırmızı mum ışığında baştan çıkarıcı, hayaletimsi bir vals"
         },
         {
             "title": "Scarlett",
-            "theme": "The declaration of a sweet yet hollow being, the protagonist in a cabaret.",
-            "description": "Kabarede ana karakter olan tatlı ama içi boş varlığın ilanı."
+            "release_date": "10 Nisan 2026",
+            "description": "Kabarede ana karakter olan tatlı ama içi boş varlığın ilanı"
         },
         {
             "title": "Blood Moon",
-            "theme": "A dark night drive of reckless desire under the blood moon.",
-            "description": "Kızıl ay altında pervasızca ilerleyen arzunun karanlık gece sürüşü."
+            "release_date": "10 Nisan 2026",
+            "description": "Kızıl ay altında pervasızca ilerleyen arzunun karanlık gece sürüşü"
         },
         {
             "title": "Dr. Darkness",
-            "theme": "The inevitable end hidden in the closet and confronting darkness.",
-            "description": "Dolapta saklanan kaçınılmaz son ve karanlıkla yüzleşme."
+            "release_date": "17 Nisan 2026",
+            "description": "Dolapta saklanan kaçınılmaz son ve karanlıkla yüzleşme"
         },
         {
             "title": "Midnight Tango",
-            "theme": "The chaotic and rhythmic energy of a dancer turning into a phantom face.",
-            "description": "Hayalet yüze dönüşen dansçının kaotik ve ritmik enerjisi."
+            "release_date": "17 Nisan 2026",
+            "description": "Hayalet yüze dönüşen dansçının kaotik ve ritmik enerjisi"
         },
         {
             "title": "Haunted",
-            "theme": "Paranoia hidden in starlight and the mental invasion of memories.",
-            "description": "Yıldız ışığında gizlenen paranoya ve anıların zihinsel istilası."
+            "release_date": "24 Nisan 2026",
+            "description": "Yıldız ışığında gizlenen paranoya ve anıların zihinsel istilası"
         },
         {
             "title": "There Are Monsters Inside",
-            "theme": "The moment of realizing the feared monster is actually holding your hand.",
-            "description": "Korkulan canavarın aslında elini tuttuğunu fark etme anı."
+            "release_date": "24 Nisan 2026",
+            "description": "Korkulan canavarın aslında elini tuttuğunu fark etme anı"
         },
         {
             "title": "Sweet Apocalypse",
-            "theme": "A depiction of a sugary and aesthetic apocalypse accompanied by pink skies.",
-            "description": "Pembe gökyüzü eşliğinde şekerli ve estetik bir kıyamet tasviri."
+            "release_date": "01 Mayıs 2026",
+            "description": "Pembe gökyüzü eşliğinde şekerli ve estetik bir kıyamet tasviri"
         },
         {
             "title": "Decompose Me",
-            "theme": "Gothic obsession and the beauty of decay that extends beyond death.",
-            "description": "Ölümün ötesine uzanan gotik takıntı ve çürümenin güzelliği."
+            "release_date": "01 Mayıs 2026",
+            "description": "Ölümün ötesine uzanan gotik takıntı ve çürümenin güzelliği"
         },
         {
             "title": "Endless Waltz",
-            "theme": "A final waltz with a sweet ghost and a memory that refuses to be erased.",
-            "description": "Silinmeyi reddeden bir anıyla ve tatlı bir hayaletle son vals."
+            "release_date": "08 Mayıs 2026",
+            "description": "Silinmeyi reddeden bir anıyla ve tatlı bir hayaletle son vals"
         },
         {
             "title": "Welcome to the Afterlife",
-            "theme": "A passionate and serene sense of belonging awaiting in the afterlife.",
-            "description": "Ahirette bekleyen tutkulu ve dingin aidiyet hissi."
+            "release_date": "08 Mayıs 2026",
+            "description": "Ahirette bekleyen tutkulu ve dingin aidiyet hissi"
         },
         {
             "title": "Ghosts",
-            "theme": "Amnesia of trauma and pieces of self buried under the floorboards.",
-            "description": "Travmanın hafıza kaybı ve döşeme altına gömülen benlik parçaları."
+            "release_date": "15 Mayıs 2026",
+            "description": "Travmanın hafıza kaybı ve döşeme altına gömülen benlik parçaları"
         },
         {
             "title": "Spotlighted Fate",
-            "theme": "A meta-performance that mocks fate and breaks the fourth wall.",
-            "description": "Kaderle dalga geçen ve dördüncü duvarı yıkan meta-performans."
+            "release_date": "15 Mayıs 2026",
+            "description": "Kaderle dalga geçen ve dördüncü duvarı yıkan meta-performans"
         },
         {
             "title": "In the Shadows",
-            "theme": "The comfort found in staying in the dark to protect oneself from disappointment.",
-            "description": "Karanlıkta kalarak hayal kırıklığından korunmanın getirdiği konfor."
+            "release_date": "22 Mayıs 2026",
+            "description": "Karanlıkta kalarak hayal kırıklığından korunmanın getirdiği konfor"
         },
         {
             "title": "Romeo",
-            "theme": "Desperate and tragic vows where love and death share the same path.",
-            "description": "Aşk ve ölümün aynı yolu paylaştığı çaresiz ve trajik yeminler."
+            "release_date": "22 Mayıs 2026",
+            "description": "Aşk ve ölümün aynı yolu paylaştığı çaresiz ve trajik yeminler"
         },
         {
             "title": "Secret Garden",
-            "theme": "Dark love that needs the sting of roses to feel alive.",
-            "description": "Yaşadığını hissetmek için güllerin dikenine ihtiyaç duyan karanlık sevgi."
+            "release_date": "29 Mayıs 2026",
+            "description": "Yaşadığını hissetmek için güllerin dikenine ihtiyaç duyan karanlık sevgi"
         },
         {
             "title": "The Church of One",
-            "theme": "An internal battle with one's own spiritual demons in a church of one.",
-            "description": "Tek kişilik kilisede kendi ruhsal şeytanlarıyla yapılan içsel savaş."
-        },
-        {
-            "title": "Medieval",
-            "theme": "The shared sense of rest in medieval inns and absolute silence before dawn.",
-            "description": "Ortaçağ hanlarındaki paylaşılan dinlenme hissi ve şafak öncesi mutlak sessizlik."
+            "release_date": "05 Haziran 2026",
+            "description": "Tek kişilik kilisede kendi ruhsal şeytanlarıyla yapılan içsel savaş"
         }
-    ],
-    "products_or_merch": []
+    ]
 }

@@ -710,7 +710,7 @@ def run_web_content(persona: dict, language: str = "English"):
 def main():
     # Verbose mod (argparse yerine basit kontrol)
     verbose = "--verbose" in sys.argv or "-v" in sys.argv
-    log_level = logging.DEBUG if verbose else logging.WARNING
+    log_level = logging.DEBUG if verbose else logging.ERROR
     logging.basicConfig(
         level=log_level,
         format="%(asctime)s | %(levelname)-7s | %(message)s",

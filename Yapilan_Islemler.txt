@@ -338,3 +338,12 @@
 🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
 🛠️ Geri Dönüş Adımları: git restore main.py
 =========================================
+
+=========================================
+🕒 Tarih/Saat: [29.03.2026 - 02:19]
+⚠️ Sorun: Uygulama CLI arayüzünün (Terminal / Rich menülerinin) arkasında çalışan httpx veya ai süreçlerine ait sistem mesajlarının (teknik logların) ekrana sızarak görsel kirlilik yaratması.
+🎯 İşlem Özeti: main.py içerisindeki genel log_level ayarı logging.WARNING seviyesinden logging.ERROR seviyesine çekildi. Böylece --verbose komutu verilmeden çalıştırıldığında arkaplanda oluşan uyarı (warning) mesajları Rich konsol animasyonlarını ve arayüzü bozmayacak.
+📁 Etkilenen Kapsam: main.py
+🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
+🛠️ Geri Dönüş Adımları: git restore main.py
+=========================================
