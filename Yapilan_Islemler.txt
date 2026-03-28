@@ -347,3 +347,11 @@
 🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
 🛠️ Geri Dönüş Adımları: git restore main.py
 =========================================
+
+=========================================
+🕒 Tarih/Saat: 29.03.2026 - 02:39
+⚠️ Sorun/İhtiyaç: Üretilen içeriklerin n8n veya benzeri bir webhook otomasyonuna tek tıkla bağlanması.
+🎯 İşlem Özeti: Compiler içerisine Python yerleşik 'urllib' ile webhook POST otomasyonu ve n8n kurulum dokümantasyonu eklendi.
+📁 Etkilenen Kapsam: agents/compiler.py, .env.example, docs/n8n_entegrasyonu.md
+🔄 Geri Dönüş: EVET (SADECE GİT İLE DÖNÜLEBİLİR)
+=========================================

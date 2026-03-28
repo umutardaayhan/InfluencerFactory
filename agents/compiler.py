@@ -9,6 +9,9 @@ Etkilediği dosyalar: output/ klasörüne dosya yazar
 import logging
 from datetime import datetime
 from pathlib import Path
+import os
+import urllib.request
+import urllib.error
 
 from core.state import InfluencerState
 from core.models import MonthlyPackage
@@ -183,6 +186,26 @@ def compiler_node(state: InfluencerState) -> dict:
         with open(json_output_path, "w", encoding="utf-8") as f:
             json.dump(prompts_json_data, f, ensure_ascii=False, indent=4)
         logger.info(f"[COMPILER] ✅ Prompt JSON arşivi kaydedildi: {json_output_path}")
+
+        # Webhook Entegrasyonu (Örn: n8n)
+        webhook_url = os.getenv("N8N_WEBHOOK_URL")
+        if webhook_url:
+            logger.info(f"[COMPILER] 🌐 n8n Webhook URL tespit edildi, veriler gönderiliyor...")
+            try:
+                # JSON datasını byte'a çeviriyoruz
+                data = json.dumps(prompts_json_data, ensure_ascii=False).encode('utf-8')
+                req = urllib.request.Request(webhook_url, data=data, headers={'Content-Type': 'application/json', 'User-Agent': 'InfluencerFactory/1.0'})
+                
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    if response.status in (200, 201, 202):
+                        logger.info(f"[COMPILER] 🎉 Başarıyla Webhook'a iletildi! HTTP {response.status}")
+                    else:
+                        logger.warning(f"[COMPILER] ⚠️ Webhook isteği gitti ama farklı yanıt döndü: HTTP {response.status}")
+                        
+            except urllib.error.URLError as e:
+                logger.error(f"[COMPILER] ❌ Webhook gönderim hatası (Bağlantı): {e.reason}")
+            except Exception as e:
+                logger.error(f"[COMPILER] ❌ Webhook gönderim hatası (Bilinmeyen): {e}")
 
     logger.info(f"[COMPILER] ✅ Rapor klasöre kaydedildi: {output_dir}")
     logger.info(f"[COMPILER] 📊 Özet: {len(visual_prompts)} görsel + {len(video_prompts)} video + {len(captions)} caption")
