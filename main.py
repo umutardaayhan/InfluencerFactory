@@ -312,15 +312,29 @@ def get_target_date(plan_period: str) -> str:
         ).execute()
 
 
-def get_prompt() -> str:
-    """Kullanıcıdan içerik üretim istemi alır."""
-    return inquirer.text(
-        message="İçerik üretim istemi:",
-        default="Bu ay için kapsamlı bir içerik planı oluştur",
+def get_prompt(plan_period: str = "monthly") -> str:
+    """
+    Seçilen periyoda göre otomatik bir temel prompt üretir.
+    Kullanıcıdan opsiyonel "ekstra detay" alarak prompt'a enjekte eder.
+    """
+    period_labels = {
+        "daily": "Bugün için kapsamlı bir içerik planı oluştur",
+        "weekly": "Bu hafta için kapsamlı bir içerik planı oluştur",
+        "monthly": "Bu ay için kapsamlı bir içerik planı oluştur",
+    }
+    base_prompt = period_labels.get(plan_period, period_labels["monthly"])
+
+    extra = inquirer.text(
+        message="Ekstra detay?",
+        default="",
         qmark="💬",
         amark="✦",
-        long_instruction="Örn: 'Nisan ayında 2 single çıkacak, hype kampanyası oluştur'",
+        long_instruction="Opsiyonel — Örn: '2 single çıkacak, hype kampanyası kur' (boş bırakılabilir)",
     ).execute()
+
+    if extra.strip():
+        return f"{base_prompt}. Ek bilgi: {extra.strip()}"
+    return base_prompt
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -921,8 +935,8 @@ USER'S DESCRIPTION:
                             invalid_message="Format: YYYY-MM-DD (örn: 2026-04-15)",
                         ).execute()
 
-                # İstem
-                prompt = get_prompt()
+                # İstem (periyoda göre otomatik + opsiyonel ekstra detay)
+                prompt = get_prompt(plan_period)
 
                 # Onay
                 console.print()
