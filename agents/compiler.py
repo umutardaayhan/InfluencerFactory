@@ -140,6 +140,7 @@ def compiler_node(state: InfluencerState) -> dict:
 
     artist_name = persona.stage_name if hasattr(persona, 'stage_name') else persona.get("stage_name", "Artist")
     month = state["month_target"]
+    reference_images = state.get("image_paths", [])
 
     logger.info(f"[COMPILER] 📦 Final rapor derleniyor: {artist_name} — {month}")
 
@@ -175,7 +176,8 @@ def compiler_node(state: InfluencerState) -> dict:
                 "artist": artist_name,
                 "month": month,
                 "generated_by": "Influencer Factory - Expert Prompt Engineer Phase",
-                "timestamp": package.generated_at
+                "timestamp": package.generated_at,
+                "reference_images": reference_images
             },
             "visual_prompts": [vp.model_dump() for vp in visual_prompts],
             "video_prompts": [vp.model_dump() for vp in video_prompts]

@@ -355,3 +355,11 @@
 📁 Etkilenen Kapsam: agents/compiler.py, .env.example, docs/n8n_entegrasyonu.md
 🔄 Geri Dönüş: EVET (SADECE GİT İLE DÖNÜLEBİLİR)
 =========================================
+
+=========================================
+🕒 Tarih/Saat: 29.03.2026 - 02:49
+⚠️ Sorun/İhtiyaç: n8n entegrasyonunda görsel/video üretimi için AI'a Scarlett gibi karakterlerin referans görsellerinin de webhook ile gönderilmesi eksiği.
+🎯 İşlem Özeti: Compiler ajanı JSON şemasına `reference_images` parametresi eklendi ve 3 referans görselin yerel dosya yolları Webhook'a aktarıldı.
+📁 Etkilenen Kapsam: agents/compiler.py
+🔄 Geri Dönüş: SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET, git checkout ile dönülebilir.
+=========================================
