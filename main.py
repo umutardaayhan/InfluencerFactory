@@ -412,7 +412,7 @@ def run_persona_build(persona: dict, rebuild: bool = False):
                         border_style="green", padding=(1, 1)))
 
 
-def run_content_pipeline(persona: dict, month: str, prompt: str, plan_period: str = "monthly"):
+def run_content_pipeline(persona: dict, month: str, prompt: str, plan_period: str = "monthly", send_to_n8n: bool = False):
     """Tam içerik üretim pipeline'ını çalıştırır."""
     from core.persona_loader import load_seed, discover_images, load_cached_persona, load_custom_data
     from core.workflow import compile_workflow
@@ -447,6 +447,7 @@ def run_content_pipeline(persona: dict, month: str, prompt: str, plan_period: st
         "plan_period": plan_period,
         "persona": cached,
         "custom_data": custom_data,
+        "send_to_n8n": send_to_n8n,
         "release_strategy": None,
         "weekly_plans": None,
         "visual_prompts": None,
@@ -928,6 +929,13 @@ USER'S MASTER PROMPT:
                 # İstem (periyoda göre otomatik + opsiyonel ekstra detay)
                 prompt = get_prompt(plan_period)
 
+                # n8n Otomasyon Sorusu
+                send_to_n8n = inquirer.confirm(
+                    message="İçerikler n8n üzerinden otomasyona bağlansın mı?",
+                    default=True,
+                    qmark="🌐",
+                ).execute()
+
                 # Onay
                 console.print()
                 confirm = inquirer.confirm(
@@ -937,7 +945,7 @@ USER'S MASTER PROMPT:
                 ).execute()
 
                 if confirm:
-                    run_content_pipeline(selected, month_choice, prompt, plan_period)
+                    run_content_pipeline(selected, month_choice, prompt, plan_period, send_to_n8n)
 
             elif action == "single_media":
                 from core.llm_bridge import get_structured_llm

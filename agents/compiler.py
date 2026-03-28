@@ -190,9 +190,11 @@ def compiler_node(state: InfluencerState) -> dict:
         logger.info(f"[COMPILER] ✅ Prompt JSON arşivi kaydedildi: {json_output_path}")
 
         # Webhook Entegrasyonu (Örn: n8n)
+        send_to_n8n = state.get("send_to_n8n", False)
         webhook_url = os.getenv("N8N_WEBHOOK_URL")
-        if webhook_url:
-            logger.info(f"[COMPILER] 🌐 n8n Webhook URL tespit edildi, veriler gönderiliyor...")
+        
+        if send_to_n8n and webhook_url:
+            logger.info(f"[COMPILER] 🌐 n8n otomasyonu aktifleştirildi. Veriler webhook'a gönderiliyor...")
             try:
                 # JSON datasını byte'a çeviriyoruz
                 data = json.dumps(prompts_json_data, ensure_ascii=False).encode('utf-8')
@@ -208,6 +210,8 @@ def compiler_node(state: InfluencerState) -> dict:
                 logger.error(f"[COMPILER] ❌ Webhook gönderim hatası (Bağlantı): {e.reason}")
             except Exception as e:
                 logger.error(f"[COMPILER] ❌ Webhook gönderim hatası (Bilinmeyen): {e}")
+        elif send_to_n8n:
+            logger.warning("[COMPILER] ⚠️ 'n8n otomasyonuna bağlanılsın' seçildi ancak .env dosyasında N8N_WEBHOOK_URL bulunamadı!")
 
     logger.info(f"[COMPILER] ✅ Rapor klasöre kaydedildi: {output_dir}")
     logger.info(f"[COMPILER] 📊 Özet: {len(visual_prompts)} görsel + {len(video_prompts)} video + {len(captions)} caption")

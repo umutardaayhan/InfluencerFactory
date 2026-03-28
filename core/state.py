@@ -32,6 +32,7 @@ class InfluencerState(TypedDict):
     plan_period: Optional[str]              # Üretim periyodu: "daily", "weekly", "monthly"
     persona_dir: str                        # Persona klasör yolu
     custom_data: Optional[dict]             # Kullanıcı tanımlı gerçek/özel veriler (custom_data.json)
+    send_to_n8n: bool                       # İçerikler n8n pipeline'a gönderilsin mi?
 
 
     # ── Context Builder Çıktısı ──────────────────────────────

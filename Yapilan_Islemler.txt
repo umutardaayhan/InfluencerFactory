@@ -363,3 +363,11 @@
 📁 Etkilenen Kapsam: agents/compiler.py
 🔄 Geri Dönüş: SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET, git checkout ile dönülebilir.
 =========================================
+
+=========================================
+🕒 Tarih/Saat: 29.03.2026 - 02:56
+⚠️ Sorun/İhtiyaç: Kullanıcıya üretim öncesi "İçerikler n8n üzerinden otomasyona bağlansın mı?" diye sorup sadece onaylandığında webhook tetiklenmesi isteği.
+🎯 İşlem Özeti: main.py içerisinde InquirerPy ile evet/hayır sorusu eklendi, state içerisine `send_to_n8n` boolean'ı entegre edildi, compiler ajanı bu koşula bağlandı.
+📁 Etkilenen Kapsam: main.py, core/state.py, agents/compiler.py
+🔄 Geri Dönüş: SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
+=========================================
