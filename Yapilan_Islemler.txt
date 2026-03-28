@@ -329,3 +329,12 @@
 🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
 🛠️ Geri Dönüş Adımları: git restore docs/notebook_lm_master_prompt_sarki.md
 =========================================
+
+=========================================
+🕒 Tarih/Saat: [29.03.2026 - 01:52]
+⚠️ Sorun: Özel Veri Yönetimi menüsündeki "AI Üretsin" seçeneğinin katı "real_songs" / "upcoming_events" şemaları dayatması.
+🎯 İşlem Özeti: main.py içerisindeki custom_data AI oluşturucu LLM prompt'undan katı JSON şeması kaldırıldı. Artık Notebook LM'den veya kullanıcıdan gelen Master Prompt'taki stratejik yönlendirmeleri, release date'leri ve serbest formatlı notları kırpmadan (şemasız şekilde) JSON dosyasına eksiksiz çeviriyor. Domain separation silme blokları da temizlendi.
+📁 Etkilenen Kapsam: main.py
+🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
+🛠️ Geri Dönüş Adımları: git restore main.py
+=========================================

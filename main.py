@@ -841,26 +841,20 @@ def main():
                         with Progress(SpinnerColumn(), TextColumn("[cyan]AI verileri yapılandırıyor..."), console=console) as prog:
                             prog.add_task("", total=None)
                             
-                            work_schema = ""
-                            if is_musician:
-                                work_schema = '"real_songs": [ { "title": "string", "theme": "string", "key_lyrics": "string" } ],'
-                            else:
-                                work_schema = '"recent_works": [ { "title": "string", "theme": "string", "description": "string" } ],'
-                            
-                            sys_prompt = f"""You are a JSON data generator for an AI Influencer/Artist platform.
+                            sys_prompt = f"""You are a brilliant Data Architect for an AI Influencer/Artist platform.
 The artist's name is {selected.get('name', 'Unknown')}.
-The user will describe some upcoming events, works/songs, products, or rules.
-Your job is to structure this into a valid JSON object matching this schema exactly:
-{{
-  "important_notes": "string or array of strings",
-  "upcoming_events": [ {{ "date": "string", "event_name": "string", "location": "string", "details": "string" }} ],
-  {work_schema}
-  "products_or_merch": [ {{ "name": "string", "description": "string" }} ]
-}}
-Only return raw JSON. No markdown formatting, no backticks.
-If a category has no data mentioned by the user, leave it as an empty list [].
+The user will provide a highly detailed "Master Prompt" or briefing containing release strategies, song lists, upcoming events, storytelling hooks, or product details.
 
-USER'S DESCRIPTION:
+Your job is to convert this UNSTRUCTURED text into a highly organized, comprehensive JSON object.
+There is NO STRICT SCHEMA. You can create ANY keys, nested objects, or arrays that perfectly capture the user's entire strategy without losing ANY detail.
+For example, if the user mentions songs with release dates, you can create a "songs" array where each object has a "release_date" field. If they mention an executive directive, put it in a "master_directive" field.
+
+RULES:
+1. Preserve ALL instructions, dates, constraints, and artistic directions from the user.
+2. Output ONLY raw, valid JSON starting with {{ and ending with }}.
+3. DO NOT wrap JSON in code blocks (no ` ```json `).
+
+USER'S MASTER PROMPT:
 {user_prompt}"""
                             llm = get_llm("custom_data_builder")
                             try:
@@ -875,10 +869,6 @@ USER'S DESCRIPTION:
                                 
                                 # Domain Separation enforcing
                                 data = {k: v for k, v in data.items() if v is not None}
-                                if is_musician and "recent_works" in data:
-                                    del data["recent_works"]
-                                elif not is_musician and "real_songs" in data:
-                                    del data["real_songs"]
                                 
                                 with open(custom_data_path, "w", encoding="utf-8") as f:
                                     json.dump(data, f, ensure_ascii=False, indent=4)
