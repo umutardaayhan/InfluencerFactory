@@ -28,7 +28,8 @@ class InfluencerState(TypedDict):
     seed_data: dict                         # seed.json içeriği
     image_paths: List[str]                  # Sanatçı fotoğraf dosya yolları
     user_prompt: str                        # Kullanıcının tek satırlık istemi
-    month_target: str                       # Hedef ay (YYYY-MM)
+    month_target: str                       # Hedef ay (YYYY-MM) veya başlangıç tarihi
+    plan_period: Optional[str]              # Üretim periyodu: "daily", "weekly", "monthly"
     persona_dir: str                        # Persona klasör yolu
     custom_data: Optional[dict]             # Kullanıcı tanımlı gerçek/özel veriler (custom_data.json)
 

@@ -302,3 +302,12 @@
 ?? **Etkilenen Kapsam:** main.py
 ?? **SADECE G?T ?LE D�N�LEB?L?R M??:** EVET (git restore)
 =========================================
+
+=========================================
+🕒 Tarih/Saat: [29.03.2026 - 01:05]
+⚠️ Sorun: Sadece 1 aylık plan üretiliyordu, günlük ve haftalık plan eksikti.
+🎯 İşlem Özeti: main.py'ye periyot seçimi eklendi. Stratejist ajanı 'plan_period'a göre günlük, haftalık ve aylık üretecek şekilde güncellendi.
+📁 Etkilenen Kapsam: core/state.py, agents/strategist.py, main.py
+🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
+🛠️ Geri Dönüş Adımları: git restore core/state.py agents/strategist.py main.py
+=========================================

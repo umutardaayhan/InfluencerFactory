@@ -48,7 +48,7 @@ def show_banner():
     banner_content = Group(
         Align.center(BANNER_ART),
         Align.center("\n[bright_cyan]🏭 AI Influencer Otomasyon Fabrikası[/bright_cyan]"),
-        Align.center("[dim]Tek istemle 1 aylık içerik üretim paketi[/dim]")
+        Align.center("[dim]Tek istemle günlük, haftalık veya aylık içerik paketi[/dim]")
     )
     console.print(Align.center(Panel(
         banner_content,
@@ -200,7 +200,7 @@ def _show_detailed_persona_info(persona: dict):
 
 def main_menu(has_personas: bool = True) -> str:
     choices = [
-        {"name": "🚀 İçerik Paketi Üret  — 1 aylık tam plan (görsel + video + caption)", "value": "generate"},
+        {"name": "🚀 İçerik Paketi Üret  — Günlük / Haftalık / Aylık plan", "value": "generate"},
         {"name": "🖼️  Tekli Medya Üret    — Sadece tek bir resim veya video oluştur", "value": "single_media"},
         {"name": "🌐 Web İçerik Üret    — Biography + Portrait metinleri (scarlettnoire.art)", "value": "web_content"},
         Separator(),
@@ -244,23 +244,72 @@ def select_persona(personas: list[dict]) -> dict:
     ).execute()
 
 
-def get_month() -> str:
-    """Hedef ay seçimi."""
-    now = datetime.now()
-    current_month = now.strftime("%Y-%m")
-    next_month = f"{now.year}-{now.month + 1:02d}" if now.month < 12 else f"{now.year + 1}-01"
-
+def get_plan_period() -> str:
+    """Üretim periyodu seçimi."""
     return inquirer.select(
-        message="Hangi ay için plan üretilsin?",
+        message="Ne kadarlık bir içerik planı istiyorsunuz?",
         choices=[
-            {"name": f"📅 Bu ay ({current_month})", "value": current_month},
-            {"name": f"📅 Gelecek ay ({next_month})", "value": next_month},
-            {"name": "📅 Manuel giriş...", "value": "manual"},
+            {"name": "📅 Günlük   (1 günlük: 3-5 slot)", "value": "daily"},
+            {"name": "📅 Haftalık (1 haftalık: 5-7 slot/gün)", "value": "weekly"},
+            {"name": "📅 Aylık    (4 haftalık tam paket)", "value": "monthly"},
         ],
         pointer="❯",
-        qmark="🗓️",
+        qmark="⏳",
         amark="✦",
     ).execute()
+
+
+def get_target_date(plan_period: str) -> str:
+    """Periyoda göre hedef tarih veya ay seçimi."""
+    import datetime as dt
+    now = dt.datetime.now()
+    today = dt.date.today()
+
+    if plan_period == "monthly":
+        current_month = now.strftime("%Y-%m")
+        next_month = f"{now.year}-{now.month + 1:02d}" if now.month < 12 else f"{now.year + 1}-01"
+
+        return inquirer.select(
+            message="Hangi ay için plan üretilsin?",
+            choices=[
+                {"name": f"📅 Bu ay ({current_month})", "value": current_month},
+                {"name": f"📅 Gelecek ay ({next_month})", "value": next_month},
+                {"name": "📅 Manuel giriş...", "value": "manual"},
+            ],
+            pointer="❯",
+            qmark="🗓️",
+            amark="✦",
+        ).execute()
+
+    elif plan_period == "weekly":
+        next_monday = today + dt.timedelta(days=-today.weekday(), weeks=1)
+        
+        return inquirer.select(
+            message="Hangi hafta için plan üretilsin (Başlangıç tarihi)?",
+            choices=[
+                {"name": f"📅 Bu hafta ({today.strftime('%Y-%m-%d')} itibarıyla)", "value": today.strftime('%Y-%m-%d')},
+                {"name": f"📅 Gelecek hafta ({next_monday.strftime('%Y-%m-%d')} itibarıyla)", "value": next_monday.strftime('%Y-%m-%d')},
+                {"name": "📅 Manuel giriş...", "value": "manual"},
+            ],
+            pointer="❯",
+            qmark="🗓️",
+            amark="✦",
+        ).execute()
+
+    else: # daily
+        tomorrow = today + dt.timedelta(days=1)
+        
+        return inquirer.select(
+            message="Hangi gün için plan üretilsin?",
+            choices=[
+                {"name": f"📅 Bugün ({today.strftime('%Y-%m-%d')})", "value": today.strftime('%Y-%m-%d')},
+                {"name": f"📅 Yarın ({tomorrow.strftime('%Y-%m-%d')})", "value": tomorrow.strftime('%Y-%m-%d')},
+                {"name": "📅 Manuel giriş...", "value": "manual"},
+            ],
+            pointer="❯",
+            qmark="🗓️",
+            amark="✦",
+        ).execute()
 
 
 def get_prompt() -> str:
@@ -349,7 +398,7 @@ def run_persona_build(persona: dict, rebuild: bool = False):
                         border_style="green", padding=(1, 1)))
 
 
-def run_content_pipeline(persona: dict, month: str, prompt: str):
+def run_content_pipeline(persona: dict, month: str, prompt: str, plan_period: str = "monthly"):
     """Tam içerik üretim pipeline'ını çalıştırır."""
     from core.persona_loader import load_seed, discover_images, load_cached_persona, load_custom_data
     from core.workflow import compile_workflow
@@ -381,6 +430,7 @@ def run_content_pipeline(persona: dict, month: str, prompt: str):
         "persona_dir": artist_dir,
         "user_prompt": prompt,
         "month_target": month,
+        "plan_period": plan_period,
         "persona": cached,
         "custom_data": custom_data,
         "release_strategy": None,
@@ -455,7 +505,7 @@ def run_content_pipeline(persona: dict, month: str, prompt: str):
         result_table.add_column("Değer", style="bold white")
 
         result_table.add_row("🎤 Sanatçı", package.artist_name)
-        result_table.add_row("📅 Ay", package.month)
+        result_table.add_row("📅 Dönem", package.month)
         result_table.add_row("🎨 Görsel Prompt", f"[bright_cyan]{vp_count}[/bright_cyan] adet")
         result_table.add_row("🎬 Video Prompt", f"[bright_magenta]{vid_count}[/bright_magenta] adet")
         result_table.add_row("✍️  Caption", f"[bright_yellow]{cap_count}[/bright_yellow] adet")
@@ -849,16 +899,27 @@ USER'S DESCRIPTION:
                     personas = discover_personas()
                     selected = next((p for p in personas if p["dir"] == selected["dir"]), selected)
 
-                # Ay seçimi
-                month_choice = get_month()
+                # Periyot ve Tarih seçimi
+                plan_period = get_plan_period()
+                month_choice = get_target_date(plan_period)
+
                 if month_choice == "manual":
-                    month_choice = inquirer.text(
-                        message="Ay gir (YYYY-MM):",
-                        default=datetime.now().strftime("%Y-%m"),
-                        qmark="📅",
-                        validate=lambda x: len(x) == 7 and x[4] == "-",
-                        invalid_message="Format: YYYY-MM (örn: 2026-04)",
-                    ).execute()
+                    if plan_period == "monthly":
+                        month_choice = inquirer.text(
+                            message="Ay gir (YYYY-MM):",
+                            default=datetime.now().strftime("%Y-%m"),
+                            qmark="📅",
+                            validate=lambda x: len(x) == 7 and x[4] == "-",
+                            invalid_message="Format: YYYY-MM (örn: 2026-04)",
+                        ).execute()
+                    else:
+                        month_choice = inquirer.text(
+                            message="Tarih gir (YYYY-MM-DD):",
+                            default=datetime.now().strftime("%Y-%m-%d"),
+                            qmark="📅",
+                            validate=lambda x: len(x) == 10 and x[4] == "-" and x[7] == "-",
+                            invalid_message="Format: YYYY-MM-DD (örn: 2026-04-15)",
+                        ).execute()
 
                 # İstem
                 prompt = get_prompt()
@@ -872,7 +933,7 @@ USER'S DESCRIPTION:
                 ).execute()
 
                 if confirm:
-                    run_content_pipeline(selected, month_choice, prompt)
+                    run_content_pipeline(selected, month_choice, prompt, plan_period)
 
             elif action == "single_media":
                 from core.llm_bridge import get_structured_llm

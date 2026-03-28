@@ -22,7 +22,7 @@ from core.llm_bridge import get_structured_llm
 logger = logging.getLogger(__name__)
 
 
-def _build_strategy_prompt(persona: dict, month: str, user_prompt: str, custom_data: Optional[dict] = None) -> str:
+def _build_strategy_prompt(persona: dict, month: str, user_prompt: str, custom_data: Optional[dict] = None, plan_period: str = "monthly") -> str:
     """Stratejist'e gönderilecek ana promptu oluşturur."""
 
     music = persona.get("music", {})
@@ -54,26 +54,53 @@ for independent artists with detailed day-by-day content calendars.
 CRITICAL INSTRUCTION: You MUST use the actual songs, lyrics, events, or products listed in the CUSTOM DATA section above. DO NOT invent fake or mock song names. Incorporate these real assets into your strategy.
 """
 
-    prompt_str += f"""
-## USER REQUEST
-{user_prompt}
-
-## TARGET MONTH: {month}
-
-## YOUR TASK
-
-Create a comprehensive 1-month release strategy and weekly content plan.
-
+    if plan_period == "daily":
+        task_desc = "Create a comprehensive strategy and a detailed 1-day content plan."
+        rules = """
+### Rules:
+1. Plan content strictly for a SINGLE DAY
+2. The day should have 3-5 content slots across different platforms
+3. Content types to use: teaser, release_post, behind_the_scenes, engagement, story, reels, lyric_video, cover_art, countdown, fan_interaction, throwback, live_announcement
+4. Mark which slots need a VISUAL prompt (image) and which need a VIDEO prompt
+5. Video slots should include duration (5, 10, 15, or 30 seconds)
+6. Mix platforms evenly: Instagram, TikTok, Twitter/X, YouTube
+"""
+    elif plan_period == "weekly":
+        task_desc = "Create a comprehensive strategy and a detailed 1-week content plan."
+        rules = """
+### Rules:
+1. Plan content strictly for ONE WEEK
+2. The week should have 5-7 content slots across different platforms
+3. Content types to use: teaser, release_post, behind_the_scenes, engagement, story, reels, lyric_video, cover_art, countdown, fan_interaction, throwback, live_announcement
+4. Mark which slots need a VISUAL prompt (image) and which need a VIDEO prompt
+5. Video slots should include duration (5, 10, 15, or 30 seconds)
+6. Mix platforms evenly: Instagram, TikTok, Twitter/X, YouTube
+7. Include at least 2-3 video content slots
+"""
+    else: # monthly
+        task_desc = "Create a comprehensive 1-month release strategy and weekly content plan."
+        rules = """
 ### Rules:
 1. Plan content for ALL weeks of the month (usually 4-5 weeks)
 2. Each week should have 5-7 content slots across different platforms
-3. Content types to use: teaser, release_post, behind_the_scenes, engagement, 
-   story, reels, lyric_video, cover_art, countdown, fan_interaction, throwback, live_announcement
+3. Content types to use: teaser, release_post, behind_the_scenes, engagement, story, reels, lyric_video, cover_art, countdown, fan_interaction, throwback, live_announcement
 4. Mark which slots need a VISUAL prompt (image) and which need a VIDEO prompt
 5. Video slots should include duration (5, 10, 15, or 30 seconds)
 6. Build hype before releases: teasers → countdown → release day → post-release engagement
 7. Mix platforms evenly: Instagram, TikTok, Twitter/X, YouTube
 8. Include at least 2-3 video content slots per week
+"""
+
+    prompt_str += f"""
+## USER REQUEST
+{user_prompt}
+
+## TARGET PERIOD/DATE: {month}
+
+## YOUR TASK
+
+{task_desc}
+{rules}
 
 Respond in the EXACT JSON structure expected. Use dates in YYYY-MM-DD format.
 All text content should be in Turkish.
@@ -87,6 +114,7 @@ def strategist_node(state: InfluencerState) -> dict:
     """
     persona = state["persona"]
     month = state["month_target"]
+    plan_period = state.get("plan_period", "monthly")
     user_prompt = state["user_prompt"]
     custom_data = state.get("custom_data")
 
@@ -99,9 +127,9 @@ def strategist_node(state: InfluencerState) -> dict:
     persona_dict = persona.model_dump() if hasattr(persona, 'model_dump') else persona
 
     # ── Release Strategy üret ──────────────────────────────
-    console.print(f"    [dim]⏳ Stratejist: {month} ayı {persona_dict.get('stage_name', 'Artist')} için genel yayım stratejisi kurgulanıyor...[/dim]")
+    console.print(f"    [dim]⏳ Stratejist: {month} için genel yayım stratejisi kurgulanıyor... ({plan_period})[/dim]")
     strategy_llm = get_structured_llm("strategist", ReleaseStrategy)
-    strategy_prompt = _build_strategy_prompt(persona_dict, month, user_prompt, custom_data)
+    strategy_prompt = _build_strategy_prompt(persona_dict, month, user_prompt, custom_data, plan_period)
 
     release_strategy = strategy_llm.invoke([HumanMessage(content=strategy_prompt)])
     logger.info(f"[STRATEGIST] Yayım stratejisi hazır: {release_strategy.theme}")
@@ -113,32 +141,56 @@ def strategist_node(state: InfluencerState) -> dict:
 Theme: {release_strategy.theme}
 Events: {json.dumps([e.model_dump() for e in release_strategy.events], indent=2, ensure_ascii=False)}
 
-Now create the detailed WEEKLY CONTENT PLAN based on this strategy.
-Create one WeeklyContentPlan for each week of the month.
-Each week should have 5-7 content slots with specific dates, platforms, and content types.
+Now create the detailed CONTENT PLAN based on this strategy.
+"""
+
+    if plan_period == "daily":
+        weekly_prompt += "Create one WeeklyContentPlan object representing the single day.\n"
+        weekly_prompt += "It should have 3-5 content slots with specific times/dates for the day.\n"
+        loop_count = 1
+    elif plan_period == "weekly":
+        weekly_prompt += "Create one WeeklyContentPlan object representing the single week.\n"
+        weekly_prompt += "It should have 5-7 content slots with specific dates.\n"
+        loop_count = 1
+    else: # monthly
+        weekly_prompt += "Create one WeeklyContentPlan for each week of the month.\n"
+        weekly_prompt += "Each week should have 5-7 content slots with specific dates.\n"
+        loop_count = 4
+
+    weekly_prompt += """
 Mark needs_visual=true for image posts, needs_video=true for video content.
 For video slots, specify video_duration in seconds (5, 10, 15, or 30).
 """
 
     # Haftalık planları teker teker üret (daha güvenilir JSON)
     weekly_plans = []
-    for week_num in range(1, 5):
-        week_prompt = f"""{weekly_prompt}
-
-Generate ONLY Week {week_num} content plan. Return a single WeeklyContentPlan object.
+    for week_num in range(1, loop_count + 1):
+        if plan_period == "daily":
+            week_task = f"Generate ONLY the daily content plan (represented as a single WeeklyContentPlan). Include real dates around {month}."
+            log_msg = f"    [dim]⏳ Stratejist: {month} için günlük paylaşım slotları hesaplanıyor...[/dim]"
+            info_msg = "[STRATEGIST] Günlük plan hazır"
+        elif plan_period == "weekly":
+            week_task = f"Generate ONLY the weekly content plan. Include real dates around {month}."
+            log_msg = f"    [dim]⏳ Stratejist: {month} haftası için paylaşım slotları hesaplanıyor...[/dim]"
+            info_msg = "[STRATEGIST] Haftalık plan hazır"
+        else:
+            week_task = f"""Generate ONLY Week {week_num} content plan. Return a single WeeklyContentPlan object.
 Week {week_num} theme should align with the overall strategy.
-Include 5-7 content slots with real dates from {month}.
-"""
+Include 5-7 content slots with real dates from {month}."""
+            log_msg = f"    [dim]⏳ Stratejist: {week_num}. Haftanın günlük paylaşım slotları hesaplanıyor...[/dim]"
+            info_msg = f"[STRATEGIST] Hafta {week_num} planı hazır"
+
+        week_prompt_full = f"""{weekly_prompt}\n\n{week_task}"""
         week_llm = get_structured_llm("strategist", WeeklyContentPlan)
         try:
-            console.print(f"    [dim]⏳ Stratejist: {week_num}. Haftanın günlük paylaşım slotları hesaplanıyor...[/dim]")
-            week_plan = week_llm.invoke([HumanMessage(content=week_prompt)])
+            console.print(log_msg)
+            week_plan = week_llm.invoke([HumanMessage(content=week_prompt_full)])
             weekly_plans.append(week_plan)
-            logger.info(f"[STRATEGIST] Hafta {week_num} planı hazır: {week_plan.week_theme}")
+            logger.info(f"{info_msg}: {week_plan.week_theme}")
         except Exception as e:
-            logger.error(f"[STRATEGIST] Hafta {week_num} üretim hatası: {e}")
+            logger.error(f"[STRATEGIST] Plan üretim hatası (Hafta {week_num}): {e}")
 
-    logger.info(f"[STRATEGIST] ✅ Toplam {len(weekly_plans)} haftalık plan üretildi.")
+    logger.info(f"[STRATEGIST] ✅ Toplam {len(weekly_plans)} plan paketi üretildi.")
 
     return {
         "release_strategy": release_strategy,
