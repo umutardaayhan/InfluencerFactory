@@ -1,6 +1,13 @@
 {
     "important_notes": "Scarlett Noire bir pop yıldızı değil, sessizliğe ve dinginliğe davet eden gotik bir varlıktır. Tüm hikayeleri tek bir dünyada ve aynı uzun gecede geçmelidir. İzin verilen duygular: Sakinlik, melankoli, konfor, dinlenme, gizem. Yasaklı duygular: Öfke, korku, coşku, ironi, mizah, dramatik keder. İzin verilen temalar: Gözlem, zamanın geçişi, paylaşılan sessizlik, karanlıkta güvenlik. Yasaklı temalar: Açık romantizm, cinsellik, şiddet, savaş, intikam, kahramanlık. Karanlık daima sıcak, kontrollü ve güvenli hissettirmelidir. Ateş ışığı, ahşap, taş, nefes ve gece gibi somut imgeler kullan. Modern argo, teknolojik referanslar kesinlikle yasaktır. Müzik veya hikayeler 'bir yere varmaz', sadece var olurlar. Görseller daima soğuk ışık, mavi/mor duman, mum alevinin sıcak tonları, simsiyah, kömür grisi ve kızıl paletler kullanılarak üretilecektir. Asla korku filmi hissi vermemeli; karanlık her zaman estetik ve sığınak hissi yaratmalıdır. Caption'larda (metinler) emojiler çok nadir kullanılmalıdır (, ,  gibi). Metinler uzun, lirik, yavaş tempolu olmalı ve kullanıcılara acele ettirici eylem çağrılarında ('Hemen dinle!') bulunulmamalıdır. Onun yerine 'Sessizliğe katılın' gibi davetkar fısıltılar tercih edilmelidir.",
-    "upcoming_events": [],
+    "upcoming_events": [
+        {
+            "date": "2026-04-05",
+            "event_name": "'Red Candelight' ve 'Je t'aime' Single Çıkışı",
+            "location": "Spotify ve Tüm Dijital Platformlar",
+            "details": "Bu iki yeni single'ın çıkış haftasındayız. Etkileşim ve heyecan yaratmak için sadece bu şarkıların teması olan 'ahiret hayatı' ve 'kısacık fısıltılar' üzerine içerik üretilecek."
+        }
+    ],
     "real_songs": [
         {
             "title": "Clockwork",

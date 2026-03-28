@@ -311,3 +311,12 @@
 🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
 🛠️ Geri Dönüş Adımları: git restore core/state.py agents/strategist.py main.py
 =========================================
+
+=========================================
+🕒 Tarih/Saat: [29.03.2026 - 01:22]
+⚠️ Sorun: Scarlett Noire içerik planı üretilirken yaklaşan şarkıların hedef alınmaması.
+🎯 İşlem Özeti: Scarlett Noire'ın custom_data.json dosyasına 'Red Candelight' ve 'Je t'aime' şarkıları için upcoming_events satırına spesifik bir etkinlik eklendi.
+📁 Etkilenen Kapsam: personas/scarlett_noire/custom_data.json
+🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
+🛠️ Geri Dönüş Adımları: git restore personas/scarlett_noire/custom_data.json
+=========================================
