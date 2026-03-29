@@ -27,6 +27,9 @@ personas/
 ```bash
 # İnteraktif CLI:
 python main.py
+
+# Excel/Tablo Görünümlü Web Dashboard:
+streamlit run dashboard.py
 ```
 
 Ana menüden erişilebilen komutlar:

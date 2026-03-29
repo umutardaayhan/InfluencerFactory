@@ -124,6 +124,8 @@ def _build_biography_prompt(ctx: dict, directive: dict, language: str) -> tuple[
     birth_year       = ctx.get("birth_year", 1997)
     min_date_year    = ctx.get("career_start_year", birth_year + 18)
     max_date_year    = ctx.get("career_peak_year", 2025)
+    
+    user_details_line = f"- USER'S EXTRA REQUEST / CONTEXT: {ctx.get('user_extra_details')}" if ctx.get('user_extra_details') else ""
 
     system = f"""You are a writer producing content for {ctx['stage_name']}'s website, scarlettnoire.art.
 
@@ -139,6 +141,7 @@ PERSONA CONSTRAINTS (strictly enforce):
 - FORBIDDEN words/phrases: "embark", "journey", "passionate", "dedicated", "haunting", "captivating"
 - Writing must feel like every word has been chosen deliberately
 - {ctx['extra_notes'][:350] if ctx['extra_notes'] else ''}
+{user_details_line}
 - Language for CONTENT: {language}
 - Language for IMAGE_PROMPT: always English (regardless of content language)
 
@@ -168,6 +171,7 @@ For the IMAGE_PROMPT (always in English):
   Choose appropriate, atmosphere-fitting attire (e.g., "a heavy dark wool coat", "a worn rehearsal dress",
   "a plain black sweater, sleeves pushed up"). Do NOT feel bound by the reference images' clothing.
 - Do NOT describe face shape, eye color, freckles, or hair color — the reference images carry that.
+- AESTHETIC & REALISM: The image aesthetic MUST perfectly match the era and context. If this is an early career snapshot (e.g., 2017, early years, rehearsals, messy desks), it MUST NOT look like a high-budget 2026 professional studio photoshoot. Force a raw, amateur aesthetic using modifiers like "taken with a disposable camera, direct flash photography, lo-fi 35mm film, grainy, candid, unfiltered, slightly underexposed, Polaroid aesthetic, amateur shot" to make it feel like a genuine, discovered artifact from the past.
 - TEXT IN THE SCENE: If any writing appears (notebooks, signs, labels, sheet music with visible text),
   ensure it is NOT readable to the camera — either close it, angle it away, show it in shadow/blur,
   or describe it as "a notebook, its pages unseen". Never generate prompts that would cause an AI
@@ -229,6 +233,8 @@ def _build_portrait_prompt(ctx: dict, directive: dict, language: str) -> tuple[s
     min_date_year    = ctx.get("career_start_year", birth_year + 18)
     max_date_year    = ctx.get("career_peak_year", 2025)
 
+    user_details_line = f"- USER'S EXTRA REQUEST / CONTEXT: {ctx.get('user_extra_details')}" if ctx.get('user_extra_details') else ""
+
     system = f"""You are writing fictional diary entries and scene images for {ctx['stage_name']} — published on her website, scarlettnoire.art.
 
 You will generate TWO things per entry:
@@ -243,6 +249,7 @@ VOICE & IMAGE CONSTRAINTS:
 - Do not reference audiences, fans, or the music industry directly
 - No abstract philosophizing. Ground every thought in something concrete and observed.
 - {ctx['extra_notes'][:300] if ctx['extra_notes'] else ''}
+{user_details_line}
 - Language for CONTENT: {language}
 - Language for IMAGE_PROMPT: always English
 
@@ -270,6 +277,7 @@ For the IMAGE_PROMPT (always in English):
 - CLOTHING: choose atmosphere-appropriate attire (e.g., "a long dark robe", "a plain oversized sweater").
   Do NOT feel bound by the reference images' clothing.
 - Do NOT describe face shape, eye color, freckles, hair color — the references carry that.
+- AESTHETIC & REALISM: The aesthetic MUST match the intimacy of a personal diary. It MUST NOT look like a staged professional photoshoot. Force a raw, very intimate aesthetic using keywords like "polaroid, grainy 35mm film, direct flash, low light candid, amateur phone shot, authentic blurry memory, unedited" to make it feel like a genuine, unguarded snapshot.
 - TEXT IN THE SCENE: if writing appears (notebooks, labels), ensure it is NOT readable —
   closed, angled away, in shadow. Never cause legible text in the generated image.
 - Keep total under 90 words — concise, painterly, precise.
@@ -308,6 +316,8 @@ def _build_notes_prompt(ctx: dict, language: str) -> tuple[str, str]:
     Returns:
         (system_prompt, human_prompt) tuple'ı
     """
+    user_details_line = f"- USER'S EXTRA REQUEST / CONTEXT: {ctx.get('user_extra_details')}" if ctx.get('user_extra_details') else ""
+
     system = f"""You are writing short, striking notes from {ctx['stage_name']}'s personal journal for her website, scarlettnoire.art.
 
 These are NOT diary entries and NOT captions. They are single, crystalline observations —
@@ -320,6 +330,7 @@ CONSTRAINTS:
 - FORBIDDEN: romance, sexuality, violence, irony, marketing, self-reference as an artist
 - No metaphors that feel generic. Ground each note in something physical: a sound, a texture, a light.
 - {ctx['extra_notes'][:250] if ctx['extra_notes'] else ''}
+{user_details_line}
 - Language: {language}"""
 
     human = f"""Generate exactly 3 notes. Return ONLY valid JSON — no markdown, no backticks.
@@ -464,6 +475,7 @@ def _save_package(package: WebContentPackage) -> tuple[str, str]:
 def generate_web_content(
     persona_dir: str,
     language: str = "English",
+    extra_details: str = "",
     progress_callback=None,
 ) -> tuple[WebContentPackage, str, str]:
     """
@@ -472,6 +484,7 @@ def generate_web_content(
     Args:
         persona_dir:       Persona klasör yolu (örn: 'personas/scarlett_noire')
         language:          Çıktı dili (varsayılan: 'English')
+        extra_details:     Kullanıcıdan gelen ekstra notlar/istekler
         progress_callback: Opsiyonel (step_label: str) -> None geri çağırma
 
     Returns:
@@ -491,6 +504,7 @@ def generate_web_content(
     # ── 1. Persona bağlamını çek ──────────────────────────────
     _progress("📖 Persona bağlamı yükleniyor...")
     ctx = _build_persona_context(persona_dir)
+    ctx["user_extra_details"] = extra_details
 
     # ── 2. Biography üretimi (3 enstante) ────────────────────
     biographies = []

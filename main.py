@@ -562,7 +562,7 @@ def run_content_pipeline(persona: dict, month: str, prompt: str, plan_period: st
 # ─────────────── WEB CONTENT PRODUCTION ──────────────────────
 # ═══════════════════════════════════════════════════════════════
 
-def run_web_content(persona: dict, language: str = "English"):
+def run_web_content(persona: dict, language: str = "English", extra_details: str = ""):
     """
     scarlettnoire.art için Biography + Portrait metinleri üretir.
 
@@ -630,6 +630,7 @@ def run_web_content(persona: dict, language: str = "English"):
             package, json_path, md_path = generate_web_content(
                 persona_dir=artist_dir,
                 language=language,
+                extra_details=extra_details,
                 progress_callback=on_progress,
             )
         except FileNotFoundError as e:
@@ -1106,6 +1107,15 @@ You must heavily detail the image:
                     amark="✦",
                 ).execute()
 
+                # Ekstra Detay Girişi
+                extra_details = inquirer.text(
+                    message="Ekstra Detay?",
+                    default="",
+                    qmark="💬",
+                    amark="✦",
+                    long_instruction="Opsiyonel — Örn: 'Ağırlıklı olarak yalnızlık ve yeni şehir teması olsun' (boş bırakılabilir)",
+                ).execute()
+
                 # Onay
                 console.print()
                 confirm = inquirer.confirm(
@@ -1115,7 +1125,7 @@ You must heavily detail the image:
                 ).execute()
 
                 if confirm:
-                    run_web_content(selected, language=lang_choice)
+                    run_web_content(selected, language=lang_choice, extra_details=extra_details)
 
             console.print()
 

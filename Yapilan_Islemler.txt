@@ -304,70 +304,94 @@
 =========================================
 
 =========================================
-🕒 Tarih/Saat: [29.03.2026 - 01:05]
-⚠️ Sorun: Sadece 1 aylık plan üretiliyordu, günlük ve haftalık plan eksikti.
-🎯 İşlem Özeti: main.py'ye periyot seçimi eklendi. Stratejist ajanı 'plan_period'a göre günlük, haftalık ve aylık üretecek şekilde güncellendi.
-📁 Etkilenen Kapsam: core/state.py, agents/strategist.py, main.py
-🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
-🛠️ Geri Dönüş Adımları: git restore core/state.py agents/strategist.py main.py
+?? Tarih/Saat: [29.03.2026 - 01:05]
+?? Sorun: Sadece 1 aylık plan üretiliyordu, günlük ve haftalık plan eksikti.
+?? İ�?lem �?zeti: main.py'ye periyot seçimi eklendi. Stratejist ajanı 'plan_period'a göre günlük, haftalık ve aylık üretecek �?ekilde güncellendi.
+?? Etkilenen Kapsam: core/state.py, agents/strategist.py, main.py
+?? SADECE GİT İLE D�?N�?LEBİLİR Mİ?: EVET
+?? Geri Dönü�? Adımları: git restore core/state.py agents/strategist.py main.py
 =========================================
 
 =========================================
-🕒 Tarih/Saat: [29.03.2026 - 01:22]
-⚠️ Sorun: Scarlett Noire içerik planı üretilirken yaklaşan şarkıların hedef alınmaması.
-🎯 İşlem Özeti: Scarlett Noire'ın custom_data.json dosyasına 'Red Candelight' ve 'Je t'aime' şarkıları için upcoming_events satırına spesifik bir etkinlik eklendi.
-📁 Etkilenen Kapsam: personas/scarlett_noire/custom_data.json
-🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
-🛠️ Geri Dönüş Adımları: git restore personas/scarlett_noire/custom_data.json
+?? Tarih/Saat: [29.03.2026 - 01:22]
+?? Sorun: Scarlett Noire içerik planı üretilirken yakla�?an �?arkıların hedef alınmaması.
+?? İ�?lem �?zeti: Scarlett Noire'ın custom_data.json dosyasına 'Red Candelight' ve 'Je t'aime' �?arkıları için upcoming_events satırına spesifik bir etkinlik eklendi.
+?? Etkilenen Kapsam: personas/scarlett_noire/custom_data.json
+?? SADECE GİT İLE D�?N�?LEBİLİR Mİ?: EVET
+?? Geri Dönü�? Adımları: git restore personas/scarlett_noire/custom_data.json
 =========================================
 
 =========================================
-🕒 Tarih/Saat: [29.03.2026 - 01:38]
-⚠️ Sorun: Şarkıların promosyon planlamalarındaki JSON yapısının (upcoming_events) kısıtlayıcı olması.
-🎯 İşlem Özeti: Notebook LM master prompt şablonu (notebook_lm_master_prompt_sarki.md) yenilendi. Katı array yapıları yerine yapay zekanın doğrudan yapay zekaya hitap ettiği "Agentic JSON / Master Directive" formatına geçildi.
-📁 Etkilenen Kapsam: docs/notebook_lm_master_prompt_sarki.md
-🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
-🛠️ Geri Dönüş Adımları: git restore docs/notebook_lm_master_prompt_sarki.md
+?? Tarih/Saat: [29.03.2026 - 01:38]
+?? Sorun: žarkıların promosyon planlamalarındaki JSON yapısının (upcoming_events) kısıtlayıcı olması.
+?? İ�?lem �?zeti: Notebook LM master prompt �?ablonu (notebook_lm_master_prompt_sarki.md) yenilendi. Katı array yapıları yerine yapay zekanın do�?rudan yapay zekaya hitap etti�?i "Agentic JSON / Master Directive" formatına geçildi.
+?? Etkilenen Kapsam: docs/notebook_lm_master_prompt_sarki.md
+?? SADECE GİT İLE D�?N�?LEBİLİR Mİ?: EVET
+?? Geri Dönü�? Adımları: git restore docs/notebook_lm_master_prompt_sarki.md
 =========================================
 
 =========================================
-🕒 Tarih/Saat: [29.03.2026 - 01:52]
-⚠️ Sorun: Özel Veri Yönetimi menüsündeki "AI Üretsin" seçeneğinin katı "real_songs" / "upcoming_events" şemaları dayatması.
-🎯 İşlem Özeti: main.py içerisindeki custom_data AI oluşturucu LLM prompt'undan katı JSON şeması kaldırıldı. Artık Notebook LM'den veya kullanıcıdan gelen Master Prompt'taki stratejik yönlendirmeleri, release date'leri ve serbest formatlı notları kırpmadan (şemasız şekilde) JSON dosyasına eksiksiz çeviriyor. Domain separation silme blokları da temizlendi.
-📁 Etkilenen Kapsam: main.py
-🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
-🛠️ Geri Dönüş Adımları: git restore main.py
+?? Tarih/Saat: [29.03.2026 - 01:52]
+?? Sorun: �?zel Veri Yönetimi menüsündeki "AI �?retsin" seçene�?inin katı "real_songs" / "upcoming_events" �?emaları dayatması.
+?? İ�?lem �?zeti: main.py içerisindeki custom_data AI olu�?turucu LLM prompt'undan katı JSON �?eması kaldırıldı. Artık Notebook LM'den veya kullanıcıdan gelen Master Prompt'taki stratejik yönlendirmeleri, release date'leri ve serbest formatlı notları kırpmadan (�?emasız �?ekilde) JSON dosyasına eksiksiz çeviriyor. Domain separation silme blokları da temizlendi.
+?? Etkilenen Kapsam: main.py
+?? SADECE GİT İLE D�?N�?LEBİLİR Mİ?: EVET
+?? Geri Dönü�? Adımları: git restore main.py
 =========================================
 
 =========================================
-🕒 Tarih/Saat: [29.03.2026 - 02:19]
-⚠️ Sorun: Uygulama CLI arayüzünün (Terminal / Rich menülerinin) arkasında çalışan httpx veya ai süreçlerine ait sistem mesajlarının (teknik logların) ekrana sızarak görsel kirlilik yaratması.
-🎯 İşlem Özeti: main.py içerisindeki genel log_level ayarı logging.WARNING seviyesinden logging.ERROR seviyesine çekildi. Böylece --verbose komutu verilmeden çalıştırıldığında arkaplanda oluşan uyarı (warning) mesajları Rich konsol animasyonlarını ve arayüzü bozmayacak.
-📁 Etkilenen Kapsam: main.py
-🔄 SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
-🛠️ Geri Dönüş Adımları: git restore main.py
+?? Tarih/Saat: [29.03.2026 - 02:19]
+?? Sorun: Uygulama CLI arayüzünün (Terminal / Rich menülerinin) arkasında çalı�?an httpx veya ai süreçlerine ait sistem mesajlarının (teknik logların) ekrana sızarak görsel kirlilik yaratması.
+?? İ�?lem �?zeti: main.py içerisindeki genel log_level ayarı logging.WARNING seviyesinden logging.ERROR seviyesine çekildi. Böylece --verbose komutu verilmeden çalı�?tırıldı�?ında arkaplanda olu�?an uyarı (warning) mesajları Rich konsol animasyonlarını ve arayüzü bozmayacak.
+?? Etkilenen Kapsam: main.py
+?? SADECE GİT İLE D�?N�?LEBİLİR Mİ?: EVET
+?? Geri Dönü�? Adımları: git restore main.py
 =========================================
 
 =========================================
-🕒 Tarih/Saat: 29.03.2026 - 02:39
-⚠️ Sorun/İhtiyaç: Üretilen içeriklerin n8n veya benzeri bir webhook otomasyonuna tek tıkla bağlanması.
-🎯 İşlem Özeti: Compiler içerisine Python yerleşik 'urllib' ile webhook POST otomasyonu ve n8n kurulum dokümantasyonu eklendi.
-📁 Etkilenen Kapsam: agents/compiler.py, .env.example, docs/n8n_entegrasyonu.md
-🔄 Geri Dönüş: EVET (SADECE GİT İLE DÖNÜLEBİLİR)
+?? Tarih/Saat: 29.03.2026 - 02:39
+?? Sorun/İhtiyaç: �?retilen içeriklerin n8n veya benzeri bir webhook otomasyonuna tek tıkla ba�?lanması.
+?? İ�?lem �?zeti: Compiler içerisine Python yerle�?ik 'urllib' ile webhook POST otomasyonu ve n8n kurulum dokümantasyonu eklendi.
+?? Etkilenen Kapsam: agents/compiler.py, .env.example, docs/n8n_entegrasyonu.md
+?? Geri Dönü�?: EVET (SADECE GİT İLE D�?N�?LEBİLİR)
 =========================================
 
 =========================================
-🕒 Tarih/Saat: 29.03.2026 - 02:49
-⚠️ Sorun/İhtiyaç: n8n entegrasyonunda görsel/video üretimi için AI'a Scarlett gibi karakterlerin referans görsellerinin de webhook ile gönderilmesi eksiği.
-🎯 İşlem Özeti: Compiler ajanı JSON şemasına `reference_images` parametresi eklendi ve 3 referans görselin yerel dosya yolları Webhook'a aktarıldı.
-📁 Etkilenen Kapsam: agents/compiler.py
-🔄 Geri Dönüş: SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET, git checkout ile dönülebilir.
+?? Tarih/Saat: 29.03.2026 - 02:49
+?? Sorun/İhtiyaç: n8n entegrasyonunda görsel/video üretimi için AI'a Scarlett gibi karakterlerin referans görsellerinin de webhook ile gönderilmesi eksi�?i.
+?? İ�?lem �?zeti: Compiler ajanı JSON �?emasına `reference_images` parametresi eklendi ve 3 referans görselin yerel dosya yolları Webhook'a aktarıldı.
+?? Etkilenen Kapsam: agents/compiler.py
+?? Geri Dönü�?: SADECE GİT İLE D�?N�?LEBİLİR Mİ?: EVET, git checkout ile dönülebilir.
 =========================================
 
 =========================================
-🕒 Tarih/Saat: 29.03.2026 - 02:56
-⚠️ Sorun/İhtiyaç: Kullanıcıya üretim öncesi "İçerikler n8n üzerinden otomasyona bağlansın mı?" diye sorup sadece onaylandığında webhook tetiklenmesi isteği.
-🎯 İşlem Özeti: main.py içerisinde InquirerPy ile evet/hayır sorusu eklendi, state içerisine `send_to_n8n` boolean'ı entegre edildi, compiler ajanı bu koşula bağlandı.
-📁 Etkilenen Kapsam: main.py, core/state.py, agents/compiler.py
-🔄 Geri Dönüş: SADECE GİT İLE DÖNÜLEBİLİR Mİ?: EVET
+?? Tarih/Saat: 29.03.2026 - 02:56
+?? Sorun/İhtiyaç: Kullanıcıya üretim öncesi "İçerikler n8n üzerinden otomasyona ba�lansın mı?" diye sorup sadece onaylandı�?ında webhook tetiklenmesi iste�?i.
+?? İ�?lem �?zeti: main.py içerisinde InquirerPy ile evet/hayır sorusu eklendi, state içerisine `send_to_n8n` boolean'ı entegre edildi, compiler ajanı bu ko�?ula ba�?landı.
+?? Etkilenen Kapsam: main.py, core/state.py, agents/compiler.py
+?? Geri Dönü�?: SADECE GİT İLE D�?N�?LEBİLİR Mİ?: EVET
+=========================================
+
+=========================================
+?? Tarih/Saat: 29.03.2026 - 03:40
+?? Sorun/İhtiyaç: Web içerik üretimi a�?amasında kullanıcıdan ekstra detay / opsiyonel prompt alma eksikli�?i.
+?? İ�?lem �?zeti: main.py ve web_content_writer.py dosyalarına extra_details argümanı eklendi. CLI menüsü üzerinden ek prompt alınarak LLM'e ba�?lam olarak gönderilmesi sa�?landı.
+?? Etkilenen Kapsam: main.py, agents/web_content_writer.py
+?? Geri Dönü�?: Evet (Git)
+=========================================
+
+=========================================
+?? Tarih/Saat: 29.03.2026 - 03:51
+?? Sorun/İhtiyaç: Web içeriklerindeki (özellikle geçmi�? tarihli) görsel promptlarının fazla profesyonel ve stüdyo çekimi gibi hissettirmesi, dönem ruhunu yansıtmaması.
+?? İ�?lem �?zeti: agents/web_content_writer.py içindeki Biography ve Portrait image_prompt yönergelerine 'AESTHETIC & REALISM' kuralları eklendi. Disposable camera, 35mm film, flash photography ve candid gibi anahtar kelimeler LLM'e �?art ko�?uldu.
+?? Etkilenen Kapsam: agents/web_content_writer.py
+?? Geri Dönü�?: Evet (Git)
+=========================================
+
+=========================================
+?? Tarih/Saat: 29.03.2026 - 04:26
+?? Sorun/İhtiyaç: �?retilen web ve sosyal medya içeriklerini, persona havuzunu tek bir web arayüzünde excel/tablo formatında görme iste�?i.
+?? İ�?lem �?zeti: Streamlit ve Pandas kullanılarak dashboard.py yazıldı. Personalar, markdown dosyaları ve JSON verileri estetik dark mod içerisinde 3 sekmelik bir arayüze oturtuldu.
+?? Etkilenen Kapsam: dashboard.py, requirements.txt, README.md
+?? Geri Dönü�?: Evet (Git)
 =========================================
