@@ -86,29 +86,64 @@ with tab1:
 
 # ─── 2. SOSYAL MEDYA ÇIKTILARI ───────────────────────────────────────
 with tab2:
-    st.subheader("Üretilen İçerik Planları (Markdown)")
+    st.subheader("Üretilen İçerik Paketleri")
     output_dir = Path("output")
     if output_dir.exists():
-        md_files = list(output_dir.glob("*.md"))
-        md_files = [f for f in md_files if "web_content" not in f.name]
+        # output içindeki sadece dizinleri (web_content hariç) al
+        plan_dirs = [d for d in output_dir.iterdir() if d.is_dir() and d.name != "web_content"]
         
-        if md_files:
-            # Tarihe göre tersten sırala (en güncel dosya en üstte)
-            md_files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+        if plan_dirs:
+            plan_dirs.sort(key=lambda d: d.stat().st_mtime, reverse=True)
+            dir_names = [d.name for d in plan_dirs]
             
-            # Selectbox için isimler yarat
-            file_names = [f.name for f in md_files]
-            selected_md = st.selectbox("İncelemek istediğiniz raporu seçin:", file_names)
+            selected_dir = st.selectbox("İncelemek istediğiniz içerik paketini seçin:", dir_names)
             
-            if selected_md:
-                file_path = output_dir / selected_md
-                with open(file_path, "r", encoding="utf-8") as f:
-                    content = f.read()
+            if selected_dir:
+                selected_path = output_dir / selected_dir
+                md_files = sorted(selected_path.glob("*.md"))
+                json_files = sorted(selected_path.glob("*.json"))
                 
-                with st.expander(f"📄 {selected_md} İçeriğini Görüntüle", expanded=True):
-                    st.markdown(content)
+                if md_files or json_files:
+                    st.divider()
+                    
+                    if json_files:
+                        st.markdown("### 📊 Veri Tabloları (JSON)")
+                        for j_file in json_files:
+                            try:
+                                with open(j_file, "r", encoding="utf-8") as f:
+                                    j_data = json.load(f)
+                                    
+                                if isinstance(j_data, dict):
+                                    v_prompts = j_data.get("visual_prompts", [])
+                                    if v_prompts:
+                                        st.caption(f"🎨 Görsel Promptları ({len(v_prompts)})")
+                                        st.dataframe(pd.DataFrame(v_prompts), use_container_width=True)
+                                        
+                                    vid_prompts = j_data.get("video_prompts", [])
+                                    if vid_prompts:
+                                        st.caption(f"🎬 Video Promptları ({len(vid_prompts)})")
+                                        st.dataframe(pd.DataFrame(vid_prompts), use_container_width=True)
+                                        
+                                    caps = j_data.get("captions", [])
+                                    if caps:
+                                        st.caption(f"✍️ Captions & Metinler ({len(caps)})")
+                                        st.dataframe(pd.DataFrame(caps), use_container_width=True)
+                            except Exception as e:
+                                st.warning(f"JSON verisi işlenemedi: {e}")
+                                
+                    if md_files:
+                        st.markdown("### 📄 Raporlar ve Metinler")
+                        md_tabs = st.tabs([f.name.replace(".md", "").replace("_", " ") for f in md_files])
+                        for t, m_file in zip(md_tabs, md_files):
+                            with t:
+                                with open(m_file, "r", encoding="utf-8") as f:
+                                    st.markdown(f.read())
+                else:
+                    st.warning("Bu paket içinde MD veya JSON dosyası bulunamadı.")
         else:
-            st.info("Henüz sosyal medya markdown çıktısı üretilmemiş.")
+            st.info("Henüz sosyal medya içerik paketi üretilmemiş veya bulunamıyor.")
+    else:
+        st.info("output klasörü henüz oluşturulmamış.")
 
 
 # ─── 3. WEB İÇERİKLERİ ──────────────────────────────────────────────

@@ -395,3 +395,11 @@
 ?? Etkilenen Kapsam: dashboard.py, requirements.txt, README.md
 ?? Geri Dönü�?: Evet (Git)
 =========================================
+
+=========================================
+?? Tarih/Saat: 29.03.2026 - 04:40
+?? Sorun/İhtiyaç: Streamlit dashboard'un üretilen sosyal medya içeriklerini (output altındaki dosyaları) bulamaması.
+?? İ�?lem �?zeti: Sosyal medya içeriklerinin ana dizinde md dosyası olarak de�?il klasör olarak tutuldu�?u tespit edildi. dashboard.py içerisindeki tab2 yapısı bu klasörleri okuyacak, içlerindeki json ve md dosyalarını sekmeler halinde gösterecek �?ekilde güncellendi.
+?? Etkilenen Kapsam: dashboard.py
+?? Geri Dönü�?: Evet (Git)
+=========================================
