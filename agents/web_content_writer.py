@@ -23,6 +23,7 @@ Etkilediği dosyalar:
 AI NOTE: Bu modül stateless'tır — her çağrı kendi output dosyasını yazar.
 DEPENDENCY WARNING: Persona.json yoksa çalışmaz; önce persona build etmek gerekir.
 """
+
 import json
 import logging
 from datetime import datetime
@@ -34,11 +35,13 @@ from core.models import WebBiography, WebPortrait, WebNote, WebContentPackage
 from core.persona_loader import load_cached_persona, load_seed
 from core.llm_bridge import get_llm
 from core.config import AI_MODELS
+from core.json_utils import parse_jsonrobust
 
 logger = logging.getLogger(__name__)
 
 
 # ─── Persona Bağlam Yükleyici ─────────────────────────────────
+
 
 def _build_persona_context(persona_dir: str) -> dict:
     """
@@ -57,30 +60,30 @@ def _build_persona_context(persona_dir: str) -> dict:
             "Önce menüden '🔄 Persona Yenile' veya içerik üreterek persona yükleyin."
         )
 
-    # Şu an 2026 — prompt üretimi sırasındaki gerçek yıla göre hesapla.
+    # Şu anın yılına göre hesapla.
     # DEPENDENCY WARNING: Bu yıl hesaplaması biography tarih kısıtlamasında kullanılır.
-    current_year = 2026
-    birth_year = current_year - persona.age          # 2026 - 29 = 1997
-    career_start_year = birth_year + 18              # Min: 2015 (18 yaş)
-    career_peak_year = current_year - 1              # Max: 2025 (geçmiş kalısın)
+    current_year = datetime.now().year
+    birth_year = current_year - persona.age
+    career_start_year = birth_year + 18  # Min: 2015 (18 yaş)
+    career_peak_year = current_year - 1  # Max: 2025 (geçmiş kalısın)
 
     return {
-        "stage_name":         persona.stage_name,
-        "age":                persona.age,
-        "birth_year":         birth_year,
-        "career_start_year":  career_start_year,
-        "career_peak_year":   career_peak_year,
-        "biography_base":     persona.biography,
-        "tone":               persona.personality.tone,
-        "speaking_style":     persona.personality.speaking_style,
-        "catchphrases":       persona.personality.catchphrases,
-        "visual_references":  persona.visual_identity.visual_references,
-        "fashion_style":      persona.visual_identity.fashion_style,
-        "color_palette":      ", ".join(persona.visual_identity.color_palette),
-        "music_genre":        persona.music.get("genre", ""),
-        "personality_hints":  seed.get("personality_hints", ""),
-        "extra_notes":        seed.get("extra_notes", ""),
-        "content_niche":      seed.get("content", {}).get("niche", ""),
+        "stage_name": persona.stage_name,
+        "age": persona.age,
+        "birth_year": birth_year,
+        "career_start_year": career_start_year,
+        "career_peak_year": career_peak_year,
+        "biography_base": persona.biography,
+        "tone": persona.personality.tone,
+        "speaking_style": persona.personality.speaking_style,
+        "catchphrases": persona.personality.catchphrases,
+        "visual_references": persona.visual_identity.visual_references,
+        "fashion_style": persona.visual_identity.fashion_style,
+        "color_palette": ", ".join(persona.visual_identity.color_palette),
+        "music_genre": persona.music.get("genre", ""),
+        "personality_hints": seed.get("personality_hints", ""),
+        "extra_notes": seed.get("extra_notes", ""),
+        "content_niche": seed.get("content", {}).get("niche", ""),
     }
 
 
@@ -92,23 +95,26 @@ def _build_persona_context(persona_dir: str) -> dict:
 
 _BIO_DIRECTIVES = [
     {
-        "period":  "early in her creative life — before any audience, before any performance",
+        "period": "early in her creative life — before any audience, before any performance",
         "setting": "a small, cold room: a rented space, a rehearsal studio, an attic. Night.",
-        "mood":    "the stillness of something beginning",
+        "mood": "the stillness of something beginning",
     },
     {
-        "period":  "a turning point — a first performance, a recording session, a decision made alone",
+        "period": "a turning point — a first performance, a recording session, a decision made alone",
         "setting": "backstage, a corridor, an empty stage, an unfamiliar city. Dusk or late evening.",
-        "mood":    "the weight of a threshold crossed",
+        "mood": "the weight of a threshold crossed",
     },
     {
-        "period":  "a quieter chapter — after something ended, a creative retreat, a long winter",
+        "period": "a quieter chapter — after something ended, a creative retreat, a long winter",
         "setting": "somewhere open or isolated: a train, a fog-covered coast, a library after hours.",
-        "mood":    "the particular clarity of solitude",
+        "mood": "the particular clarity of solitude",
     },
 ]
 
-def _build_biography_prompt(ctx: dict, directive: dict, language: str) -> tuple[str, str]:
+
+def _build_biography_prompt(
+    ctx: dict, directive: dict, language: str
+) -> tuple[str, str]:
     """
     Tarihli biography enstantesi için (system, human) prompt çiftini üretir.
 
@@ -121,13 +127,17 @@ def _build_biography_prompt(ctx: dict, directive: dict, language: str) -> tuple[
     Returns:
         (system_prompt, human_prompt) tuple'ı
     """
-    birth_year       = ctx.get("birth_year", 1997)
-    min_date_year    = ctx.get("career_start_year", birth_year + 18)
-    max_date_year    = ctx.get("career_peak_year", 2025)
-    
-    user_details_line = f"- USER'S EXTRA REQUEST / CONTEXT: {ctx.get('user_extra_details')}" if ctx.get('user_extra_details') else ""
+    birth_year = ctx.get("birth_year", 1997)
+    min_date_year = ctx.get("career_start_year", birth_year + 18)
+    max_date_year = ctx.get("career_peak_year", 2025)
 
-    system = f"""You are a writer producing content for {ctx['stage_name']}'s website, scarlettnoire.art.
+    user_details_line = (
+        f"- USER'S EXTRA REQUEST / CONTEXT: {ctx.get('user_extra_details')}"
+        if ctx.get("user_extra_details")
+        else ""
+    )
+
+    system = f"""You are a writer producing content for {ctx["stage_name"]}'s website, scarlettnoire.art.
 
 You will generate a DATED SNAPSHOT — a single moment from her life and artistic path.
 Each snapshot has two parts:
@@ -135,18 +145,18 @@ Each snapshot has two parts:
   2. CONTENT: the narrative text of this moment
 
 PERSONA CONSTRAINTS (strictly enforce):
-- Tone: {ctx['tone'][:250]}
-- Music: {ctx['music_genre']}
+- Tone: {ctx["tone"][:250]}
+- Music: {ctx["music_genre"]}
 - FORBIDDEN topics: romance, sexuality, violence, conflict, modern slang, irony, humor
 - FORBIDDEN words/phrases: "embark", "journey", "passionate", "dedicated", "haunting", "captivating"
 - Writing must feel like every word has been chosen deliberately
-- {ctx['extra_notes'][:350] if ctx['extra_notes'] else ''}
+- {ctx["extra_notes"][:350] if ctx["extra_notes"] else ""}
 {user_details_line}
 - Language for CONTENT: {language}
 - Language for IMAGE_PROMPT: always English (regardless of content language)
 
 CHRONOLOGY CONSTRAINT — STRICT:
-- {ctx['stage_name']} was born in {birth_year}.
+- {ctx["stage_name"]} was born in {birth_year}.
 - She was 18 years old in {min_date_year}. That is the EARLIEST possible date for any career snapshot.
 - The LATEST possible date is {max_date_year} (must remain in the past).
 - ANY date before {min_date_year} is a factual error — she was not yet an adult or active artist.
@@ -155,12 +165,12 @@ CHRONOLOGY CONSTRAINT — STRICT:
     human = f"""Generate a dated snapshot with these two parts. Return ONLY valid JSON — no markdown, no backticks.
 
 SCENE DIRECTIVE:
-- Period: {directive['period']}
-- Setting: {directive['setting']}
-- Mood: {directive['mood']}
+- Period: {directive["period"]}
+- Setting: {directive["setting"]}
+- Mood: {directive["mood"]}
 
 PERSONA FOUNDATION:
-{ctx['biography_base'][:500]}
+{ctx["biography_base"][:500]}
 
 For the IMAGE_PROMPT (always in English):
 - Start with: "The person in the reference images provided*" followed by their position/presence in the scene
@@ -206,22 +216,25 @@ Return exactly this JSON structure:
 _PORTRAIT_DIRECTIVES = [
     {
         "mood_tag": "still",
-        "context":  "late evening, after a long day of silence. Nothing happened. Everything felt very clear.",
+        "context": "late evening, after a long day of silence. Nothing happened. Everything felt very clear.",
         "tone_note": "the quietness that arrives after all external noise has finally stopped",
     },
     {
         "mood_tag": "restless",
-        "context":  "sometime before dawn. Unable to sleep. A thought that won't leave.",
+        "context": "sometime before dawn. Unable to sleep. A thought that won't leave.",
         "tone_note": "not anxiety — closer to a persistent, slow-burning awareness",
     },
     {
         "mood_tag": "hollow",
-        "context":  "the afternoon after something finished: a recording, a performance, a season.",
+        "context": "the afternoon after something finished: a recording, a performance, a season.",
         "tone_note": "the particular emptiness that follows completion — not grief, not relief, just space",
     },
 ]
 
-def _build_portrait_prompt(ctx: dict, directive: dict, language: str) -> tuple[str, str]:
+
+def _build_portrait_prompt(
+    ctx: dict, directive: dict, language: str
+) -> tuple[str, str]:
     """
     Günlük alıntısı (portrait) için (system, human) prompt çiftini üretir.
     Artık image_prompt da döndürür — biography ile aynı görsel kurallar.
@@ -229,13 +242,17 @@ def _build_portrait_prompt(ctx: dict, directive: dict, language: str) -> tuple[s
     Returns:
         (system_prompt, human_prompt) tuple'ı
     """
-    birth_year       = ctx.get("birth_year", 1997)
-    min_date_year    = ctx.get("career_start_year", birth_year + 18)
-    max_date_year    = ctx.get("career_peak_year", 2025)
+    birth_year = ctx.get("birth_year", 1997)
+    min_date_year = ctx.get("career_start_year", birth_year + 18)
+    max_date_year = ctx.get("career_peak_year", 2025)
 
-    user_details_line = f"- USER'S EXTRA REQUEST / CONTEXT: {ctx.get('user_extra_details')}" if ctx.get('user_extra_details') else ""
+    user_details_line = (
+        f"- USER'S EXTRA REQUEST / CONTEXT: {ctx.get('user_extra_details')}"
+        if ctx.get("user_extra_details")
+        else ""
+    )
 
-    system = f"""You are writing fictional diary entries and scene images for {ctx['stage_name']} — published on her website, scarlettnoire.art.
+    system = f"""You are writing fictional diary entries and scene images for {ctx["stage_name"]} — published on her website, scarlettnoire.art.
 
 You will generate TWO things per entry:
   1. IMAGE_PROMPT: a compact AI image generation prompt for the scene of this diary entry
@@ -243,18 +260,18 @@ You will generate TWO things per entry:
 
 VOICE & IMAGE CONSTRAINTS:
 - Diary content: First person singular ("I", "my", "me") — always
-- Tone: {ctx['tone'][:250]}
-- Speaking style: {ctx['speaking_style'][:200]}
+- Tone: {ctx["tone"][:250]}
+- Speaking style: {ctx["speaking_style"][:200]}
 - FORBIDDEN in content: romance, sexuality, violence, irony, self-promotion, marketing language
 - Do not reference audiences, fans, or the music industry directly
 - No abstract philosophizing. Ground every thought in something concrete and observed.
-- {ctx['extra_notes'][:300] if ctx['extra_notes'] else ''}
+- {ctx["extra_notes"][:300] if ctx["extra_notes"] else ""}
 {user_details_line}
 - Language for CONTENT: {language}
 - Language for IMAGE_PROMPT: always English
 
 CHRONOLOGY CONSTRAINT — STRICT:
-- {ctx['stage_name']} was born in {birth_year}.
+- {ctx["stage_name"]} was born in {birth_year}.
 - She was 18 years old in {min_date_year}. That is the EARLIEST possible date for any diary entry.
 - The LATEST possible date is {max_date_year} (must remain in the past).
 - ANY date before {min_date_year} is a factual error."""
@@ -262,14 +279,14 @@ CHRONOLOGY CONSTRAINT — STRICT:
     human = f"""Generate a portrait entry with an image prompt and diary text. Return ONLY valid JSON — no markdown, no backticks.
 
 ENTRY DIRECTIVE:
-- Mood: {directive['mood_tag']}
-- Context: {directive['context']}
-- Underlying tone: {directive['tone_note']}
+- Mood: {directive["mood_tag"]}
+- Context: {directive["context"]}
+- Underlying tone: {directive["tone_note"]}
 
 PERSONA FOUNDATION (voice reference, do not summarize):
-- Catchphrases (spirit, not literal): {ctx['catchphrases']}
-- Content niche: {ctx['content_niche'][:200]}
-- Color/visual world to reference when relevant: {ctx['color_palette']}
+- Catchphrases (spirit, not literal): {ctx["catchphrases"]}
+- Content niche: {ctx["content_niche"][:200]}
+- Color/visual world to reference when relevant: {ctx["color_palette"]}
 
 For the IMAGE_PROMPT (always in English):
 - Start with: "The person in the reference images provided*" followed by their position/presence
@@ -294,7 +311,8 @@ For the CONTENT (MAXIMUM 3 sentences, in {language}):
 Return exactly this JSON structure:
 {{
   "date": "Month DD, YYYY",
-  "mood_tag": "{directive['mood_tag']}",
+  "title": "A poetic 2-4 word title that captures the essence of this moment...",
+  "mood_tag": "{directive["mood_tag"]}",
   "image_prompt": "The person in the reference images provided* ...",
   "content": "..."
 }}"""
@@ -307,6 +325,7 @@ Return exactly this JSON structure:
 # AI NOTE: 3 notu tek LLM çağrısında üretiyoruz (verimlilik).
 # LLM tam olarak 1 is_pinned:true döndürmelidir; prompt bunu açıkça talep eder.
 
+
 def _build_notes_prompt(ctx: dict, language: str) -> tuple[str, str]:
     """
     3 kısa, vurucu günlük notu için (system, human) prompt çifti.
@@ -316,9 +335,13 @@ def _build_notes_prompt(ctx: dict, language: str) -> tuple[str, str]:
     Returns:
         (system_prompt, human_prompt) tuple'ı
     """
-    user_details_line = f"- USER'S EXTRA REQUEST / CONTEXT: {ctx.get('user_extra_details')}" if ctx.get('user_extra_details') else ""
+    user_details_line = (
+        f"- USER'S EXTRA REQUEST / CONTEXT: {ctx.get('user_extra_details')}"
+        if ctx.get("user_extra_details")
+        else ""
+    )
 
-    system = f"""You are writing short, striking notes from {ctx['stage_name']}'s personal journal for her website, scarlettnoire.art.
+    system = f"""You are writing short, striking notes from {ctx["stage_name"]}'s personal journal for her website, scarlettnoire.art.
 
 These are NOT diary entries and NOT captions. They are single, crystalline observations —
 the kind written on a loose page and left somewhere.
@@ -326,10 +349,10 @@ Each note is 1-2 sentences. Every word must earn its place.
 
 CONSTRAINTS:
 - First person singular — always
-- Tone: {ctx['tone'][:200]}
+- Tone: {ctx["tone"][:200]}
 - FORBIDDEN: romance, sexuality, violence, irony, marketing, self-reference as an artist
 - No metaphors that feel generic. Ground each note in something physical: a sound, a texture, a light.
-- {ctx['extra_notes'][:250] if ctx['extra_notes'] else ''}
+- {ctx["extra_notes"][:250] if ctx["extra_notes"] else ""}
 {user_details_line}
 - Language: {language}"""
 
@@ -342,8 +365,8 @@ RULES:
 - The other two are strong but more understated
 
 VOICE REFERENCE (spirit, not literal copy):
-- Catchphrases: {ctx['catchphrases']}
-- Content niche: {ctx['content_niche'][:200]}
+- Catchphrases: {ctx["catchphrases"]}
+- Content niche: {ctx["content_niche"][:200]}
 
 Return exactly this JSON structure:
 {{
@@ -358,6 +381,7 @@ Return exactly this JSON structure:
 
 
 # ─── Tek İçerik Üretici ───────────────────────────────────────
+
 
 def _generate_json_single(system_prompt: str, human_prompt: str) -> dict:
     """
@@ -375,19 +399,42 @@ def _generate_json_single(system_prompt: str, human_prompt: str) -> dict:
     response = llm.invoke(messages)
     raw = response.content if hasattr(response, "content") else str(response)
 
-    # Markdown kod bloğu varsa temizle
-    raw = raw.strip()
-    if raw.startswith("```json"):
-        raw = raw[7:]
-    elif raw.startswith("```"):
-        raw = raw[3:]
-    if raw.endswith("```"):
-        raw = raw[:-3]
+    if isinstance(raw, list):
+        raw = raw[0] if raw else ""
 
-    return json.loads(raw.strip())
+    raw_str = str(raw)
+    logger.info(f"[WEB_CONTENT] Raw response length: {len(raw_str)} chars")
+    logger.debug(f"[WEB_CONTENT] Raw response preview: {raw_str[:500]}")
+
+    try:
+        result = parse_jsonrobust(raw)
+
+        # Model bazen array dönebilir, biz dict bekliyoruz
+        if isinstance(result, list):
+            logger.warning(
+                f"[WEB_CONTENT] Parser returned a list, extracting first item"
+            )
+            result = result[0] if result else {}
+
+        if not isinstance(result, dict):
+            logger.warning(
+                f"[WEB_CONTENT] Parser returned non-dict: {type(result)}, converting"
+            )
+            result = {}
+
+        logger.info(
+            f"[WEB_CONTENT] Parsed keys: {list(result.keys()) if isinstance(result, dict) else type(result)}"
+        )
+        logger.debug(f"[WEB_CONTENT] Parsed result preview: {str(result)[:200]}")
+        return result
+    except (ValueError, json.JSONDecodeError) as e:
+        logger.error(f"[WEB_CONTENT] JSON parse FAILED: {e}")
+        logger.error(f"[WEB_CONTENT] Raw response was: {raw_str[:500]}")
+        raise
 
 
 # ─── Çıktı Kaydetme ───────────────────────────────────────────
+
 
 def _save_package(package: WebContentPackage) -> tuple[str, str]:
     """
@@ -440,6 +487,7 @@ def _save_package(package: WebContentPackage) -> tuple[str, str]:
     for i, portrait in enumerate(package.portraits, 1):
         md_lines += [
             f"### Portrait {i} — {portrait.date}",
+            f"**{portrait.title}**",
             f"*{portrait.mood_tag}* | *~{portrait.word_count} words*",
             f"",
             f"**Image Prompt:**",
@@ -472,6 +520,7 @@ def _save_package(package: WebContentPackage) -> tuple[str, str]:
 
 # ─── Ana Üretim Fonksiyonu ────────────────────────────────────
 
+
 def generate_web_content(
     persona_dir: str,
     language: str = "English",
@@ -493,6 +542,7 @@ def generate_web_content(
     Raises:
         FileNotFoundError: persona.json yoksa
     """
+
     def _progress(label: str):
         if progress_callback:
             progress_callback(label)
@@ -512,13 +562,19 @@ def generate_web_content(
         _progress(f"📸 Biography — {directive['mood']} üretiliyor...")
         sys_p, human_p = _build_biography_prompt(ctx, directive, language)
         data = _generate_json_single(sys_p, human_p)
+        logger.info(
+            f"[WEB_CONTENT] Biography raw data keys: {list(data.keys()) if isinstance(data, dict) else type(data)}"
+        )
+        logger.debug(f"[WEB_CONTENT] Biography data: {str(data)[:200]}")
         wc = len(data.get("content", "").split())
-        biographies.append(WebBiography(
-            date=data.get("date", "Unknown date"),
-            image_prompt=data.get("image_prompt", ""),
-            content=data.get("content", ""),
-            word_count=wc,
-        ))
+        biographies.append(
+            WebBiography(
+                date=data.get("date", "Unknown date"),
+                image_prompt=data.get("image_prompt", ""),
+                content=data.get("content", ""),
+                word_count=wc,
+            )
+        )
 
     # ── 3. Portrait üretimi (3 günlük alıntısı + image_prompt) ──
     portraits = []
@@ -526,14 +582,21 @@ def generate_web_content(
         _progress(f"📔 Portrait — '{directive['mood_tag']}' üretiliyor...")
         sys_p, human_p = _build_portrait_prompt(ctx, directive, language)
         data = _generate_json_single(sys_p, human_p)
+        logger.info(
+            f"[WEB_CONTENT] Portrait raw data keys: {list(data.keys()) if isinstance(data, dict) else type(data)}"
+        )
+        logger.debug(f"[WEB_CONTENT] Portrait data: {str(data)[:200]}")
         wc = len(data.get("content", "").split())
-        portraits.append(WebPortrait(
-            date=data.get("date", "Unknown date"),
-            mood_tag=data.get("mood_tag", directive["mood_tag"]),
-            image_prompt=data.get("image_prompt", ""),
-            content=data.get("content", ""),
-            word_count=wc,
-        ))
+        portraits.append(
+            WebPortrait(
+                date=data.get("date", "Unknown date"),
+                title=data.get("title", "Untitled"),
+                mood_tag=data.get("mood_tag", directive["mood_tag"]),
+                image_prompt=data.get("image_prompt", ""),
+                content=data.get("content", ""),
+                word_count=wc,
+            )
+        )
 
     # ── 4. Notlar üretimi (3 kısa vurucu not, 1 pinned) ──────
     _progress("📝 Notlar üretiliyor...")
@@ -542,11 +605,13 @@ def generate_web_content(
     notes = []
     for n in notes_data.get("notes", []):
         wc = len(n.get("content", "").split())
-        notes.append(WebNote(
-            content=n.get("content", ""),
-            is_pinned=n.get("is_pinned", False),
-            word_count=wc,
-        ))
+        notes.append(
+            WebNote(
+                content=n.get("content", ""),
+                is_pinned=n.get("is_pinned", False),
+                word_count=wc,
+            )
+        )
 
     # ── 5. Paketi derle ve kaydet ─────────────────────────────
     _progress("📦 Paket derleniyor ve dosyaya yazılıyor...")

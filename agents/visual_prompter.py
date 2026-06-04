@@ -11,6 +11,7 @@ Etkilediği dosyalar: core/state.py (visual_prompts, video_prompts alanları),
 // AI NOTE: ai_reference_prompt (Context Builder'dan gelen master prompt)
 // her görsel/video promptunun başına eklenerek karakter tutarlılığı sağlanır.
 """
+
 import json
 import logging
 from typing import Optional
@@ -36,7 +37,9 @@ def _collect_slots(weekly_plans, need_visual: bool = True, need_video: bool = Fa
     return slots
 
 
-def _build_visual_prompt(persona_dict: dict, slots: list, custom_data: Optional[dict] = None) -> str:
+def _build_visual_prompt(
+    persona_dict: dict, slots: list, custom_data: Optional[dict] = None
+) -> str:
     """Görsel prompt üretim yönergesi."""
     vi = persona_dict.get("visual_identity", {})
     master_prompt = vi.get("ai_reference_prompt", "")
@@ -50,10 +53,10 @@ def _build_visual_prompt(persona_dict: dict, slots: list, custom_data: Optional[
     prompt_str = f"""You are an expert AI Image Prompt Engineer specializing in music artist content.
 
 ## ARTIST VISUAL IDENTITY
-- Appearance: {vi.get('appearance', 'N/A')}
-- Fashion: {vi.get('fashion_style', 'N/A')}
-- Color palette: {vi.get('color_palette', [])}
-- Visual references: {vi.get('visual_references', 'N/A')}
+- Appearance: {vi.get("appearance", "N/A")}
+- Fashion: {vi.get("fashion_style", "N/A")}
+- Color palette: {vi.get("color_palette", [])}
+- Visual references: {vi.get("visual_references", "N/A")}
 
 ## MASTER REFERENCE PROMPT (use as base for ALL prompts)
 {master_prompt}
@@ -94,7 +97,9 @@ Generate one VisualPrompt per slot.
     return prompt_str
 
 
-def _build_video_prompt(persona_dict: dict, slots: list, custom_data: Optional[dict] = None) -> str:
+def _build_video_prompt(
+    persona_dict: dict, slots: list, custom_data: Optional[dict] = None
+) -> str:
     """Video prompt üretim yönergesi."""
     vi = persona_dict.get("visual_identity", {})
     master_prompt = vi.get("ai_reference_prompt", "")
@@ -109,10 +114,10 @@ def _build_video_prompt(persona_dict: dict, slots: list, custom_data: Optional[d
     prompt_str = f"""You are an expert AI Video Director specializing in music video content and social media clips.
 
 ## ARTIST VISUAL IDENTITY
-- Appearance: {vi.get('appearance', 'N/A')}
-- Fashion: {vi.get('fashion_style', 'N/A')}
-- Color palette: {vi.get('color_palette', [])}
-- Visual references: {vi.get('visual_references', 'N/A')}
+- Appearance: {vi.get("appearance", "N/A")}
+- Fashion: {vi.get("fashion_style", "N/A")}
+- Color palette: {vi.get("color_palette", [])}
+- Visual references: {vi.get("visual_references", "N/A")}
 
 ## MASTER REFERENCE PROMPT
 {master_prompt}
@@ -165,11 +170,12 @@ def visual_prompter_node(state: InfluencerState) -> dict:
     weekly_plans = state["weekly_plans"]
     custom_data = state.get("custom_data")
 
-    persona_dict = persona.model_dump() if hasattr(persona, 'model_dump') else persona
+    persona_dict = persona.model_dump() if hasattr(persona, "model_dump") else persona
 
     logger.info("[VISUAL PROMPTER] 🎨 Prompt üretimi başlıyor...")
-    
+
     from rich.console import Console
+
     console = Console()
 
     # ── Görsel Promptlar ───────────────────────────────────
@@ -180,17 +186,19 @@ def visual_prompter_node(state: InfluencerState) -> dict:
         # Batch halinde üret (5'erli gruplar — JSON güvenilirliği için)
         batch_size = 5
         total_batches = (len(visual_slots) + batch_size - 1) // batch_size
-        
+
+        vp_llm = get_structured_llm("visual_prompter", VisualPrompt)
         for i in range(0, len(visual_slots), batch_size):
-            batch = visual_slots[i:i + batch_size]
+            batch = visual_slots[i : i + batch_size]
             prompt = _build_visual_prompt(persona_dict, batch, custom_data)
             current_batch = (i // batch_size) + 1
-            
-            console.print(f"    [dim]⏳ Görsel Prompter: {len(visual_slots)} görselden {i+1}-{min(i+batch_size, len(visual_slots))} arası hesaplanıyor... (Batch {current_batch}/{total_batches})[/dim]")
+
+            console.print(
+                f"    [dim]⏳ Görsel Prompter: {len(visual_slots)} görselden {i + 1}-{min(i + batch_size, len(visual_slots))} arası hesaplanıyor... (Batch {current_batch}/{total_batches})[/dim]"
+            )
 
             for slot in batch:
                 try:
-                    vp_llm = get_structured_llm("visual_prompter", VisualPrompt)
                     single_prompt = f"""{prompt}
 
 Generate ONLY the VisualPrompt for this specific slot:
@@ -203,7 +211,9 @@ Generate ONLY the VisualPrompt for this specific slot:
                     vp = vp_llm.invoke([HumanMessage(content=single_prompt)])
                     visual_prompts.append(vp)
                 except Exception as e:
-                    logger.error(f"[VISUAL PROMPTER] Görsel prompt hatası ({slot.date}_{slot.platform}): {e}")
+                    logger.error(
+                        f"[VISUAL PROMPTER] Görsel prompt hatası ({slot.date}_{slot.platform}): {e}"
+                    )
 
         logger.info(f"[VISUAL PROMPTER] {len(visual_prompts)} görsel prompt üretildi.")
 
@@ -212,10 +222,12 @@ Generate ONLY the VisualPrompt for this specific slot:
     video_prompts = []
 
     if video_slots:
+        vid_llm = get_structured_llm("visual_prompter", VideoPrompt)
         for index, slot in enumerate(video_slots):
-            console.print(f"    [dim]⏳ Video Prompter: {len(video_slots)} videodan {index+1}. ({slot.date} {slot.platform}) yönetmen notları kurgulanıyor...[/dim]")
+            console.print(
+                f"    [dim]⏳ Video Prompter: {len(video_slots)} videodan {index + 1}. ({slot.date} {slot.platform}) yönetmen notları kurgulanıyor...[/dim]"
+            )
             try:
-                vid_llm = get_structured_llm("visual_prompter", VideoPrompt)
                 prompt = _build_video_prompt(persona_dict, [slot], custom_data)
                 single_prompt = f"""{prompt}
 
@@ -230,7 +242,9 @@ Generate ONLY the VideoPrompt for this specific slot:
                 vp = vid_llm.invoke([HumanMessage(content=single_prompt)])
                 video_prompts.append(vp)
             except Exception as e:
-                logger.error(f"[VISUAL PROMPTER] Video prompt hatası ({slot.date}_{slot.platform}): {e}")
+                logger.error(
+                    f"[VISUAL PROMPTER] Video prompt hatası ({slot.date}_{slot.platform}): {e}"
+                )
 
         logger.info(f"[VISUAL PROMPTER] {len(video_prompts)} video prompt üretildi.")
 

@@ -7,6 +7,7 @@ yoksa Context Builder ajanını tetikleyerek persona'yı otomatik üretir.
 Sistemdeki yeri: main.py tarafından çağrılır, state'e persona verisini besler.
 Etkilediği dosyalar: agents/context_builder.py (üretim), core/state.py (veri akışı)
 """
+
 import json
 import logging
 from pathlib import Path
@@ -44,7 +45,7 @@ def load_seed(persona_dir: str) -> dict:
 
     # Zorunlu alan kontrolü
     required_fields = ["name", "biography"]
-    missing = [f for f in required_fields if f not in seed]
+    missing = [f for f in required_fields if not seed.get(f)]
     if missing:
         raise ValueError(f"seed.json'da eksik zorunlu alanlar: {missing}")
 
@@ -67,7 +68,8 @@ def discover_images(persona_dir: str) -> list[str]:
 
     supported_ext = {".jpg", ".jpeg", ".png", ".webp"}
     image_paths = [
-        str(p) for p in sorted(images_dir.iterdir())
+        str(p)
+        for p in sorted(images_dir.iterdir())
         if p.is_file() and p.suffix.lower() in supported_ext
     ]
 
@@ -77,6 +79,8 @@ def discover_images(persona_dir: str) -> list[str]:
         logger.info(f"[PERSONA] {len(image_paths)} adet görsel bulundu.")
 
     return image_paths
+
+
 def load_custom_data(persona_dir: str) -> Optional[dict]:
     """
     Kullanıcının sağladığı custom_data.json dosyasını yükler.
@@ -131,7 +135,8 @@ def save_persona(persona_dir: str, persona: PersonaProfile):
     persona_path = Path(persona_dir) / "persona.json"
 
     with open(persona_path, "w", encoding="utf-8") as f:
-        json.dump(persona.model_dump(exclude_none=True), f, ensure_ascii=False, indent=2)
+        json.dump(
+            persona.model_dump(exclude_none=True), f, ensure_ascii=False, indent=2
+        )
 
     logger.info(f"[PERSONA] Kaydedildi: {persona_path}")
-

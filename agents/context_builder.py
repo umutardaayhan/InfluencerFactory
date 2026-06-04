@@ -9,6 +9,7 @@ Etkilediği dosyalar: core/state.py (persona alanını doldurur),
                      core/persona_loader.py (cache yazma),
                      agents/visual_prompter.py (ai_reference_prompt tüketici)
 """
+
 import json
 import logging
 
@@ -16,8 +17,14 @@ from langchain_core.messages import HumanMessage
 
 from core.state import InfluencerState
 from core.models import PersonaProfile
-from core.llm_bridge import get_vision_llm, get_structured_llm, image_to_base64, get_image_mime
+from core.llm_bridge import (
+    get_vision_llm,
+    get_structured_llm,
+    image_to_base64,
+    get_image_mime,
+)
 from core.persona_loader import load_cached_persona, save_persona
+from core.json_utils import parse_jsonrobust
 
 logger = logging.getLogger(__name__)
 
@@ -28,15 +35,15 @@ MAX_IMAGES = 10
 
 def _build_vision_prompt(seed: dict, image_count: int) -> str:
     """Multimodal LLM'e gönderilecek analiz promptunu oluşturur."""
-    
+
     if image_count > 0:
         intro = f"I'm showing you {image_count} photographs of a music artist. Analyze these images carefully and extract:"
     else:
         intro = "I am NOT providing any photographs. Since this persona lacks visual references, your job is to completely INVENT and IMAGINE a unique, highly detailed, and creative visual identity from scratch that perfectly matches this person's background, genre, and personality described below."
 
-    music_data = seed.get('music') or {}
-    content_data = seed.get('content') or {}
-    niche = music_data.get('genre') or content_data.get('niche') or 'Unknown'
+    music_data = seed.get("music") or {}
+    content_data = seed.get("content") or {}
+    niche = music_data.get("genre") or content_data.get("niche") or "Unknown"
 
     return f"""You are an expert visual identity analyst for music artists and influencers.
 
@@ -61,9 +68,9 @@ def _build_vision_prompt(seed: dict, image_count: int) -> str:
    fashion style, and preferred lighting/mood. This is the MASTER PROMPT for visual consistency.
 
 Here is the artist's background info:
-- Name: {seed.get('name', 'Unknown')}
+- Name: {seed.get("name", "Unknown")}
 - Niche/Genre: {niche}
-- Personality hints: {seed.get('personality_hints', 'Not provided')}
+- Personality hints: {seed.get("personality_hints", "Not provided")}
 
 Respond in a valid JSON format with these exact keys:
 {{
@@ -78,29 +85,29 @@ Respond in a valid JSON format with these exact keys:
 
 def _build_personality_prompt(seed: dict, visual_analysis: dict) -> str:
     """Kişilik detaylarını çıkaran prompt."""
-    music_data = seed.get('music') or {}
-    content_data = seed.get('content') or {}
-    niche = music_data.get('genre') or content_data.get('niche') or 'Unknown'
-    influences = music_data.get('influences', [])
-    
+    music_data = seed.get("music") or {}
+    content_data = seed.get("content") or {}
+    niche = music_data.get("genre") or content_data.get("niche") or "Unknown"
+    influences = music_data.get("influences", [])
+
     return f"""You are an expert at creating digital personas for music artists.
 
 Based on the following information, create a detailed digital personality profile:
 
 **Artist Info:**
-- Name: {seed.get('name', 'Unknown')}
-- Stage Name: {seed.get('stage_name', seed.get('name', 'Unknown'))}
-- Age: {seed.get('age', 'Unknown')}
-- Gender: {seed.get('gender', 'Unknown')}
-- Biography: {seed.get('biography', '')}
+- Name: {seed.get("name", "Unknown")}
+- Stage Name: {seed.get("stage_name", seed.get("name", "Unknown"))}
+- Age: {seed.get("age", "Unknown")}
+- Gender: {seed.get("gender", "Unknown")}
+- Biography: {seed.get("biography", "")}
 - Niche/Genre: {niche}
 - Influences: {influences}
-- Personality Hints: {seed.get('personality_hints', '')}
+- Personality Hints: {seed.get("personality_hints", "")}
 
 **Visual Identity (from photo analysis):**
-- Appearance: {visual_analysis.get('appearance', '')}
-- Fashion: {visual_analysis.get('fashion_style', '')}
-- Visual References: {visual_analysis.get('visual_references', '')}
+- Appearance: {visual_analysis.get("appearance", "")}
+- Fashion: {visual_analysis.get("fashion_style", "")}
+- Visual References: {visual_analysis.get("visual_references", "")}
 
 Create a persona profile with:
 1. An enriched biography (2-3 paragraphs, storytelling style)
@@ -142,7 +149,9 @@ def context_builder_node(state: InfluencerState) -> dict:
         logger.info(f"[CONTEXT BUILDER] Cache'den yüklendi: {cached.stage_name}")
         return {"persona": cached}
 
-    logger.info(f"[CONTEXT BUILDER] Persona oluşturuluyor... ({len(image_paths)} görsel)")
+    logger.info(
+        f"[CONTEXT BUILDER] Persona oluşturuluyor... ({len(image_paths)} görsel)"
+    )
 
     # ── 2. Multimodal görsel analiz ────────────────────────
     vision_llm = get_vision_llm("context_builder")
@@ -153,28 +162,21 @@ def context_builder_node(state: InfluencerState) -> dict:
     for img_path in images_to_send:
         b64 = image_to_base64(img_path)
         mime = get_image_mime(img_path)
-        content_parts.append({
-            "type": "image_url",
-            "image_url": {"url": f"data:{mime};base64,{b64}"}
-        })
+        content_parts.append(
+            {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}}
+        )
 
-    content_parts.append({
-        "type": "text",
-        "text": _build_vision_prompt(seed, len(images_to_send))
-    })
+    content_parts.append(
+        {"type": "text", "text": _build_vision_prompt(seed, len(images_to_send))}
+    )
 
     vision_response = vision_llm.invoke([HumanMessage(content=content_parts)])
     visual_text = vision_response.content
+    if isinstance(visual_text, list):
+        visual_text = visual_text[0] if visual_text else ""
 
-    # JSON parse (LLM çıktısından)
     try:
-        # Markdown code block temizliği
-        clean = visual_text
-        if "```json" in clean:
-            clean = clean.split("```json")[1].split("```")[0]
-        elif "```" in clean:
-            clean = clean.split("```")[1].split("```")[0]
-        visual_analysis = json.loads(clean.strip())
+        visual_analysis = parse_jsonrobust(visual_text)
     except (json.JSONDecodeError, IndexError) as e:
         logger.error(f"[CONTEXT BUILDER] Görsel analiz parse hatası: {e}")
         visual_analysis = {
@@ -182,24 +184,23 @@ def context_builder_node(state: InfluencerState) -> dict:
             "fashion_style": "Bilinmiyor",
             "color_palette": ["siyah", "beyaz"],
             "visual_references": "Bilinmiyor",
-            "ai_reference_prompt": "A music artist, detailed portrait"
+            "ai_reference_prompt": "A music artist, detailed portrait",
         }
 
     logger.info("[CONTEXT BUILDER] Görsel kimlik analizi tamamlandı.")
 
     # ── 3. Kişilik profili oluşturma ───────────────────────
-    personality_llm = get_vision_llm("context_builder")
+    personality_llm = get_llm("context_builder")
     personality_prompt = _build_personality_prompt(seed, visual_analysis)
-    personality_response = personality_llm.invoke([HumanMessage(content=personality_prompt)])
+    personality_response = personality_llm.invoke(
+        [HumanMessage(content=personality_prompt)]
+    )
     personality_text = personality_response.content
+    if isinstance(personality_text, list):
+        personality_text = personality_text[0] if personality_text else ""
 
     try:
-        clean = personality_text
-        if "```json" in clean:
-            clean = clean.split("```json")[1].split("```")[0]
-        elif "```" in clean:
-            clean = clean.split("```")[1].split("```")[0]
-        personality_data = json.loads(clean.strip())
+        personality_data = parse_jsonrobust(personality_text)
     except (json.JSONDecodeError, IndexError) as e:
         logger.error(f"[CONTEXT BUILDER] Kişilik parse hatası: {e}")
         personality_data = {
@@ -208,7 +209,7 @@ def context_builder_node(state: InfluencerState) -> dict:
             "speaking_style": "Doğal ve samimi",
             "emoji_usage": "Orta düzey",
             "hashtag_style": "#music #newrelease",
-            "catchphrases": []
+            "catchphrases": [],
         }
 
     logger.info("[CONTEXT BUILDER] Kişilik profili tamamlandı.")
@@ -243,6 +244,8 @@ def context_builder_node(state: InfluencerState) -> dict:
 
     # Cache'e kaydet
     save_persona(persona_dir, persona)
-    logger.info(f"[CONTEXT BUILDER] ✅ Persona oluşturuldu ve kaydedildi: {persona.stage_name}")
+    logger.info(
+        f"[CONTEXT BUILDER] ✅ Persona oluşturuldu ve kaydedildi: {persona.stage_name}"
+    )
 
     return {"persona": persona}

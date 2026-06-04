@@ -8,6 +8,7 @@ Sistemdeki yeri: Visual Prompter'dan sonra çalışır.
 Etkilediği dosyalar: core/state.py (captions alanı),
                      agents/quality_controller.py (ses tutarlılığı kontrolü)
 """
+
 import json
 import logging
 from typing import Optional
@@ -21,7 +22,9 @@ from core.llm_bridge import get_structured_llm
 logger = logging.getLogger(__name__)
 
 
-def _build_copywriter_prompt(persona_dict: dict, slots: list, custom_data: Optional[dict] = None) -> str:
+def _build_copywriter_prompt(
+    persona_dict: dict, slots: list, custom_data: Optional[dict] = None
+) -> str:
     """Metin yazarına gönderilecek prompt."""
     personality = persona_dict.get("personality", {})
     music = persona_dict.get("music", {})
@@ -37,14 +40,14 @@ def _build_copywriter_prompt(persona_dict: dict, slots: list, custom_data: Optio
 that sound EXACTLY like the artist speaks — not like a marketing agency.
 
 ## ARTIST VOICE PROFILE
-- Name: {persona_dict.get('stage_name', persona_dict.get('name', 'Artist'))}
-- Tone: {personality.get('tone', 'neutral')}
-- Speaking Style: {personality.get('speaking_style', 'natural')}
-- Emoji Usage: {personality.get('emoji_usage', 'moderate')}
-- Hashtag Style: {personality.get('hashtag_style', '#music')}
-- Catchphrases: {personality.get('catchphrases', [])}
-- Genre: {music.get('genre', 'Unknown')}
-- Visual Aesthetic: {vi.get('visual_references', 'N/A')}
+- Name: {persona_dict.get("stage_name", persona_dict.get("name", "Artist"))}
+- Tone: {personality.get("tone", "neutral")}
+- Speaking Style: {personality.get("speaking_style", "natural")}
+- Emoji Usage: {personality.get("emoji_usage", "moderate")}
+- Hashtag Style: {personality.get("hashtag_style", "#music")}
+- Catchphrases: {personality.get("catchphrases", [])}
+- Genre: {music.get("genre", "Unknown")}
+- Visual Aesthetic: {vi.get("visual_references", "N/A")}
 """
 
     if custom_data:
@@ -95,11 +98,12 @@ def copywriter_node(state: InfluencerState) -> dict:
     weekly_plans = state["weekly_plans"]
     custom_data = state.get("custom_data")
 
-    persona_dict = persona.model_dump() if hasattr(persona, 'model_dump') else persona
+    persona_dict = persona.model_dump() if hasattr(persona, "model_dump") else persona
 
     logger.info("[COPYWRITER] ✍️ Caption yazımı başlıyor...")
-    
+
     from rich.console import Console
+
     console = Console()
 
     # Tüm slotları topla
@@ -109,11 +113,12 @@ def copywriter_node(state: InfluencerState) -> dict:
             all_slots.append(slot)
 
     captions = []
-    # Batch halinde üret (güvenilirlik için slot slot)
+    cap_llm = get_structured_llm("copywriter", PostCaption)
     for index, slot in enumerate(all_slots):
-        console.print(f"    [dim]⏳ Copywriter: {len(all_slots)} metinden {index+1}. ({slot.date} {slot.platform}) caption yazılıyor...[/dim]")
+        console.print(
+            f"    [dim]⏳ Copywriter: {len(all_slots)} metinden {index + 1}. ({slot.date} {slot.platform}) caption yazılıyor...[/dim]"
+        )
         try:
-            cap_llm = get_structured_llm("copywriter", PostCaption)
             prompt = _build_copywriter_prompt(persona_dict, [slot], custom_data)
             single_prompt = f"""{prompt}
 
@@ -127,7 +132,9 @@ Generate ONLY the PostCaption for this specific slot:
             caption = cap_llm.invoke([HumanMessage(content=single_prompt)])
             captions.append(caption)
         except Exception as e:
-            logger.error(f"[COPYWRITER] Caption hatası ({slot.date}_{slot.platform}): {e}")
+            logger.error(
+                f"[COPYWRITER] Caption hatası ({slot.date}_{slot.platform}): {e}"
+            )
 
     logger.info(f"[COPYWRITER] ✅ {len(captions)} caption üretildi.")
 

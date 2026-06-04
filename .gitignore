@@ -2,5 +2,8 @@
 __pycache__/
 *.pyc
 output/
-personas/*/persona.json
+personas/
+Yapilan_Islemler.txt
+.agent/
+.pytest_cache/
 .ruff_cache/

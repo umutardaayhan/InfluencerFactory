@@ -8,6 +8,7 @@ Sistemdeki yeri: main.py tarafından menüden çağrılır.
 Etkilediği dosyalar: personas/<isim>/seed.json (dosya yaratır),
                      agents/context_builder.py (persona üretimi tetikler)
 """
+
 import json
 import shutil
 import logging
@@ -31,6 +32,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════
 # ─────────────── SIHIRBAZ ADIMLARI ───────────────────────────
 # ═══════════════════════════════════════════════════════════════
+
 
 def _step_header(step: int, total: int, title: str):
     """Adım başlığı gösterir."""
@@ -161,7 +163,9 @@ def _ask_music_details() -> dict:
 
     discography = []
     if has_songs:
-        console.print("  [dim]Her şarkıyı tek tek gireceksiniz. Bitirmek için boş bırakın.[/dim]")
+        console.print(
+            "  [dim]Her şarkıyı tek tek gireceksiniz. Bitirmek için boş bırakın.[/dim]"
+        )
         while True:
             title = inquirer.text(
                 message="Şarkı adı (bitirmek için boş bırak):",
@@ -179,11 +183,13 @@ def _ask_music_details() -> dict:
                 amark="✦",
             ).execute()
 
-            discography.append({
-                "title": title.strip(),
-                "mood": mood.strip(),
-                "status": "yayında",
-            })
+            discography.append(
+                {
+                    "title": title.strip(),
+                    "mood": mood.strip(),
+                    "status": "yayında",
+                }
+            )
 
     # Yaklaşan yayınlar
     has_upcoming = inquirer.confirm(
@@ -219,11 +225,13 @@ def _ask_music_details() -> dict:
                 amark="✦",
             ).execute()
 
-            upcoming.append({
-                "title": title.strip(),
-                "planned_date": planned_date.strip(),
-                "mood": mood.strip(),
-            })
+            upcoming.append(
+                {
+                    "title": title.strip(),
+                    "planned_date": planned_date.strip(),
+                    "mood": mood.strip(),
+                }
+            )
 
     influence_list = [i.strip() for i in influences.split(",") if i.strip()]
 
@@ -339,7 +347,7 @@ def _ask_personality() -> dict:
 def _ask_master_prompt_fullscreen(
     initial_text: str = "",
     title: str = "Persona Detayları (Açıklama veya Yapay Zeka Taslağı)",
-    header_text: str = " ✍️  MASTER PROMPT EKRANI | Max 5000 Karakter | Kaydet & Çık: ESC ardından ENTER | İptal: Ctrl+C"
+    header_text: str = " ✍️  MASTER PROMPT EKRANI | Max 5000 Karakter | Kaydet & Çık: ESC ardından ENTER | İptal: Ctrl+C",
 ) -> str:
     from prompt_toolkit.application import Application
     from prompt_toolkit.layout.containers import HSplit, Window
@@ -350,9 +358,7 @@ def _ask_master_prompt_fullscreen(
     from prompt_toolkit.styles import Style
 
     header = Window(
-        height=1,
-        content=FormattedTextControl(header_text),
-        style="class:header"
+        height=1, content=FormattedTextControl(header_text), style="class:header"
     )
 
     text_area = TextArea(
@@ -360,14 +366,10 @@ def _ask_master_prompt_fullscreen(
         multiline=True,
         scrollbar=True,
         focus_on_click=True,
-        style="class:textarea"
+        style="class:textarea",
     )
 
-    frame = Frame(
-        body=text_area,
-        title=title,
-        style="class:frame"
-    )
+    frame = Frame(body=text_area, title=title, style="class:frame")
 
     layout = Layout(HSplit([header, frame]))
 
@@ -379,16 +381,18 @@ def _ask_master_prompt_fullscreen(
         if len(content) > 5000:
             content = content[:5000]
         event.app.exit(result=content)
-        
-    @kb.add("c-c")
+
+    @kb.add("c-g")
     def _(event):
         event.app.exit(result="")
 
-    style = Style([
-        ("header", "fg:#ffffff bg:#8b008b bold"),
-        ("frame", "fg:#00ffff"),
-        ("textarea", "bg:#1e1e1e fg:#ffffff"),
-    ])
+    style = Style(
+        [
+            ("header", "fg:#ffffff bg:#8b008b bold"),
+            ("frame", "fg:#00ffff"),
+            ("textarea", "bg:#1e1e1e fg:#ffffff"),
+        ]
+    )
 
     app = Application(
         layout=layout,
@@ -398,9 +402,11 @@ def _ask_master_prompt_fullscreen(
         mouse_support=True,
     )
     from prompt_toolkit.patch_stdout import patch_stdout
+
     with patch_stdout():
         result = app.run()
     return result or ""
+
 
 def _ask_images() -> str | None:
     """Adım 6: Fotoğraf kaynağı."""
@@ -409,7 +415,10 @@ def _ask_images() -> str | None:
     has_images = inquirer.select(
         message="Fotoğraflar nasıl sağlanacak?",
         choices=[
-            {"name": "📁 Bir klasörden kopyala (klasör yolu gireceğim)", "value": "folder"},
+            {
+                "name": "📁 Bir klasörden kopyala (klasör yolu gireceğim)",
+                "value": "folder",
+            },
             {"name": "⏭️  Şimdilik atla (sonra manuel eklerim)", "value": "skip"},
         ],
         pointer="❯",
@@ -418,7 +427,9 @@ def _ask_images() -> str | None:
     ).execute()
 
     if has_images == "skip":
-        console.print("  [dim]images/ klasörüne sonra manuel olarak jpg/png ekleyebilirsin.[/dim]")
+        console.print(
+            "  [dim]images/ klasörüne sonra manuel olarak jpg/png ekleyebilirsin.[/dim]"
+        )
         return None
 
     source_dir = inquirer.filepath(
@@ -436,38 +447,80 @@ def _ask_images() -> str | None:
 # ─────────────── MASTER PROMPT PARSER ──────────────────────────
 # ═══════════════════════════════════════════════════════════════
 
+
 class _ParsedMusicObj(BaseModel):
-    genre: str = Field(description="Müzik türü. (Sadece müzisyenler için). Örn: Pop, Rap. Değilse 'Bilinmiyor' yap.", default="Bilinmiyor")
-    influences: list[str] = Field(description="Etkilendiği sanatçılar.", default_factory=list)
-    discography: list[dict] = Field(description="Yayında olan şarkılar: [{'title': '...', 'mood': '...', 'status': 'yayında'}]", default_factory=list)
-    upcoming_releases: list[dict] = Field(description="Yaklaşan şarkılar: [{'title': '...', 'planned_date': '...', 'mood': '...'}]", default_factory=list)
+    genre: str = Field(
+        description="Müzik türü. (Sadece müzisyenler için). Örn: Pop, Rap. Değilse 'Bilinmiyor' yap.",
+        default="Bilinmiyor",
+    )
+    influences: list[str] = Field(
+        description="Etkilendiği sanatçılar.", default_factory=list
+    )
+    discography: list[dict] = Field(
+        description="Yayında olan şarkılar: [{'title': '...', 'mood': '...', 'status': 'yayında'}]",
+        default_factory=list,
+    )
+    upcoming_releases: list[dict] = Field(
+        description="Yaklaşan şarkılar: [{'title': '...', 'planned_date': '...', 'mood': '...'}]",
+        default_factory=list,
+    )
+
 
 class _ParsedContentObj(BaseModel):
-    niche: str = Field(description="İçerik nişi. Örn: Yaşam tarzı, Makyaj, Mimari.", default="Genel İçerik")
+    niche: str = Field(
+        description="İçerik nişi. Örn: Yaşam tarzı, Makyaj, Mimari.",
+        default="Genel İçerik",
+    )
     style: str = Field(description="İçerik anlatım tarzı.", default="Samimi")
 
+
 class _ParsedSocialMediaObj(BaseModel):
-    platforms: list[str] = Field(description="Sosyal medya platformları. Belirtilmemişse ['Instagram', 'TikTok'] yap.", default=["Instagram", "TikTok"])
-    audience: str = Field(description="Hedef kitle (yaş, ilgi alanları).", default="18-35 yaş")
+    platforms: list[str] = Field(
+        description="Sosyal medya platformları. Belirtilmemişse ['Instagram', 'TikTok'] yap.",
+        default=["Instagram", "TikTok"],
+    )
+    audience: str = Field(
+        description="Hedef kitle (yaş, ilgi alanları).", default="18-35 yaş"
+    )
+
 
 class MasterPersonaParsed(BaseModel):
-    name: str = Field(description="Kişinin gerçek adı. Belirtilmemişse sahne adını kullanın.")
-    stage_name: str = Field(description="Sahne adı, sanatçı adı veya marka adı. Bu her zaman dolu olmalı.")
+    name: str = Field(
+        description="Kişinin gerçek adı. Belirtilmemişse sahne adını kullanın."
+    )
+    stage_name: str = Field(
+        description="Sahne adı, sanatçı adı veya marka adı. Bu her zaman dolu olmalı."
+    )
     age: int = Field(description="Yaş. Belirtilmemişse 25 yapın.", default=25)
-    gender: str = Field(description="Cinsiyet (kadın, erkek, vb.)", default="belirtilmemiş")
+    gender: str = Field(
+        description="Cinsiyet (kadın, erkek, vb.)", default="belirtilmemiş"
+    )
     origin: str = Field(description="Nereli olduğu (şehir/ülke).", default="Bilinmiyor")
-    profession: str = Field(description="Ana meslek. Örn: müzisyen, influencer, vlogger, aktör vb.")
+    profession: str = Field(
+        description="Ana meslek. Örn: müzisyen, influencer, vlogger, aktör vb."
+    )
     biography: str = Field(description="Kısa biyografi (1-3 cümle).")
-    personality_hints: str = Field(description="Kişilik özellikleri (nasıl konuşur, davranır vb.).")
-    extra_notes: str | None = Field(description="Ekstra notlar veya verilen ilgisiz ama önemli detaylar.", default=None)
-    music: _ParsedMusicObj | None = Field(description="Kişi müzisyense doldurulacak müzik detayları.", default=None)
-    content: _ParsedContentObj | None = Field(description="Kişi influencer veya içerik üreticisiyse doldurulacak içerik detayları.", default=None)
+    personality_hints: str = Field(
+        description="Kişilik özellikleri (nasıl konuşur, davranır vb.)."
+    )
+    extra_notes: str | None = Field(
+        description="Ekstra notlar veya verilen ilgisiz ama önemli detaylar.",
+        default=None,
+    )
+    music: _ParsedMusicObj | None = Field(
+        description="Kişi müzisyense doldurulacak müzik detayları.", default=None
+    )
+    content: _ParsedContentObj | None = Field(
+        description="Kişi influencer veya içerik üreticisiyse doldurulacak içerik detayları.",
+        default=None,
+    )
     social_media: _ParsedSocialMediaObj
+
 
 def _parse_master_prompt(prompt_text: str) -> dict:
     """LLM kullanarak uzun metni seed sözlüğü formatına dönüştürür."""
     from core.llm_bridge import get_structured_llm
-    
+
     system_prompt = (
         "Sen bir AI persona veri ayıklayıcısısın. Kullanıcı sana bir sanatçı veya "
         "influencer hakkında detaylı bir 'Master Prompt' verecek. Senin görevin "
@@ -476,19 +529,18 @@ def _parse_master_prompt(prompt_text: str) -> dict:
         "gerçekçi tahminler yap. Müzisyense 'music' objesini detaylı doldur, "
         "içerik üreticisiyse 'content' objesini detaylı doldur."
     )
-    
+
     llm = get_structured_llm("context_builder", MasterPersonaParsed)
-    
+
     try:
-        messages = [
-            ("system", system_prompt),
-            ("human", prompt_text)
-        ]
+        messages = [("system", system_prompt), ("human", prompt_text)]
         parsed_data = llm.invoke(messages)
-        
+
         # Alan kuralları (Domain Separation)
         profession = parsed_data.profession.lower()
-        is_musician = any(kw in profession for kw in ["müzisyen", "rapper", "dj_prodüktör", "şarkıcı"])
+        is_musician = any(
+            kw in profession for kw in ["müzisyen", "rapper", "dj_prodüktör", "şarkıcı"]
+        )
         if is_musician:
             parsed_data.content = None
         else:
@@ -496,11 +548,11 @@ def _parse_master_prompt(prompt_text: str) -> dict:
 
         # Pydantic'i dictionary'ye çevirip null alanları tamamen sil (exclude_none=True)
         data_dict = parsed_data.model_dump(exclude_none=True)
-        
+
         # Ekstra temizlik
         if not data_dict.get("extra_notes"):
             data_dict.pop("extra_notes", None)
-            
+
         return data_dict
     except Exception as e:
         logger.error(f"Master Prompt parse edilirken hata oluştu: {e}")
@@ -511,6 +563,7 @@ def _parse_master_prompt(prompt_text: str) -> dict:
 # ─────────────── ANA SIHIRBAZ FONKSİYONU ─────────────────────
 # ═══════════════════════════════════════════════════════════════
 
+
 def run_persona_wizard() -> dict | None:
     """
     Adım adım yeni persona oluşturma sihirbazını çalıştırır.
@@ -519,25 +572,41 @@ def run_persona_wizard() -> dict | None:
         Oluşturulan persona bilgileri (dir, name vb.) veya None (iptal)
     """
     console.print()
-    console.print(Align.center(Panel(
-        "[bright_cyan]Yeni bir sanatçı/influencer profili oluşturacağız.[/bright_cyan]\n"
-        "[dim]Adım adım sorular sorulacak. Her adımda ok tuşlarıyla seçim yapabilirsin.[/dim]\n"
-        "[dim]Fotoğrafları yüklersen AI görsel kimliği otomatik analiz edecek.[/dim]",
-        title="[bold bright_magenta]✨ Yeni Persona Sihirbazı[/bold bright_magenta]",
-        border_style="bright_magenta",
-        padding=(1, 3),
-        expand=False
-    )))
+    console.print(
+        Align.center(
+            Panel(
+                "[bright_cyan]Yeni bir sanatçı/influencer profili oluşturacağız.[/bright_cyan]\n"
+                "[dim]Adım adım sorular sorulacak. Her adımda ok tuşlarıyla seçim yapabilirsin.[/dim]\n"
+                "[dim]Fotoğrafları yüklersen AI görsel kimliği otomatik analiz edecek.[/dim]",
+                title="[bold bright_magenta]✨ Yeni Persona Sihirbazı[/bold bright_magenta]",
+                border_style="bright_magenta",
+                padding=(1, 3),
+                expand=False,
+            )
+        )
+    )
 
     try:
         # Master Prompt Sorusunu Sor
         master_prompt_choice = inquirer.select(
             message="Profili nasıl oluşturmak istersin?",
             choices=[
-                {"name": "🪄 Master Prompt gir (Tüm detayları uzun metinle anlat, AI halletsin)", "value": "master"},
-                {"name": "📋 Soru-Cevap Sihirbazı (Adım adım her detayı ben gireceğim)", "value": "wizard"},
-                {"name": "📸 Resimlerden rastgele oluştur (Sadece klasör ver, AI hayal etsin)", "value": "random_image"},
-                {"name": "📸 Resimli Soru-Cevap (Resimleri ver, üstüne soru-cevap yapalım)", "value": "image_wizard"}
+                {
+                    "name": "🪄 Master Prompt gir (Tüm detayları uzun metinle anlat, AI halletsin)",
+                    "value": "master",
+                },
+                {
+                    "name": "📋 Soru-Cevap Sihirbazı (Adım adım her detayı ben gireceğim)",
+                    "value": "wizard",
+                },
+                {
+                    "name": "📸 Resimlerden rastgele oluştur (Sadece klasör ver, AI hayal etsin)",
+                    "value": "random_image",
+                },
+                {
+                    "name": "📸 Resimli Soru-Cevap (Resimleri ver, üstüne soru-cevap yapalım)",
+                    "value": "image_wizard",
+                },
             ],
             pointer="❯",
             qmark="🤖",
@@ -553,53 +622,77 @@ def run_persona_wizard() -> dict | None:
         if master_prompt_choice in ["random_image", "image_wizard"]:
             image_source = _ask_images()
             if not image_source:
-                console.print("  [yellow]Fotoğraf sağlanmadığı için standart formata geçiliyor...[/yellow]")
-                master_prompt_choice = "wizard" if master_prompt_choice == "image_wizard" else "master"
+                console.print(
+                    "  [yellow]Fotoğraf sağlanmadığı için standart formata geçiliyor...[/yellow]"
+                )
+                master_prompt_choice = (
+                    "wizard" if master_prompt_choice == "image_wizard" else "master"
+                )
             else:
                 if master_prompt_choice == "random_image":
                     with Progress(
                         SpinnerColumn("dots", style="bright_cyan"),
-                        TextColumn("[bright_cyan] AI fotoğrafları inceliyor ve rastgele bir profil hayal ediyor...[/bright_cyan]"),
+                        TextColumn(
+                            "[bright_cyan] AI fotoğrafları inceliyor ve rastgele bir profil hayal ediyor...[/bright_cyan]"
+                        ),
                         console=console,
                     ) as progress:
                         task = progress.add_task("Hayal Ediliyor...", total=None)
-                        from core.llm_bridge import get_vision_llm, image_to_base64, get_image_mime
+                        from core.llm_bridge import (
+                            get_vision_llm,
+                            image_to_base64,
+                            get_image_mime,
+                        )
                         from langchain_core.messages import HumanMessage
-                        
+
                         vision_llm = get_vision_llm("context_builder")
-                        
+
                         source_path = Path(image_source)
                         supported = {".jpg", ".jpeg", ".png", ".webp"}
-                        img_files = [p for p in source_path.iterdir() if p.is_file() and p.suffix.lower() in supported][:5]
-                        
+                        img_files = [
+                            p
+                            for p in source_path.iterdir()
+                            if p.is_file() and p.suffix.lower() in supported
+                        ][:5]
+
                         content_parts = []
                         for img_path in img_files:
                             b64 = image_to_base64(str(img_path))
                             mime = get_image_mime(str(img_path))
-                            content_parts.append({
-                                "type": "image_url",
-                                "image_url": {"url": f"data:{mime};base64,{b64}"}
-                            })
-                            
+                            content_parts.append(
+                                {
+                                    "type": "image_url",
+                                    "image_url": {"url": f"data:{mime};base64,{b64}"},
+                                }
+                            )
+
                         prompt_text = "Ekteki fotoğraflara bak ve bu kişi için tamamen rastgele, tutarlı, yaratıcı ve ilgi çekici bir Sanatçı veya Influencer profili oluştur. Bana profille ilgili detaylı uzun bir metin ver; geçmişini, yaşını, ismini, tarzını, mesleğini, platformlarını ve vizyonunu yaz. Detaylı ve tek parça bir metin olsun."
                         content_parts.append({"type": "text", "text": prompt_text})
-                        
+
                         try:
-                            response = vision_llm.invoke([HumanMessage(content=content_parts)])
+                            response = vision_llm.invoke(
+                                [HumanMessage(content=content_parts)]
+                            )
                             master_text = response.content
                         except Exception as e:
                             logger.error(f"Rastgele profil üretilemedi: {e}")
                             master_text = ""
-                            
+
                         progress.update(task, completed=1)
 
                     if not master_text:
-                        console.print("  [bold yellow]⚠️ Rastgele analiz başarısız oldu, sihirbaza geçiliyor.[/bold yellow]")
+                        console.print(
+                            "  [bold yellow]⚠️ Rastgele analiz başarısız oldu, sihirbaza geçiliyor.[/bold yellow]"
+                        )
                         master_prompt_choice = "wizard"
                     else:
-                        master_text = _ask_master_prompt_fullscreen(initial_text=master_text)
+                        master_text = _ask_master_prompt_fullscreen(
+                            initial_text=master_text
+                        )
                         if not master_text.strip():
-                            console.print("  [bold yellow]⚠️ Prompt boş bırakıldı, sihirbaza geçiliyor.[/bold yellow]")
+                            console.print(
+                                "  [bold yellow]⚠️ Prompt boş bırakıldı, sihirbaza geçiliyor.[/bold yellow]"
+                            )
                             master_prompt_choice = "wizard"
                         else:
                             master_prompt_choice = "master"
@@ -609,30 +702,50 @@ def run_persona_wizard() -> dict | None:
         if master_prompt_choice == "master":
             if not master_text:
                 master_text = _ask_master_prompt_fullscreen(initial_text="")
-            
+
             if not master_text.strip():
-                console.print("  [yellow]Boş metin girildi, sihirbaza dönülüyor...[/yellow]")
+                console.print(
+                    "  [yellow]Boş metin girildi, sihirbaza dönülüyor...[/yellow]"
+                )
                 master_prompt_choice = "wizard"
             else:
-                console.print(Panel(f"[dim]{master_text}[/dim]", border_style="cyan", title="[bold]Kullanılacak Master Prompt[/bold]"))
+                console.print(
+                    Panel(
+                        f"[dim]{master_text}[/dim]",
+                        border_style="cyan",
+                        title="[bold]Kullanılacak Master Prompt[/bold]",
+                    )
+                )
                 with Progress(
                     SpinnerColumn("dots", style="bright_cyan"),
-                    TextColumn("[bright_cyan] Master Prompt yapay zeka tarafından analiz ediliyor...[/bright_cyan]"),
+                    TextColumn(
+                        "[bright_cyan] Master Prompt yapay zeka tarafından analiz ediliyor...[/bright_cyan]"
+                    ),
                     console=console,
                 ) as progress:
                     task = progress.add_task("Analiz", total=None)
                     from core.llm_bridge import reset_token_counter
+
                     reset_token_counter()
                     parsed = _parse_master_prompt(master_text.strip())
                     progress.update(task, completed=1)
-                
+
                 if parsed:
                     seed = parsed
                     profession = seed.get("profession", "")
-                    is_musician = profession.lower().strip() in ["müzisyen", "rapper", "dj_prodüktör", "şarkıcı"]
-                    console.print("  [green]✅ Bilgiler başarıyla ayrıştırıldı![/green]")
+                    is_musician = profession.lower().strip() in [
+                        "müzisyen",
+                        "rapper",
+                        "dj_prodüktör",
+                        "şarkıcı",
+                    ]
+                    console.print(
+                        "  [green]✅ Bilgiler başarıyla ayrıştırıldı![/green]"
+                    )
                 else:
-                    console.print("  [bold yellow]⚠️ Master prompt analiz edilemedi. Sisteme bilgileri sihirbaz ile giriniz.[/bold yellow]")
+                    console.print(
+                        "  [bold yellow]⚠️ Master prompt analiz edilemedi. Sisteme bilgileri sihirbaz ile giriniz.[/bold yellow]"
+                    )
                     master_prompt_choice = "wizard"
 
         if master_prompt_choice == "wizard":
@@ -682,7 +795,9 @@ def run_persona_wizard() -> dict | None:
     # ── Özet göster ve Onay Al ─────────────────────────────
     while True:
         console.print()
-        summary_table = Table(box=box.ROUNDED, border_style="bright_cyan", padding=(0, 2))
+        summary_table = Table(
+            box=box.ROUNDED, border_style="bright_cyan", padding=(0, 2)
+        )
         summary_table.add_column("Alan", style="dim", width=20)
         summary_table.add_column("Değer", style="white")
 
@@ -697,20 +812,31 @@ def run_persona_wizard() -> dict | None:
             summary_table.add_row("🎵 Tür", seed.get("music", {}).get("genre", ""))
             songs = len(seed.get("music", {}).get("discography", []))
             upcoming = len(seed.get("music", {}).get("upcoming_releases", []))
-            summary_table.add_row("📀 Şarkılar", f"{songs} yayında, {upcoming} yaklaşan")
+            summary_table.add_row(
+                "📀 Şarkılar", f"{songs} yayında, {upcoming} yaklaşan"
+            )
         else:
             summary_table.add_row("🎯 Niş", seed.get("content", {}).get("niche", ""))
 
-        summary_table.add_row("📱 Platformlar", ", ".join(seed.get("social_media", {}).get("platforms", [])))
-        summary_table.add_row("🖼️ Fotoğraflar", image_source if image_source else "Henüz yok")
+        summary_table.add_row(
+            "📱 Platformlar",
+            ", ".join(seed.get("social_media", {}).get("platforms", [])),
+        )
+        summary_table.add_row(
+            "🖼️ Fotoğraflar", image_source if image_source else "Henüz yok"
+        )
 
-        console.print(Align.center(Panel(
-            summary_table,
-            title="[bold bright_cyan]📋 Persona Özeti[/bold bright_cyan]",
-            border_style="bright_cyan",
-            padding=(1, 4),
-            expand=False
-        )))
+        console.print(
+            Align.center(
+                Panel(
+                    summary_table,
+                    title="[bold bright_cyan]📋 Persona Özeti[/bold bright_cyan]",
+                    border_style="bright_cyan",
+                    padding=(1, 4),
+                    expand=False,
+                )
+            )
+        )
 
         # Onay
         confirm = inquirer.confirm(
@@ -728,7 +854,10 @@ def run_persona_wizard() -> dict | None:
                 {"name": "👤 İsim / Sahne Adı", "value": "name"},
                 {"name": "🎂 Yaş", "value": "age"},
                 {"name": "💼 Meslek / Niş", "value": "profession"},
-                {"name": "Değiştirmek istediğim veri yok (İptal Et)", "value": "cancel"}
+                {
+                    "name": "Değiştirmek istediğim veri yok (İptal Et)",
+                    "value": "cancel",
+                },
             ],
             pointer="❯",
             qmark="✏️",
@@ -738,27 +867,50 @@ def run_persona_wizard() -> dict | None:
             console.print("  [dim]İptal edildi.[/dim]")
             return None
         elif change_what == "name":
-            seed["name"] = inquirer.text("Gerçek isim:", default=seed.get("name", "")).execute().strip()
-            seed["stage_name"] = inquirer.text("Sahne/marka adı:", default=seed.get("stage_name", "")).execute().strip()
+            seed["name"] = (
+                inquirer.text("Gerçek isim:", default=seed.get("name", ""))
+                .execute()
+                .strip()
+            )
+            seed["stage_name"] = (
+                inquirer.text("Sahne/marka adı:", default=seed.get("stage_name", ""))
+                .execute()
+                .strip()
+            )
         elif change_what == "age":
             age_str = inquirer.text(
-                "Yaş:", default=str(seed.get("age", 25)),
+                "Yaş:",
+                default=str(seed.get("age", 25)),
                 validate=lambda x: x.isdigit() and 13 <= int(x) <= 99,
-                invalid_message="Lütfen 13 ile 99 arasında geçerli bir tam sayı girin."
+                invalid_message="Lütfen 13 ile 99 arasında geçerli bir tam sayı girin.",
             ).execute()
             seed["age"] = int(age_str)
         elif change_what == "profession":
             if is_musician:
-                seed["music"]["genre"] = inquirer.text("Müzik türü:", default=seed.get("music", {}).get("genre", "")).execute().strip()
+                seed["music"]["genre"] = (
+                    inquirer.text(
+                        "Müzik türü:", default=seed.get("music", {}).get("genre", "")
+                    )
+                    .execute()
+                    .strip()
+                )
             else:
                 if "content" not in seed:
                     seed["content"] = {}
-                seed["content"]["niche"] = inquirer.text("İçerik nişi:", default=seed.get("content", {}).get("niche", "")).execute().strip()
-            
+                seed["content"]["niche"] = (
+                    inquirer.text(
+                        "İçerik nişi:", default=seed.get("content", {}).get("niche", "")
+                    )
+                    .execute()
+                    .strip()
+                )
+
         console.print("  [green]✅ Bilgiler güncellendi.[/green]")
 
     # ── Klasör yapısı oluştur ──────────────────────────────
-    safe_folder = seed.get("stage_name", "Isimsiz").lower().replace(" ", "_").replace("/", "_")
+    safe_folder = (
+        seed.get("stage_name", "Isimsiz").lower().replace(" ", "_").replace("/", "_")
+    )
     persona_dir = Path("personas") / safe_folder
     persona_dir.mkdir(parents=True, exist_ok=True)
     (persona_dir / "images").mkdir(exist_ok=True)
@@ -784,9 +936,13 @@ def run_persona_wizard() -> dict | None:
                 images_copied += 1
 
         if images_copied > 0:
-            console.print(f"  [green]🖼️ {images_copied} fotoğraf kopyalandı → {target}[/green]")
+            console.print(
+                f"  [green]🖼️ {images_copied} fotoğraf kopyalandı → {target}[/green]"
+            )
         else:
-            console.print(f"  [yellow]⚠️ Klasörde desteklenen görsel bulunamadı (.jpg/.png/.webp)[/yellow]")
+            console.print(
+                f"  [yellow]⚠️ Klasörde desteklenen görsel bulunamadı (.jpg/.png/.webp)[/yellow]"
+            )
 
     # ── Context Builder çalıştır? ──────────────────────────
     if images_copied > 0:
@@ -799,7 +955,9 @@ def run_persona_wizard() -> dict | None:
         if run_analysis:
             _run_context_builder(str(persona_dir))
     else:
-        console.print("  [dim]Fotoğraf eklediğinde menüden '🔄 Persona Yenile' veya '🚀 İçerik Paketi Üret' ile analiz başlatabilirsin.[/dim]")
+        console.print(
+            "  [dim]Fotoğraf eklediğinde menüden '🔄 Persona Yenile' veya '🚀 İçerik Paketi Üret' ile analiz başlatabilirsin.[/dim]"
+        )
 
     return {
         "dir": str(persona_dir),
@@ -834,10 +992,11 @@ def _run_context_builder(persona_dir: str):
     ) as progress:
         task = progress.add_task(
             f"🧠 {len(images)} fotoğraf analiz ediliyor, görsel kimlik çıkarılıyor...",
-            total=None
+            total=None,
         )
 
         from agents.context_builder import context_builder_node
+
         state = {
             "seed_data": seed,
             "image_paths": images,
@@ -858,17 +1017,23 @@ def _run_context_builder(persona_dir: str):
 
     result_table.add_row("📄 Dosya", str(Path(persona_dir) / "persona.json"))
     result_table.add_row("🪙 Token", str(tokens))
-    result_table.add_row("👤 Görünüm", persona_obj.visual_identity.appearance[:80] + "...")
+    result_table.add_row(
+        "👤 Görünüm", persona_obj.visual_identity.appearance[:80] + "..."
+    )
     result_table.add_row("🎨 Stil", persona_obj.visual_identity.visual_references[:60])
     result_table.add_row("🗣️ Ton", persona_obj.personality.tone[:60])
     if persona_obj.personality.catchphrases:
         result_table.add_row("💬 İmza Söz", persona_obj.personality.catchphrases[0])
 
     console.print()
-    console.print(Align.center(Panel(
-        result_table,
-        title="[bold green]✅ Persona Oluşturuldu[/bold green]",
-        border_style="green",
-        padding=(1, 4),
-        expand=False
-    )))
+    console.print(
+        Align.center(
+            Panel(
+                result_table,
+                title="[bold green]✅ Persona Oluşturuldu[/bold green]",
+                border_style="green",
+                padding=(1, 4),
+                expand=False,
+            )
+        )
+    )
